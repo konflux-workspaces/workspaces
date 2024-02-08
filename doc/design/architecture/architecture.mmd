@@ -1,0 +1,42 @@
+flowchart LR
+  U["fa:fa-user User"]
+
+  AG["API Gateway"]
+  RS["Registration Service"]
+  P["Proxy"]
+  WA["Workspaces API"]
+
+  MC["Member Clusters"]
+
+  subgraph WO["Workspaces Operator"]
+    direction TB
+    W["Workspace"]
+  end
+
+
+  subgraph HostCluster
+    direction TB
+    subgraph KubeSaw
+      direction TB
+      US["User Signup"]
+      MUR["Master User Record"]
+      SB["Space Binding"]
+      S["Space"]
+    end
+  end
+
+  U --> AG
+  AG -- "/api/signup" --> RS
+  AG -- "/apis/workspaces.io/workspaces/:name/*" --> P
+  AG -- "/apis/workspaces.io/workspaces[/:name]" --> WA
+
+  RS --> US
+  WO --> S
+  WO --> SB
+  WO -. "watches" .-> US
+
+  WA --> W
+
+  KubeSaw --> MC
+  
+%%{init: {'flowchart': {'curve': 'linear'}}}%%

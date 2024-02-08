@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rest-api-server
+  namespace: system
+  labels:
+    provider: workspaces
+    run: rest-api-server
+spec:
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: rest-api-server
+  type: ClusterIP
+  sessionAffinity: None

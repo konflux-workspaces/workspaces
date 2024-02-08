@@ -1,0 +1,231 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
+  name: masteruserrecords.toolchain.dev.openshift.com
+spec:
+  group: toolchain.dev.openshift.com
+  names:
+    kind: MasterUserRecord
+    listKind: MasterUserRecordList
+    plural: masteruserrecords
+    shortNames:
+    - mur
+    singular: masteruserrecord
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+      name: Reason
+      type: string
+    - jsonPath: .status.userAccounts[].cluster.name
+      name: Cluster
+      type: string
+    - jsonPath: .spec.tierName
+      name: Tier
+      type: string
+    - jsonPath: .spec.banned
+      name: Banned
+      priority: 1
+      type: string
+    - jsonPath: .spec.disabled
+      name: Disabled
+      priority: 1
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MasterUserRecord keeps all information about user, user accounts
+          and namespaces provisioned in CodeReady Toolchain
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MasterUserRecordSpec defines the desired state of MasterUserRecord
+            properties:
+              disabled:
+                description: If set to true then the corresponding user should not
+                  be able to login (but the underlying UserAccounts still exists)
+                  "false" is assumed by default
+                type: boolean
+              originalSub:
+                description: OriginalSub is an optional property temporarily introduced
+                  for the purpose of migrating the users to a new IdP provider client,
+                  and contains the user's "original-sub" claim
+                type: string
+              propagatedClaims:
+                description: PropagatedClaims contains a selection of claim values
+                  from the SSO Identity Provider which are intended to be "propagated"
+                  down the resource dependency chain
+                properties:
+                  accountID:
+                    description: AccountID contains the value of the 'account_id'
+                      claim
+                    type: string
+                  email:
+                    description: Email contains the user's email address
+                    type: string
+                  originalSub:
+                    description: OriginalSub is an optional property temporarily introduced
+                      for the purpose of migrating the users to a new IdP provider
+                      client, and contains the user's "original-sub" claim
+                    type: string
+                  sub:
+                    description: Sub contains the value of the 'sub' claim
+                    type: string
+                  userID:
+                    description: UserID contains the value of the 'user_id' claim
+                    type: string
+                required:
+                - email
+                - sub
+                type: object
+              tierName:
+                description: TierName is an optional property introduced to retain
+                  the name of the tier for which the Dev Sandbox user is provisioned,
+                  so we can still deal with deactivation once the NSTemplateSet field
+                  has been removed from `[]spec.UserAccounts` temporarily marked as
+                  optional until the migration took place (CRT-1321)
+                type: string
+              userAccounts:
+                description: The list of user accounts in the member clusters which
+                  belong to this MasterUserRecord
+                items:
+                  properties:
+                    targetCluster:
+                      description: The cluster in which the user exists
+                      type: string
+                  required:
+                  - targetCluster
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - targetCluster
+                x-kubernetes-list-type: map
+              userID:
+                description: UserID is the user ID from RHD Identity Provider token
+                  (“sub” claim)
+                type: string
+            type: object
+          status:
+            description: MasterUserRecordStatus defines the observed state of MasterUserRecord
+            properties:
+              conditions:
+                description: 'Conditions is an array of current Master User Record
+                  conditions Supported condition types: Provisioning, UserAccountNotReady
+                  and Ready'
+                items:
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transit from one status
+                        to another.
+                      format: date-time
+                      type: string
+                    lastUpdatedTime:
+                      description: Last time the condition was updated
+                      format: date-time
+                      type: string
+                    message:
+                      description: Human readable message indicating details about
+                        last transition.
+                      type: string
+                    reason:
+                      description: (brief) reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              provisionedTime:
+                description: The timestamp when the user was provisioned
+                format: date-time
+                type: string
+              userAccounts:
+                description: The status of user accounts in the member clusters which
+                  belong to this MasterUserRecord
+                items:
+                  properties:
+                    cluster:
+                      description: Cluster is the cluster in which the user exists
+                      properties:
+                        name:
+                          description: Name is the name of the corresponding ToolchainCluster
+                            resource
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    conditions:
+                      description: 'Conditions is an array of current User Account
+                        conditions Supported condition types: ConditionReady'
+                      items:
+                        properties:
+                          lastTransitionTime:
+                            description: Last time the condition transit from one
+                              status to another.
+                            format: date-time
+                            type: string
+                          lastUpdatedTime:
+                            description: Last time the condition was updated
+                            format: date-time
+                            type: string
+                          message:
+                            description: Human readable message indicating details
+                              about last transition.
+                            type: string
+                          reason:
+                            description: (brief) reason for the condition's last transition.
+                            type: string
+                          status:
+                            description: Status of the condition, one of True, False,
+                              Unknown.
+                            type: string
+                          type:
+                            description: Type of condition
+                            type: string
+                        required:
+                        - status
+                        - type
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                      - type
+                      x-kubernetes-list-type: map
+                  required:
+                  - cluster
+                  type: object
+                type: array
+                x-kubernetes-list-type: atomic
+            type: object
+        type: object
+        x-kubernetes-preserve-unknown-fields: true
+    served: true
+    storage: true
+    subresources:
+      status: {}
