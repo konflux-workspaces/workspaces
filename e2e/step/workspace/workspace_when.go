@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
@@ -13,50 +14,41 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-func whenUserRequestsANewPrivateWorkspace(ctx context.Context) error {
-	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
-
-	w := workspacesv1alpha1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "new-private",
-			Namespace: ns,
-		},
-		Spec: workspacesv1alpha1.WorkspaceSpec{
-			Visibility: workspacesv1alpha1.WorkspaceVisibilityPrivate,
-		},
-	}
-	return cli.Create(ctx, &w)
+func whenUserRequestsANewPrivateWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspaceInTestNamespace(ctx, "new-private", workspacesv1alpha1.WorkspaceVisibilityPrivate)
 }
 
-func whenUserRequestsANewCommunityWorkspace(ctx context.Context) error {
+func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspaceInTestNamespace(ctx, "new-community", workspacesv1alpha1.WorkspaceVisibilityCommunity)
+}
+
+func createNewWorkspaceInTestNamespace(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveTestNamespace(ctx)
 
-	w := workspacesv1alpha1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "new-community",
-			Namespace: ns,
-		},
-		Spec: workspacesv1alpha1.WorkspaceSpec{
-			Visibility: workspacesv1alpha1.WorkspaceVisibilityCommunity,
-		},
+	w, err := createWorkspace(ctx, cli, ns, name, visibility)
+	if err != nil {
+		return ctx, err
 	}
-	return cli.Create(ctx, &w)
+	return tcontext.InjectWorkspace(ctx, *w), nil
 }
 
 func whenAWorkspaceIsCreatedForUser(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveTestNamespace(ctx)
 
-	_, err := user.OnboardUser(ctx, cli, ns, user.DefaultUserName)
+	u, err := user.OnboardUser(ctx, cli, ns, user.DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}
 
-	if _, err := getWorkspaceFromTestNamespace(ctx, user.DefaultUserName); err != nil {
+	w, err := getWorkspaceFromTestNamespace(ctx, user.DefaultUserName)
+	if err != nil {
 		return ctx, err
 	}
+
+	ctx = tcontext.InjectUser(ctx, *u)
+	ctx = tcontext.InjectWorkspace(ctx, *w)
 	return ctx, nil
 }
 
@@ -84,4 +76,21 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 	}
 
 	return tcontext.InjectWorkspace(ctx, w), nil
+}
+
+func createWorkspace(ctx context.Context, cli client.Client, namespace, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
+	w := workspacesv1alpha1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: workspacesv1alpha1.WorkspaceSpec{
+			Visibility: visibility,
+		},
+	}
+
+	if err := cli.Create(ctx, &w); err != nil {
+		return nil, err
+	}
+	return &w, nil
 }

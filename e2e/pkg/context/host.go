@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	keyHostClient    string = "host-client"
-	keyTestNamespace string = "test-namespace"
-	keyWorkspace     string = "default-workspace"
-	keyUser          string = "default-user"
+	keyHostClient         string = "host-client"
+	keyTestNamespace      string = "test-namespace"
+	keyKubespaceNamespace string = "kubespace-namespace"
+	keyWorkspace          string = "default-workspace"
+	keyUser               string = "default-user"
 
 	msgNotFound string = "key not found in context"
 )
@@ -26,6 +27,15 @@ func InjectHostClient(ctx context.Context, cli client.Client) context.Context {
 
 func RetrieveHostClient(ctx context.Context) client.Client {
 	return get[client.Client](ctx, keyHostClient)
+}
+
+// Kubespace Namespace
+func InjectKubespaceNamespace(ctx context.Context, namespace string) context.Context {
+	return context.WithValue(ctx, keyKubespaceNamespace, namespace)
+}
+
+func RetrieveKubespaceNamespace(ctx context.Context) string {
+	return get[string](ctx, keyKubespaceNamespace)
 }
 
 // Test Namespace

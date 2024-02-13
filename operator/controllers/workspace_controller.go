@@ -37,7 +37,8 @@ import (
 // WorkspaceReconciler reconciles a Workspace object
 type WorkspaceReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme             *runtime.Scheme
+	KubespaceNamespace string
 }
 
 var (
@@ -61,7 +62,7 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	w := workspacescomv1alpha1.Workspace{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &w); err != nil {
 		if kerrors.IsNotFound(err) {
-			return ctrl.Result{}, r.ensureSpaceIsDeleted(ctx, req.NamespacedName)
+			return ctrl.Result{}, r.ensureSpaceIsDeleted(ctx, req.Name)
 		}
 		return ctrl.Result{}, err
 	}
@@ -81,11 +82,10 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
-
 	s := toolchainv1alpha1.SpaceBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", w.Name),
-			Namespace: w.Namespace,
+			Namespace: r.KubespaceNamespace,
 		},
 	}
 	switch w.Spec.Visibility {
@@ -98,6 +98,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 		})
 		return err
 	case workspacescomv1alpha1.WorkspaceVisibilityPrivate:
+		// TODO: delete Space binding if exists
 		return nil
 	default:
 		return fmt.Errorf("%w: invalid workspace visibility value", ErrNonTransient)
@@ -105,7 +106,8 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 }
 
 func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
-	s := toolchainv1alpha1.Space{ObjectMeta: metav1.ObjectMeta{Name: w.Name, Namespace: w.Namespace}}
+	s := toolchainv1alpha1.Space{ObjectMeta: metav1.ObjectMeta{Name: w.Name, Namespace: r.KubespaceNamespace}}
+	l := log.FromContext(ctx).WithValues("space", s.Name, "space-namespace", r.KubespaceNamespace)
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 		ll := s.GetLabels()
 		if len(ll) == 0 {
@@ -116,15 +118,29 @@ func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w worksp
 		s.SetLabels(ll)
 		return nil
 	})
-	return err
-}
-
-func (r *WorkspaceReconciler) ensureSpaceIsDeleted(ctx context.Context, nn types.NamespacedName) error {
-	s := toolchainv1alpha1.Space{}
-	if err := r.Get(ctx, nn, &s); err != nil {
-		return client.IgnoreNotFound(err)
+	if err != nil {
+		l.Error(err, "error creating/updating space")
+		return err
 	}
 
+	l.Info("space created/updated")
+	return nil
+}
+
+func (r *WorkspaceReconciler) ensureSpaceIsDeleted(ctx context.Context, name string) error {
+	s := toolchainv1alpha1.Space{}
+	t := types.NamespacedName{Name: name, Namespace: r.KubespaceNamespace}
+	l := log.FromContext(ctx).WithValues("space", t.Name, "space-namespace", t.Namespace)
+	l.Info("retrieving space for deletion")
+	if err := r.Get(ctx, t, &s); err != nil {
+		if kerrors.IsNotFound(err) {
+			l.Info("space not found")
+			return nil
+		}
+		return err
+	}
+
+	l.Info("deleting space")
 	return client.IgnoreNotFound(r.Delete(ctx, &s))
 }
 

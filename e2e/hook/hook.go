@@ -12,6 +12,7 @@ func InjectHooks(ctx *godog.ScenarioContext) {
 func injectHookSetup(ctx *godog.ScenarioContext) {
 	ctx.Before(injectHostClient)
 	ctx.Before(createAndInjectTestNamespace)
+	ctx.Before(injectKubespaceNamespace)
 }
 
 func injectHookCleanup(ctx *godog.ScenarioContext) {

@@ -7,7 +7,7 @@ import (
 )
 
 func whenAnUserOnboards(ctx context.Context) (context.Context, error) {
-	u, err := OnBoardUserInTestNamespace(ctx, DefaultUserName)
+	u, err := OnBoardUserInKubespaceNamespace(ctx, DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}

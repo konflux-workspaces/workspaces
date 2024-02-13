@@ -13,9 +13,9 @@ import (
 
 const DefaultUserName string = "default-user"
 
-func OnBoardUserInTestNamespace(ctx context.Context, name string) (*toolchainv1alpha1.MasterUserRecord, error) {
+func OnBoardUserInKubespaceNamespace(ctx context.Context, name string) (*toolchainv1alpha1.MasterUserRecord, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
 	u, err := OnboardUser(ctx, cli, ns, name)
 	return u, err
