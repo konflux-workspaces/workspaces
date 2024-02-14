@@ -14,17 +14,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func createUserAndWaitForWorkspace(
+func createUserSignupAndWaitForWorkspace(
 	ctx context.Context,
 	cli client.Client,
 	namespace, name string,
-) (*toolchainv1alpha1.MasterUserRecord, *workspacesv1alpha1.Workspace, error) {
+) (*toolchainv1alpha1.UserSignup, *workspacesv1alpha1.Workspace, error) {
 	u, err := user.OnboardUser(ctx, cli, namespace, user.DefaultUserName)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	w, err := getWorkspaceFromTestNamespace(ctx, name)
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -32,9 +32,9 @@ func createUserAndWaitForWorkspace(
 	return u, w, nil
 }
 
-func getWorkspaceFromTestNamespace(ctx context.Context, name string) (*workspacesv1alpha1.Workspace, error) {
+func getWorkspaceFromWorkspacesNamespace(ctx context.Context, name string) (*workspacesv1alpha1.Workspace, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
 
 	return getWorkspace(ctx, cli, ns, name)
 }
@@ -52,13 +52,13 @@ func getWorkspace(ctx context.Context, cli client.Client, ns, name string) (*wor
 		}
 		return true, nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error retrieving workspace %s/%s: :%w", w.Namespace, w.Name, err)
 	}
 	return &w, nil
 }
 
 func checkWorkspaceVisibility(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) error {
-	w, err := getWorkspaceFromTestNamespace(ctx, name)
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, name)
 	if err != nil {
 		return err
 	}

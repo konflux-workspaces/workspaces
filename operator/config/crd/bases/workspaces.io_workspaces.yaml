@@ -15,7 +15,11 @@ spec:
     singular: workspace
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.visibility
+      name: Visibility
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Workspace is the Schema for the workspaces API

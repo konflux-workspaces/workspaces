@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	keyHostClient         string = "host-client"
-	keyTestNamespace      string = "test-namespace"
-	keyKubespaceNamespace string = "kubespace-namespace"
-	keyWorkspace          string = "default-workspace"
-	keyUser               string = "default-user"
+	keyHostClient          string = "host-client"
+	keyTestNamespace       string = "test-namespace"
+	keyKubespaceNamespace  string = "kubespace-namespace"
+	keyWorkspacesNamespace string = "workspaces-namespace"
+	keyWorkspace           string = "default-workspace"
+	keyUser                string = "default-user"
 
 	msgNotFound string = "key not found in context"
 )
@@ -38,6 +39,15 @@ func RetrieveKubespaceNamespace(ctx context.Context) string {
 	return get[string](ctx, keyKubespaceNamespace)
 }
 
+// Workspaces Namespace
+func InjectWorkspacesNamespace(ctx context.Context, namespace string) context.Context {
+	return context.WithValue(ctx, keyWorkspacesNamespace, namespace)
+}
+
+func RetrieveWorkspacesNamespace(ctx context.Context) string {
+	return get[string](ctx, keyWorkspacesNamespace)
+}
+
 // Test Namespace
 func InjectTestNamespace(ctx context.Context, namespace string) context.Context {
 	return context.WithValue(ctx, keyTestNamespace, namespace)
@@ -57,12 +67,12 @@ func RetrieveWorkspace(ctx context.Context) workspacesv1alpha1.Workspace {
 }
 
 // Default User
-func InjectUser(ctx context.Context, u toolchainv1alpha1.MasterUserRecord) context.Context {
+func InjectUser(ctx context.Context, u toolchainv1alpha1.UserSignup) context.Context {
 	return context.WithValue(ctx, keyUser, u)
 }
 
-func RetrieveUser(ctx context.Context) toolchainv1alpha1.MasterUserRecord {
-	return get[toolchainv1alpha1.MasterUserRecord](ctx, keyUser)
+func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
+	return get[toolchainv1alpha1.UserSignup](ctx, keyUser)
 }
 
 // auxiliary

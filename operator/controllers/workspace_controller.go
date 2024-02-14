@@ -88,8 +88,16 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 			Namespace: r.KubespaceNamespace,
 		},
 	}
+	l := log.FromContext(ctx).WithValues(
+		"workspace", w.Name,
+		"workspace-namespace", w.Namespace,
+		"space-binding", s.Name,
+		"space-binding-namespace", s.Namespace,
+	)
+
 	switch w.Spec.Visibility {
 	case workspacescomv1alpha1.WorkspaceVisibilityCommunity:
+		l.Info("ensuring spacebinding exists")
 		_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 			s.Spec.Space = w.Name
 			s.Spec.MasterUserRecord = "public-viewer"
@@ -98,19 +106,24 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 		})
 		return err
 	case workspacescomv1alpha1.WorkspaceVisibilityPrivate:
-		// TODO: delete Space binding if exists
-		return nil
+		l.Info("ensuring spacebinding doesn't exist")
+		return client.IgnoreNotFound(r.Client.Delete(ctx, &s))
 	default:
 		return fmt.Errorf("%w: invalid workspace visibility value", ErrNonTransient)
 	}
 }
 
 func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
+	// skip if home workspace
+	if ll := w.GetLabels(); ll != nil && ll[HomeWorkspaceLabel] != "" {
+		return nil
+	}
+
 	s := toolchainv1alpha1.Space{ObjectMeta: metav1.ObjectMeta{Name: w.Name, Namespace: r.KubespaceNamespace}}
 	l := log.FromContext(ctx).WithValues("space", s.Name, "space-namespace", r.KubespaceNamespace)
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 		ll := s.GetLabels()
-		if len(ll) == 0 {
+		if ll == nil {
 			ll = map[string]string{}
 		}
 		ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.Id

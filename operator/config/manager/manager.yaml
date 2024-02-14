@@ -78,7 +78,11 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: cm
-              key: kubespace.namespace            
+              key: kubespace.namespace
+        - name: WORKSPACES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

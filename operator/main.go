@@ -71,6 +71,13 @@ func main() {
 	if !ok {
 		panic("Environment variable KUBESPACE_NAMESPACE not found")
 	}
+	setupLog.Info("Set KubespaceNamespace", "value", kns)
+
+	wns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
+	if !ok {
+		panic("Environment variable WORKSPACE_NAMESPACE not found")
+	}
+	setupLog.Info("Set WorkspacesNamespace", "value", kns)
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
@@ -110,13 +117,22 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Workspace")
 		os.Exit(1)
 	}
-	if err = (&controllers.MasterUserRecordReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+	if err = (&controllers.UserSignupReconciler{
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
+		WorkspacesNamespace: wns,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "MasterUserRecord")
+		setupLog.Error(err, "unable to create controller", "controller", "UserSignup")
 		os.Exit(1)
 	}
+	// if err = (&controllers.MasterUserRecordReconciler{
+	// 	Client:              mgr.GetClient(),
+	// 	Scheme:              mgr.GetScheme(),
+	// 	WorkspacesNamespace: wns,
+	// }).SetupWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create controller", "controller", "MasterUserRecord")
+	// 	os.Exit(1)
+	// }
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

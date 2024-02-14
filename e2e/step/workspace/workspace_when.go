@@ -15,16 +15,16 @@ import (
 )
 
 func whenUserRequestsANewPrivateWorkspace(ctx context.Context) (context.Context, error) {
-	return createNewWorkspaceInTestNamespace(ctx, "new-private", workspacesv1alpha1.WorkspaceVisibilityPrivate)
+	return createNewWorkspace(ctx, "new-private", workspacesv1alpha1.WorkspaceVisibilityPrivate)
 }
 
 func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Context, error) {
-	return createNewWorkspaceInTestNamespace(ctx, "new-community", workspacesv1alpha1.WorkspaceVisibilityCommunity)
+	return createNewWorkspace(ctx, "new-community", workspacesv1alpha1.WorkspaceVisibilityCommunity)
 }
 
-func createNewWorkspaceInTestNamespace(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+func createNewWorkspace(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
 
 	w, err := createWorkspace(ctx, cli, ns, name, visibility)
 	if err != nil {
@@ -35,14 +35,14 @@ func createNewWorkspaceInTestNamespace(ctx context.Context, name string, visibil
 
 func whenAWorkspaceIsCreatedForUser(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
 	u, err := user.OnboardUser(ctx, cli, ns, user.DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}
 
-	w, err := getWorkspaceFromTestNamespace(ctx, user.DefaultUserName)
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
 	if err != nil {
 		return ctx, err
 	}

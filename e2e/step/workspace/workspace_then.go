@@ -6,7 +6,6 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -18,7 +17,7 @@ import (
 
 func thenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
 	u := tcontext.RetrieveUser(ctx)
-	w, err := getWorkspaceFromTestNamespace(ctx, u.Name)
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
 	if err != nil {
 		return ctx, err
 	}
@@ -28,19 +27,24 @@ func thenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context,
 
 func thenTheWorkspaceIsReadableOnlyForGranted(ctx context.Context) error {
 	cli := tcontext.RetrieveHostClient(ctx)
-	w := tcontext.RetrieveWorkspace(ctx)
+	u := tcontext.RetrieveUser(ctx)
+	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
-	sbt := types.NamespacedName{Name: fmt.Sprintf("%s-community", w.Name), Namespace: w.Namespace}
-	sb := toolchainv1alpha1.SpaceBinding{}
-	if err := cli.Get(ctx, sbt, &sb); err != nil {
+	sbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := cli.List(ctx, &sbb, client.InNamespace(ns)); err != nil {
 		return err
 	}
 
+	if len(sbb.Items) != 1 {
+		return fmt.Errorf("expected just one SpaceBinding, found %d", len(sbb.Items))
+	}
+
+	sb := sbb.Items[0]
 	switch {
-	case sb.Spec.MasterUserRecord != "public-viewer":
-		return fmt.Errorf("expected SpaceBinding %s to have MUR %s, found %s", sb.Name, "public-viewer", sb.Spec.MasterUserRecord)
-	case sb.Spec.SpaceRole != "viewer":
-		return fmt.Errorf("expected SpaceBinding %s to have SpaceRole %s, found %s", sb.Name, "viewer", sb.Spec.SpaceRole)
+	case sb.Spec.MasterUserRecord != u.Status.CompliantUsername:
+		return fmt.Errorf("expected SpaceBinding %s to have MUR %s, found %s", sb.Name, u.Status.CompliantUsername, sb.Spec.MasterUserRecord)
+	case sb.Spec.SpaceRole != "admin":
+		return fmt.Errorf("expected SpaceBinding %s to have SpaceRole %s, found %s", sb.Name, "admin", sb.Spec.SpaceRole)
 	default:
 		return nil
 	}
@@ -68,7 +72,7 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 	cli := tcontext.RetrieveHostClient(ctx)
 	w := tcontext.RetrieveWorkspace(ctx)
 	u := tcontext.RetrieveUser(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
 	return wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true, func(ctx context.Context) (done bool, err error) {
 		sbb := toolchainv1alpha1.SpaceBindingList{}
@@ -81,7 +85,7 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 		}
 
 		for _, sb := range sbb.Items {
-			if sb.Spec.MasterUserRecord == u.Name && sb.Spec.Space == w.Name && sb.Spec.SpaceRole == "admin" {
+			if sb.Spec.MasterUserRecord == u.Status.CompliantUsername && sb.Spec.Space == w.Name && sb.Spec.SpaceRole == "admin" {
 				return true, nil
 			}
 		}
@@ -111,7 +115,7 @@ func workspaceIsReadableForEveryone(ctx context.Context, cli client.Client, name
 		}
 		return true, nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("error waiting for space binding %s/%s to be created: %w", sb.Namespace, sb.Name, err)
 	}
 
 	switch {

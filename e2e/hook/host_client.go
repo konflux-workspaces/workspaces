@@ -20,6 +20,16 @@ import (
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
+func injectWorkspacesNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+	ns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
+	if !ok {
+		ns := tcontext.RetrieveTestNamespace(ctx)
+		return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
+	}
+
+	return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
+}
+
 func injectKubespaceNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	ns, ok := os.LookupEnv("KUBESPACE_NAMESPACE")
 	if !ok {

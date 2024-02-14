@@ -1,5 +1,5 @@
 /*
-Copyright 2024 The MasterUserRecords Authors.
+Copyright 2024 The UserSignups Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/selection"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -32,44 +35,62 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-// MasterUserRecordReconciler reconciles a Workspace object
-type MasterUserRecordReconciler struct {
+const HomeWorkspaceLabel string = "workspaces.io/home-workspace"
+
+// UserSignupReconciler reconciles a Workspace object
+type UserSignupReconciler struct {
 	client.Client
 	Scheme              *runtime.Scheme
 	WorkspacesNamespace string
 }
 
-//+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=masteruserrecords,verbs=get;list;watch
+//+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=usersignups,verbs=get;list;watch
 //+kubebuilder:rbac:groups=workspaces.io,resources=workspaces,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
-func (r *MasterUserRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+func (r *UserSignupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	l := log.FromContext(ctx)
 
-	m := toolchainv1alpha1.MasterUserRecord{}
-	if err := r.Client.Get(ctx, req.NamespacedName, &m); err != nil {
+	u := toolchainv1alpha1.UserSignup{}
+	if err := r.Client.Get(ctx, req.NamespacedName, &u); err != nil {
 		if kerrors.IsNotFound(err) {
-			return ctrl.Result{}, r.ensureWorkspaceIsDeleted(ctx, req.Name)
+			err := r.ensureWorkspaceIsDeleted(ctx, req.Name)
+			if errors.Is(err, ErrNonTransient) {
+				l.Error(err, "can not delete workspace", "user", req.Name)
+				return ctrl.Result{}, nil
+			}
+			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, err
 	}
 
-	if err := r.ensureWorkspaceIsPresent(ctx, m); err != nil {
+	// TODO: would be nice to reconcile UserSignupStatus events
+	if u.Status.HomeSpace == "" {
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+	if err := r.ensureWorkspaceIsPresentForHomeSpace(ctx, u); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
 }
 
-func (r *MasterUserRecordReconciler) ensureWorkspaceIsPresent(ctx context.Context, m toolchainv1alpha1.MasterUserRecord) error {
-	w := &workspacesv1alpha1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: m.Name, Namespace: r.WorkspacesNamespace}}
+func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.Context, u toolchainv1alpha1.UserSignup) error {
+	w := &workspacesv1alpha1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: u.Status.HomeSpace, Namespace: r.WorkspacesNamespace}}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, w, func() error {
 		log.FromContext(ctx).Info("creating/updating workspace", "workspace", w)
+		ll := w.GetLabels()
+		if ll == nil {
+			ll = map[string]string{}
+		}
+		ll[HomeWorkspaceLabel] = u.Name
+		w.Labels = ll
+
 		w.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityPrivate
 		w.Spec.Owner = workspacesv1alpha1.Owner{
-			Id: m.Name,
+			Id: u.Name,
 		}
 		return nil
 	})
@@ -80,19 +101,29 @@ func (r *MasterUserRecordReconciler) ensureWorkspaceIsPresent(ctx context.Contex
 	return err
 }
 
-func (r *MasterUserRecordReconciler) ensureWorkspaceIsDeleted(ctx context.Context, name string) error {
+func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, name string) error {
+	lr, err := labels.NewRequirement(HomeWorkspaceLabel, selection.Equals, []string{name})
+	if err != nil {
+		return errors.Join(ErrNonTransient, err)
+	}
+	ls := labels.NewSelector()
+	ls.Add(*lr)
+
 	w := workspacesv1alpha1.Workspace{}
-	t := types.NamespacedName{Name: name, Namespace: r.WorkspacesNamespace}
-	if err := r.Get(ctx, t, &w); err != nil {
+	if err := r.DeleteAllOf(ctx, &w, &client.DeleteAllOfOptions{
+		ListOptions: client.ListOptions{
+			LabelSelector: ls,
+			Namespace:     r.WorkspacesNamespace,
+		},
+	}); err != nil {
 		return client.IgnoreNotFound(err)
 	}
-
-	return client.IgnoreNotFound(r.Delete(ctx, &w))
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *MasterUserRecordReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *UserSignupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&toolchainv1alpha1.MasterUserRecord{}).
+		For(&toolchainv1alpha1.UserSignup{}).
 		Complete(r)
 }

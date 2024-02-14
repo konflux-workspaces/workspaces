@@ -10,9 +10,9 @@ import (
 
 func givenAPrivateWorkspaceExists(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveTestNamespace(ctx)
+	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
-	u, w, err := createUserAndWaitForWorkspace(ctx, cli, ns, user.DefaultUserName)
+	u, w, err := createUserSignupAndWaitForWorkspace(ctx, cli, ns, user.DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}

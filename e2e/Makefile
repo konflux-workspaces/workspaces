@@ -61,6 +61,7 @@ test: vet clean
 .PHONY: test-ocp
 test-ocp: vet clean
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
+		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... $(V) --godog.tags=~skip
 
 .PHONY: wip
@@ -70,12 +71,15 @@ wip: vet clean
 .PHONY: wip-ocp
 wip-ocp: vet clean
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
+		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
 
 .PHONY: clean
 clean:
 	-$(KUBECLI) delete namespaces -l scope=test
-	-$(KUBECLI) delete spaces --all --all-namespaces
+	-$(KUBECLI) delete workspaces.workspaces.io --all --all-namespaces
+	-$(KUBECLI) delete usersignups --all --all-namespaces
 	-$(KUBECLI) delete masteruserrecords --all --all-namespaces
 	-$(KUBECLI) delete spacebindings --all --all-namespaces
+	-$(KUBECLI) delete spaces --all --all-namespaces
 

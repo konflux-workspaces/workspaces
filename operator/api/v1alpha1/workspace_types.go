@@ -53,6 +53,7 @@ type WorkspaceStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
 
 // Workspace is the Schema for the workspaces API
 type Workspace struct {

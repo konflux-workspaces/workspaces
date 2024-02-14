@@ -38,6 +38,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - toolchain.dev.openshift.com
+  resources:
+  - usersignups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - workspaces.io
   resources:
   - workspaces
