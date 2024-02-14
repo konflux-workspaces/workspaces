@@ -1,7 +1,11 @@
 # Workspaces
 
+Create an OpenShift cluster
+
 ```
-kind create cluster
-make -C e2e crd prepare test
+# oc login as admin
+export QUAY_NAMESPACE=<your namespace>
+
+./hack/demo.sh
 ```
 

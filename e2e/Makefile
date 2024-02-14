@@ -6,7 +6,8 @@ ASSETS_CRDS = ./assets/crd/toolchain/
 V ?=
 
 DATE_SUFFIX != date +'%s'
-IMG ?= quay.io/filario/workspaces:test-${DATE_SUFFIX}
+QUAY_NAMESPACE ?= filario
+IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces:test-${DATE_SUFFIX}
 
 .PHONY: vet
 vet:
