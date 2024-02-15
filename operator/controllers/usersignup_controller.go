@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"errors"
-	"time"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,9 +26,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -67,10 +68,6 @@ func (r *UserSignupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	// TODO: would be nice to reconcile UserSignupStatus events
-	if u.Status.HomeSpace == "" {
-		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-	}
 	if err := r.ensureWorkspaceIsPresentForHomeSpace(ctx, u); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -124,6 +121,9 @@ func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, nam
 // SetupWithManager sets up the controller with the Manager.
 func (r *UserSignupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&toolchainv1alpha1.UserSignup{}).
+		For(&toolchainv1alpha1.UserSignup{}, builder.WithPredicates(predicate.NewPredicateFuncs(func(object client.Object) bool {
+			u := object.(*toolchainv1alpha1.UserSignup)
+			return u.Status.HomeSpace != ""
+		}))).
 		Complete(r)
 }
