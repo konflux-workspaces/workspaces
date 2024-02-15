@@ -8,14 +8,6 @@ rules:
 - apiGroups:
   - toolchain.dev.openshift.com
   resources:
-  - masteruserrecords
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - toolchain.dev.openshift.com
-  resources:
   - spacebindings
   verbs:
   - create
