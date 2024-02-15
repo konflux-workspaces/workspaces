@@ -6,6 +6,7 @@ import (
 	"time"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -16,7 +17,7 @@ import (
 
 func createUserSignupAndWaitForWorkspace(
 	ctx context.Context,
-	cli client.Client,
+	cli cli.Cli,
 	namespace, name string,
 ) (*toolchainv1alpha1.UserSignup, *workspacesv1alpha1.Workspace, error) {
 	u, err := user.OnboardUser(ctx, cli, namespace, user.DefaultUserName)
@@ -39,7 +40,7 @@ func getWorkspaceFromWorkspacesNamespace(ctx context.Context, name string) (*wor
 	return getWorkspace(ctx, cli, ns, name)
 }
 
-func getWorkspace(ctx context.Context, cli client.Client, ns, name string) (*workspacesv1alpha1.Workspace, error) {
+func getWorkspace(ctx context.Context, cli cli.Cli, ns, name string) (*workspacesv1alpha1.Workspace, error) {
 	w := workspacesv1alpha1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

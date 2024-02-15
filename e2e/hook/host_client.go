@@ -14,31 +14,12 @@ import (
 	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
-
-func injectWorkspacesNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-	ns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
-	if !ok {
-		ns := tcontext.RetrieveTestNamespace(ctx)
-		return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
-	}
-
-	return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
-}
-
-func injectKubespaceNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-	ns, ok := os.LookupEnv("KUBESPACE_NAMESPACE")
-	if !ok {
-		ns := tcontext.RetrieveTestNamespace(ctx)
-		return tcontext.InjectKubespaceNamespace(ctx, ns), nil
-	}
-
-	return tcontext.InjectKubespaceNamespace(ctx, ns), nil
-}
 
 func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	p := func() string {
@@ -59,10 +40,11 @@ func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context,
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(toolchainv1alpha1.AddToScheme(scheme))
 
-	cli, err := client.New(cfg, client.Options{Scheme: scheme})
+	c, err := client.New(cfg, client.Options{Scheme: scheme})
 	if err != nil {
 		panic(fmt.Sprintf("error building client: %v", err))
 	}
 
-	return tcontext.InjectHostClient(ctx, cli), nil
+	tc := cli.New(c, sc.Id)
+	return tcontext.InjectHostClient(ctx, tc), nil
 }

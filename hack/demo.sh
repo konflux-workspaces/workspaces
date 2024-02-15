@@ -22,4 +22,4 @@ cd "$f" || exit
   make -C toolchain-e2e dev-deploy-e2e-local
 ) || exit $?
 
-make -C e2e prepare-ocp test-ocp
+make -C e2e prepare test

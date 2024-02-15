@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 const (
 	keyHostClient          string = "host-client"
 	keyTestNamespace       string = "test-namespace"
+	keyScenarioId          string = "scenario-id"
 	keyKubespaceNamespace  string = "kubespace-namespace"
 	keyWorkspacesNamespace string = "workspaces-namespace"
 	keyWorkspace           string = "default-workspace"
@@ -22,12 +22,12 @@ const (
 )
 
 // Host Client
-func InjectHostClient(ctx context.Context, cli client.Client) context.Context {
+func InjectHostClient(ctx context.Context, cli cli.Cli) context.Context {
 	return context.WithValue(ctx, keyHostClient, cli)
 }
 
-func RetrieveHostClient(ctx context.Context) client.Client {
-	return get[client.Client](ctx, keyHostClient)
+func RetrieveHostClient(ctx context.Context) cli.Cli {
+	return get[cli.Cli](ctx, keyHostClient)
 }
 
 // Kubespace Namespace
@@ -73,6 +73,15 @@ func InjectUser(ctx context.Context, u toolchainv1alpha1.UserSignup) context.Con
 
 func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
 	return get[toolchainv1alpha1.UserSignup](ctx, keyUser)
+}
+
+// Scenario Id
+func InjectScenarioId(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, keyTestNamespace, id)
+}
+
+func RetrieveScenarioId(ctx context.Context) string {
+	return get[string](ctx, keyScenarioId)
 }
 
 // auxiliary

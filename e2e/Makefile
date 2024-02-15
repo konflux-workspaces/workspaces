@@ -2,20 +2,16 @@ KUBECLI ?= kubectl
 KUSTOMIZE ?= kustomize
 GO = go
 
-ASSETS_CRDS = ./assets/crd/toolchain/
 V ?=
 
 DATE_SUFFIX != date +'%s'
 QUAY_NAMESPACE ?= filario
 IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces:test-${DATE_SUFFIX}
+CONCURRENCY ?= 1
 
 .PHONY: vet
 vet:
 	$(GO) vet ./...
-
-.PHONY: toolchain-crd
-toolchain-crd:
-	$(KUBECLI) apply -f $(ASSETS_CRDS) 
 
 .PHONY: build-images
 build-images:
@@ -24,10 +20,6 @@ build-images:
 .PHONY: push-images
 push-images:
 	docker push $(IMG)
-
-.PHONY: kind-load-image
-kind-load-image:
-	kind load docker-image $(IMG)
 
 .PHONY: deploy-operator
 deploy-operator:
@@ -47,30 +39,18 @@ deploy-operator:
 		IMG=$(IMG) make install deploy \
 	)
 
-.PHONY: prepare-kind
-prepare-kind: build-images kind-load-image deploy-operator
-	@:
-
-.PHONY: prepare-ocp
-prepare-ocp: build-images push-images deploy-operator
+.PHONY: prepare
+prepare: build-images push-images deploy-operator
 	@:
 
 .PHONY: test
 test: vet clean
-	$(GO) test ./... $(V) --godog.tags=~skip
-
-.PHONY: test-ocp
-test-ocp: vet clean
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
-		$(GO) test ./... $(V) --godog.tags=~skip
+		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
 wip: vet clean
-	$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
-
-.PHONY: wip-ocp
-wip-ocp: vet clean
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
@@ -78,9 +58,8 @@ wip-ocp: vet clean
 .PHONY: clean
 clean:
 	-$(KUBECLI) delete namespaces -l scope=test
-	-$(KUBECLI) delete workspaces.workspaces.io --all --all-namespaces
 	-$(KUBECLI) delete usersignups --all --all-namespaces
 	-$(KUBECLI) delete masteruserrecords --all --all-namespaces
 	-$(KUBECLI) delete spacebindings --all --all-namespaces
 	-$(KUBECLI) delete spaces --all --all-namespaces
-
+	-$(KUBECLI) delete workspaces.workspaces.io --all --all-namespaces

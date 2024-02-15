@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
 
@@ -64,7 +64,7 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 	w := tcontext.RetrieveWorkspace(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 
-	_, err := controllerutil.CreateOrUpdate(ctx, cli, &w, func() error {
+	_, err := controllerutil.CreateOrUpdate(ctx, &cli, &w, func() error {
 		if w.Spec.Visibility == visibility {
 			return fmt.Errorf("Visibility already set to %v", visibility)
 		}
@@ -78,7 +78,7 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 	return tcontext.InjectWorkspace(ctx, w), nil
 }
 
-func createWorkspace(ctx context.Context, cli client.Client, namespace, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
+func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
 	w := workspacesv1alpha1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

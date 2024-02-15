@@ -30,10 +30,14 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 	errs := []error{}
 	{
 		usl := &toolchainv1alpha1.UserSignupList{}
-		if err := cli.List(ctx, usl, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		if err := cli.Client.List(ctx, usl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {
 			for _, r := range usl.Items {
+				if !cli.HasScenarioPrefix(r.Name) {
+					continue
+				}
+
 				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
@@ -50,10 +54,14 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 	}
 	{
 		murl := &toolchainv1alpha1.MasterUserRecordList{}
-		if err := cli.List(ctx, murl, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		if err := cli.Client.List(ctx, murl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {
 			for _, r := range murl.Items {
+				if !cli.HasScenarioPrefix(r.Name) {
+					continue
+				}
+
 				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
@@ -70,10 +78,14 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 	}
 	{
 		spl := &toolchainv1alpha1.SpaceList{}
-		if err := cli.List(ctx, spl, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		if err := cli.Client.List(ctx, spl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {
 			for _, r := range spl.Items {
+				if !cli.HasScenarioPrefix(r.Name) {
+					continue
+				}
+
 				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
@@ -90,10 +102,14 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 	}
 	{
 		sbl := &toolchainv1alpha1.SpaceBindingList{}
-		if err := cli.List(ctx, sbl, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		if err := cli.Client.List(ctx, sbl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {
 			for _, r := range sbl.Items {
+				if !cli.HasScenarioPrefix(r.Name) {
+					continue
+				}
+
 				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
@@ -110,10 +126,14 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 	}
 	{
 		wl := &workspacesiov1alpha1.WorkspaceList{}
-		if err := cli.List(ctx, wl, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		if err := cli.Client.List(ctx, wl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {
 			for _, r := range wl.Items {
+				if !cli.HasScenarioPrefix(r.Name) {
+					continue
+				}
+
 				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {

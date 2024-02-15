@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -30,16 +31,22 @@ func thenTheWorkspaceIsReadableOnlyForGranted(ctx context.Context) error {
 	u := tcontext.RetrieveUser(ctx)
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
-	sbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := cli.List(ctx, &sbb, client.InNamespace(ns)); err != nil {
+	asbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := cli.Client.List(ctx, &asbb, client.InNamespace(ns)); err != nil {
 		return err
 	}
 
-	if len(sbb.Items) != 1 {
-		return fmt.Errorf("expected just one SpaceBinding, found %d", len(sbb.Items))
+	sbb := []toolchainv1alpha1.SpaceBinding{}
+	for _, sb := range asbb.Items {
+		if cli.HasScenarioPrefix(sb.Name) {
+			sbb = append(sbb, sb)
+		}
+	}
+	if len(sbb) != 1 {
+		return fmt.Errorf("expected just one SpaceBinding, found %d", len(sbb))
 	}
 
-	sb := sbb.Items[0]
+	sb := sbb[0]
 	switch {
 	case sb.Spec.MasterUserRecord != u.Status.CompliantUsername:
 		return fmt.Errorf("expected SpaceBinding %s to have MUR %s, found %s", sb.Name, u.Status.CompliantUsername, sb.Spec.MasterUserRecord)
@@ -75,16 +82,22 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
 	return wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true, func(ctx context.Context) (done bool, err error) {
-		sbb := toolchainv1alpha1.SpaceBindingList{}
-		if err := cli.List(ctx, &sbb, client.InNamespace(ns)); err != nil {
+		asbb := toolchainv1alpha1.SpaceBindingList{}
+		if err := cli.Client.List(ctx, &asbb, client.InNamespace(ns)); err != nil {
 			return false, client.IgnoreNotFound(err)
 		}
 
-		if len(sbb.Items) == 0 {
+		sbb := []toolchainv1alpha1.SpaceBinding{}
+		for _, sb := range asbb.Items {
+			if cli.HasScenarioPrefix(sb.Name) {
+				sbb = append(sbb, sb)
+			}
+		}
+		if len(sbb) == 0 {
 			return false, nil
 		}
 
-		for _, sb := range sbb.Items {
+		for _, sb := range sbb {
 			if sb.Spec.MasterUserRecord == u.Status.CompliantUsername && sb.Spec.Space == w.Name && sb.Spec.SpaceRole == "admin" {
 				return true, nil
 			}
@@ -102,7 +115,7 @@ func thenTheWorkspaceVisibilityIsSetTo(ctx context.Context, visibility string) e
 	return nil
 }
 
-func workspaceIsReadableForEveryone(ctx context.Context, cli client.Client, namespace, name string) error {
+func workspaceIsReadableForEveryone(ctx context.Context, cli cli.Cli, namespace, name string) error {
 	sb := &toolchainv1alpha1.SpaceBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", name),

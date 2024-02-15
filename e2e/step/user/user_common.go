@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -26,7 +27,7 @@ func OnBoardUserInKubespaceNamespace(ctx context.Context, name string) (*toolcha
 	return u, err
 }
 
-func OnboardUser(ctx context.Context, cli client.Client, namespace, name string) (*toolchainv1alpha1.UserSignup, error) {
+func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*toolchainv1alpha1.UserSignup, error) {
 	e := fmt.Sprintf("%s@test.test", name)
 	h := md5.New()
 	h.Write([]byte(e))
@@ -45,7 +46,7 @@ func OnboardUser(ctx context.Context, cli client.Client, namespace, name string)
 				PropagatedClaims: toolchainv1alpha1.PropagatedClaims{
 					Email: e,
 				},
-				PreferredUsername: name,
+				PreferredUsername: cli.EnsurePrefix(name),
 			},
 			States: []toolchainv1alpha1.UserSignupState{toolchainv1alpha1.UserSignupStateApproved},
 		},
