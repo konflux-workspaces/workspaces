@@ -1,0 +1,45 @@
+classDiagram
+
+class Team
+class User
+class UserTeamRoleBinding
+class UserTeamRole
+note for UserTeamRole "May be admin, contributor, viewer.
+It manages user permission on Team's settings"
+class TeamSpaceBinding
+class SpaceRole
+class Space
+class SpaceBinding
+class UserSignup
+class MasterUserRecord
+
+<<workspaces>> Team
+<<workspaces>> User
+<<workspaces>> UserTeamRole
+<<workspaces>> UserTeamRoleBinding
+<<workspaces>> TeamSpaceBinding
+<<toolchain>> MasterUserRecord
+<<toolchain>> UserSignup
+<<toolchain>> Space
+<<toolchain>> SpaceRole
+<<toolchain>> SpaceBinding
+
+Team --> "1" User : Admin
+
+Team "1" <-- UserTeamRoleBinding
+User "1" <-- UserTeamRoleBinding : Subject
+UserTeamRoleBinding --> "1" UserTeamRole
+
+Team "1" <-- TeamSpaceBinding
+
+TeamSpaceBinding --> "1" Space
+TeamSpaceBinding --> "1" SpaceRole
+TeamSpaceBinding ..> SpaceBinding : owns
+
+MasterUserRecord "1" <-- SpaceBinding 
+Space "1" <-- SpaceBinding 
+SpaceRole "1" <-- SpaceBinding 
+
+
+User --> "1" UserSignup
+UserSignup --> "1" MasterUserRecord
