@@ -1,0 +1,30 @@
+sequenceDiagram
+  actor U as User
+
+  participant RS as Registration Service
+  participant KA as K8s ApiServer
+  participant HO as Host Operator
+  participant WO as Workspaces Operator
+  
+  actor D as SRE
+
+  U->>RS: Sign Up
+  RS->>KA: Create UserSignup
+
+  %% Manual Approval
+  D->>KA: Approve UserSignup
+  %% Create home space
+  rect rgb(31,32,32)
+  note right of KA: Home space
+  KA-->>HO: Notify UserSignup event
+  HO->>KA: Create MasterUserRecord
+  HO->>KA: Create User home Space and SpaceBinding
+  end
+
+  %% Create home workspace
+  rect rgb(31,32,32)
+  note right of KA: Home workspace
+  KA-->>WO: Notify UserSignup event
+  WO->>KA: Create home Workspace
+  end
+
