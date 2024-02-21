@@ -1,26 +1,14 @@
 package rest
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/filariow/workspaces/server/query"
-	"github.com/filariow/workspaces/server/rest/handlers"
-	mapper "github.com/filariow/workspaces/server/rest/mappers"
+	cw "github.com/filariow/workspaces/server/core/workspace"
 	"github.com/filariow/workspaces/server/rest/marshal"
-	"github.com/filariow/workspaces/server/rest/router"
+	"github.com/filariow/workspaces/server/rest/workspace"
 )
 
-const WorkspacesPrefix string = "/workspaces/"
-
-type Server struct {
-	*http.Server
-}
-
-type Config struct {
-	Marshaler   marshal.MarshalFunc
-	Unmarshaler marshal.UnmarshalFunc
-}
+const WorkspacesPrefix string = "/workspaces"
 
 func New(addr string) *http.Server {
 	return &http.Server{
@@ -31,14 +19,28 @@ func New(addr string) *http.Server {
 
 func buildServerMux() *http.ServeMux {
 	mux := http.NewServeMux()
-
 	addWorkspaces(mux, WorkspacesPrefix)
 	return mux
 }
 
 func addWorkspaces(mux *http.ServeMux, prefix string) {
-	g := handlers.NewReadWorkspaceHandler(prefix, mapper.MapReadWorkspaceHttp, query.ReadWorkspaceHandler, json.Marshal, json.Unmarshal)
-	r := router.NewWorkspacesRouter(g)
-
-	mux.Handle(prefix, r)
+	workspace.AddWorkspaces(
+    mux,
+    prefix,
+		nil,
+		workspace.NewReadWorkspaceHandler(
+			prefix,
+			workspace.MapReadWorkspaceHttp,
+			cw.ReadWorkspaceHandler,
+			marshal.DefaultMarshal,
+		),
+		workspace.NewListWorkspaceHandler(
+			workspace.MapListWorkspaceHttp,
+			cw.ListWorkspaceHandler,
+			marshal.DefaultMarshal,
+			marshal.DefaultUnmarshal,
+		),
+		nil,
+		nil,
+	)
 }

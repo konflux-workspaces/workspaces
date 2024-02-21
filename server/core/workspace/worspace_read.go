@@ -1,4 +1,4 @@
-package query
+package workspace
 
 import (
 	"context"

@@ -1,18 +1,22 @@
-package handlers
+package workspace
 
 import (
 	"context"
 	"net/http"
 
-	"github.com/filariow/workspaces/server/query"
+	"github.com/filariow/workspaces/server/core/workspace"
 	"github.com/filariow/workspaces/server/rest/marshal"
 )
 
-var _ http.Handler = &ListWorkspaceHandler{}
+var (
+	_ http.Handler = &ListWorkspaceHandler{}
+
+	_ ListWorkspaceMapperFunc = MapListWorkspaceHttp
+)
 
 // handler dependencies
-type ListWorkspaceMapperFunc func(*http.Request) (*query.ListWorkspaceQuery, error)
-type ListWorkspaceQueryHandlerFunc func(context.Context, *query.ListWorkspaceQuery) (*query.ListWorkspaceResponse, error)
+type ListWorkspaceMapperFunc func(*http.Request) (*workspace.ListWorkspaceQuery, error)
+type ListWorkspaceQueryHandlerFunc func(context.Context, workspace.ListWorkspaceQuery) (*workspace.ListWorkspaceResponse, error)
 
 // ListWorkspaceHandler the http.Request handler for List Workspaces endpoint
 type ListWorkspaceHandler struct {
@@ -21,6 +25,17 @@ type ListWorkspaceHandler struct {
 
 	Marshal   marshal.MarshalFunc
 	Unmarshal marshal.UnmarshalFunc
+}
+
+func NewDefaultListWorkspaceHandler(
+	handler ListWorkspaceQueryHandlerFunc,
+) *ListWorkspaceHandler {
+	return NewListWorkspaceHandler(
+		MapListWorkspaceHttp,
+		handler,
+		marshal.DefaultMarshal,
+		marshal.DefaultUnmarshal,
+	)
 }
 
 // NewListWorkspaceHandler creates a ListWorkspaceHandler
@@ -47,7 +62,7 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// execute
-	qr, err := h.QueryHandler(r.Context(), q)
+	qr, err := h.QueryHandler(r.Context(), *q)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -66,4 +81,8 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func MapListWorkspaceHttp(r *http.Request) (*workspace.ListWorkspaceQuery, error) {
+	return &workspace.ListWorkspaceQuery{}, nil
 }
