@@ -29,7 +29,7 @@ func addWorkspaces(mux *http.ServeMux) {
 	mux.Handle(fmt.Sprintf("GET %s/{name}", WorkspacesPrefix),
 		workspace.NewReadWorkspaceHandler(
 			workspace.MapReadWorkspaceHttp,
-			cw.ReadWorkspaceHandler,
+			(&cw.ReadWorkspaceHandler{}).Handle,
 			marshal.DefaultMarshal,
 		))
 
@@ -37,7 +37,7 @@ func addWorkspaces(mux *http.ServeMux) {
 	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix),
 		workspace.NewListWorkspaceHandler(
 			workspace.MapListWorkspaceHttp,
-			cw.ListWorkspaceHandler,
+			(&cw.ListWorkspaceHandler{}).Handle,
 			marshal.DefaultMarshal,
 			marshal.DefaultUnmarshal,
 		))
