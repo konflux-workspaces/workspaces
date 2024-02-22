@@ -1,6 +1,6 @@
 module github.com/filariow/workspaces/server
 
-go 1.21.3
+go 1.22
 
 require sigs.k8s.io/controller-runtime v0.17.2
 
