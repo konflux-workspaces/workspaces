@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	cw "github.com/filariow/workspaces/server/core/workspace"
@@ -19,28 +20,25 @@ func New(addr string) *http.Server {
 
 func buildServerMux() *http.ServeMux {
 	mux := http.NewServeMux()
-	addWorkspaces(mux, WorkspacesPrefix)
+	addWorkspaces(mux)
 	return mux
 }
 
-func addWorkspaces(mux *http.ServeMux, prefix string) {
-	workspace.AddWorkspaces(
-    mux,
-    prefix,
-		nil,
+func addWorkspaces(mux *http.ServeMux) {
+	// Read
+	mux.Handle(fmt.Sprintf("GET %s/{name}", WorkspacesPrefix),
 		workspace.NewReadWorkspaceHandler(
-			prefix,
 			workspace.MapReadWorkspaceHttp,
 			cw.ReadWorkspaceHandler,
 			marshal.DefaultMarshal,
-		),
+		))
+
+	// List
+	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix),
 		workspace.NewListWorkspaceHandler(
 			workspace.MapListWorkspaceHttp,
 			cw.ListWorkspaceHandler,
 			marshal.DefaultMarshal,
 			marshal.DefaultUnmarshal,
-		),
-		nil,
-		nil,
-	)
+		))
 }

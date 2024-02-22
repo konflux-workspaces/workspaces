@@ -3,9 +3,8 @@ package workspace
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
-	"strings"
 
 	"github.com/filariow/workspaces/server/core"
 	"github.com/filariow/workspaces/server/core/workspace"
@@ -19,26 +18,22 @@ var (
 )
 
 // handler dependencies
-type ReadWorkspaceMapperFunc func(prefix string, r *http.Request) (*workspace.ReadWorkspaceQuery, error)
+type ReadWorkspaceMapperFunc func(r *http.Request) (*workspace.ReadWorkspaceQuery, error)
 type ReadWorkspaceQueryHandlerFunc func(context.Context, workspace.ReadWorkspaceQuery) (*workspace.ReadWorkspaceResponse, error)
 
 // ReadWorkspaceHandler the http.Request handler for Read Workspaces endpoint
 type ReadWorkspaceHandler struct {
-	Prefix string
-
 	MapperFunc   ReadWorkspaceMapperFunc
 	QueryHandler ReadWorkspaceQueryHandlerFunc
 
-	Marshal   marshal.MarshalFunc
+	Marshal marshal.MarshalFunc
 }
 
 // NewReadWorkspaceHandler creates a ReadWorkspaceHandler
 func NewDefaultReadWorkspaceHandler(
-	prefix string,
 	handler ReadWorkspaceQueryHandlerFunc,
 ) *ReadWorkspaceHandler {
 	return NewReadWorkspaceHandler(
-		prefix,
 		MapReadWorkspaceHttp,
 		handler,
 		marshal.DefaultMarshal,
@@ -47,13 +42,11 @@ func NewDefaultReadWorkspaceHandler(
 
 // NewReadWorkspaceHandler creates a ReadWorkspaceHandler
 func NewReadWorkspaceHandler(
-	prefix string,
 	mapperFunc ReadWorkspaceMapperFunc,
 	queryHandler ReadWorkspaceQueryHandlerFunc,
 	marshalFunc marshal.MarshalFunc,
 ) *ReadWorkspaceHandler {
 	return &ReadWorkspaceHandler{
-		Prefix:       prefix,
 		MapperFunc:   mapperFunc,
 		QueryHandler: queryHandler,
 		Marshal:      marshalFunc,
@@ -62,11 +55,13 @@ func NewReadWorkspaceHandler(
 
 func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// map
-	q, err := h.MapperFunc(h.Prefix, r)
+	q, err := h.MapperFunc(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("executing read query %v", q)
 
 	// execute
 	qr, err := h.QueryHandler(r.Context(), *q)
@@ -95,17 +90,7 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
-func MapReadWorkspaceHttp(prefix string, r *http.Request) (*workspace.ReadWorkspaceQuery, error) {
-	c, ok := strings.CutPrefix(r.URL.Path, prefix)
-	if !ok {
-		return nil, fmt.Errorf("")
-	}
-	c = strings.TrimLeft(c, "/")
-
-	if strings.ContainsRune(c, '/') {
-		// TODO: not found
-		return nil, fmt.Errorf("")
-	}
-
+func MapReadWorkspaceHttp(r *http.Request) (*workspace.ReadWorkspaceQuery, error) {
+	c := r.PathValue("name")
 	return &workspace.ReadWorkspaceQuery{Name: c}, nil
 }

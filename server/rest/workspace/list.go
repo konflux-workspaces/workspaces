@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/filariow/workspaces/server/core/workspace"
@@ -54,12 +55,14 @@ func NewListWorkspaceHandler(
 }
 
 func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// map
+	// map to query
 	q, err := h.MapperFunc(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("executing list query %v", q)
 
 	// execute
 	qr, err := h.QueryHandler(r.Context(), *q)
