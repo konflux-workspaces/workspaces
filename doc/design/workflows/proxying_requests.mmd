@@ -1,0 +1,16 @@
+sequenceDiagram
+  actor U as User
+
+  participant P as Proxy
+  participant MC as Member Cluster
+
+  U->>P: Request on workspace's resources
+  P->>MC: Forward request to Member Cluster impersonating User
+
+  alt user is not authorized
+    MC->>P: Unauthorized
+    P->>MC: Forward request to Member Cluster impersonating public-viewer
+  end
+
+  MC->>P: Reply
+  P->>U: Reply
