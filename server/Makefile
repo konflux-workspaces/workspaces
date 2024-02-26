@@ -3,6 +3,7 @@ BIN_FOLDER := bin/
 GO ?= go
 LD_FLAGS ?= -s -w
 
+IMG ?= workspaces/rest-api:latest
 
 .PHONY: all
 all: clean
@@ -30,3 +31,7 @@ run:
 .PHONY: test
 test:
 	$(GO) test ./...
+
+.PHONY: docker-build
+docker-build:
+	docker build -t ${IMG} -f Dockerfile ..
