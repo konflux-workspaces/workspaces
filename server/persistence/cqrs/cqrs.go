@@ -13,16 +13,8 @@ type ReadWriteModel interface {
 
 // Reader allows access to the ReadModel
 type Reader interface {
-	// Get
-	Get(ctx context.Context, obj client.Object, name string) error
-	// List
-	List(ctx context.Context, objs client.ObjectList) error
-	// ListOwned
-	ListOwned(ctx context.Context, user string, objs client.ObjectList) error
-	// ListShared
-	ListShared(ctx context.Context, user string, objs client.ObjectList) error
-	// ListOwnedAndShared returns all the
-	ListOwnedAndShared(ctx context.Context, user string, objs client.ObjectList) error
+	ReadUserWorkspace(ctx context.Context, user string, space string, obj *workspacesv1alpha1.Workspace, opts ...client.GetOption) error
+	ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.WorkspaceList, opts ...client.ListOption) error
 }
 
 // Writer allows access to the WriteModel
