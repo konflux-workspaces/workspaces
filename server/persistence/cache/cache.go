@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -13,16 +14,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	"github.com/filariow/workspaces/server/core/workspace"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+)
+
+var (
+	_ workspace.WorkspaceLister = &Cache{}
+	_ workspace.WorkspaceReader = &Cache{}
 )
 
 type Cache struct {
 	c                   cache.Cache
-	ctx                 context.Context
 	workspacesNamespace string
 }
 
-func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace string) (*Cache, error) {
+// New creates a new Cache that caches Workspaces and SpaceBindings. The cache
+// provides methods to retrieve the workspaces the user is allowed to access
+func New(cfg *rest.Config, workspacesNamespace string) (*Cache, error) {
 	s := runtime.NewScheme()
 	s.AddKnownTypes(toolchainv1alpha1.GroupVersion, &toolchainv1alpha1.SpaceBinding{})
 	s.AddKnownTypes(workspacesv1alpha1.GroupVersion, &workspacesv1alpha1.Workspace{})
@@ -38,11 +46,11 @@ func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace string)
 
 	return &Cache{
 		c:                   c,
-		ctx:                 ctx,
 		workspacesNamespace: workspacesNamespace,
 	}, nil
 }
 
+// ListUserWorkspaces Returns all the workspaces the user has access to
 func (c *Cache) ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.WorkspaceList, opts ...client.ListOption) error {
 	sbb := toolchainv1alpha1.SpaceBindingList{}
 	if err := c.c.List(ctx, &sbb, &client.ListOptions{}); err != nil {
@@ -70,6 +78,7 @@ func (c *Cache) ListUserWorkspaces(ctx context.Context, user string, objs *works
 	return errors.Join(errs...)
 }
 
+// ReadUserWorkspace Returns the Workspace details only if the user has access to it
 func (c *Cache) ReadUserWorkspace(ctx context.Context, user string, space string, obj *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
 	sbb := toolchainv1alpha1.SpaceBindingList{}
 	if err := c.c.List(ctx, &sbb, &client.ListOptions{}); err != nil {
@@ -84,7 +93,21 @@ func (c *Cache) ReadUserWorkspace(ctx context.Context, user string, space string
 	}) {
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
+
 	return c.c.Get(ctx, c.workspaceNamespacedName(space), obj, opts...)
+}
+
+// WaitForCacheSync Synchronizes the cache
+func (c *Cache) WaitForCacheSync(ctx context.Context) error {
+	if !c.c.WaitForCacheSync(ctx) {
+		return fmt.Errorf("error synching cache")
+	}
+	return nil
+}
+
+// Start starts the cache. It Blocks.
+func (c *Cache) Start(ctx context.Context) error {
+	return c.c.Start(ctx)
 }
 
 func (c *Cache) workspaceNamespacedName(space string) client.ObjectKey {

@@ -4,32 +4,42 @@ import (
 	"fmt"
 	"net/http"
 
-	cw "github.com/filariow/workspaces/server/core/workspace"
 	"github.com/filariow/workspaces/server/rest/marshal"
 	"github.com/filariow/workspaces/server/rest/workspace"
 )
 
 const WorkspacesPrefix string = "/workspaces"
 
-func New(addr string) *http.Server {
+func New(
+	addr string,
+	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
+	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+) *http.Server {
 	return &http.Server{
 		Addr:    addr,
-		Handler: buildServerMux(),
+		Handler: buildServerMux(readHandle, listHandle),
 	}
 }
 
-func buildServerMux() *http.ServeMux {
+func buildServerMux(
+	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
+	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+) *http.ServeMux {
 	mux := http.NewServeMux()
-	addWorkspaces(mux)
+	addWorkspaces(mux, readHandle, listHandle)
 	return mux
 }
 
-func addWorkspaces(mux *http.ServeMux) {
+func addWorkspaces(
+	mux *http.ServeMux,
+	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
+	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+) {
 	// Read
 	mux.Handle(fmt.Sprintf("GET %s/{name}", WorkspacesPrefix),
 		workspace.NewReadWorkspaceHandler(
 			workspace.MapReadWorkspaceHttp,
-			(&cw.ReadWorkspaceHandler{}).Handle,
+			readHandle,
 			marshal.DefaultMarshal,
 		))
 
@@ -37,7 +47,7 @@ func addWorkspaces(mux *http.ServeMux) {
 	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix),
 		workspace.NewListWorkspaceHandler(
 			workspace.MapListWorkspaceHttp,
-			(&cw.ListWorkspaceHandler{}).Handle,
+			listHandle,
 			marshal.DefaultMarshal,
 			marshal.DefaultUnmarshal,
 		))
