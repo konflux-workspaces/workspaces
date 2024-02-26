@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: system
+  name: workspace-reader
+rules:
+- apiGroups:
+  - workspaces.io
+  resources:
+  - workspaces
+  verbs:
+  - list
+  - get
+  - watch

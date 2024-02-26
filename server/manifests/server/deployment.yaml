@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rest-api-server
+  name: rest-api-server
+  namespace: system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-api-server
+  template:
+    metadata:
+      labels:
+        app: rest-api-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - image: workspaces/rest-api:latest
+        name: rest-api
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WORKSPACES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8081
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   httpGet:
+        #     path: /readyz
+        #     port: 8081
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+      serviceAccountName: rest-api-server
+      terminationGracePeriodSeconds: 60
