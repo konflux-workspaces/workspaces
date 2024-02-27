@@ -74,11 +74,11 @@ spec:
         imagePullPolicy: IfNotPresent
         name: manager
         env:
-        - name: KUBESPACE_NAMESPACE
+        - name: KUBESAW_NAMESPACE
           valueFrom:
             configMapKeyRef:
-              name: cm
-              key: kubespace.namespace
+              name: workspaces-operator-config
+              key: kubesaw.namespace
         - name: WORKSPACES_NAMESPACE
           valueFrom:
             fieldRef:
@@ -115,6 +115,6 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm
+  name: operator-config
 data:
-  kubespace.namespace=workspaces-system
+  kubesaw.namespace=workspaces-system

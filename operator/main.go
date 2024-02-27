@@ -67,11 +67,11 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	kns, ok := os.LookupEnv("KUBESPACE_NAMESPACE")
+	kns, ok := os.LookupEnv("KUBESAW_NAMESPACE")
 	if !ok {
-		panic("Environment variable KUBESPACE_NAMESPACE not found")
+		panic("Environment variable KUBESAW_NAMESPACE not found")
 	}
-	setupLog.Info("Set KubespaceNamespace", "value", kns)
+	setupLog.Info("Set KubesawNamespace", "value", kns)
 
 	wns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
 	if !ok {
