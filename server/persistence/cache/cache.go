@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -25,12 +24,13 @@ var (
 
 type Cache struct {
 	c                   cache.Cache
+	kubesawNamespace    string
 	workspacesNamespace string
 }
 
 // New creates a new Cache that caches Workspaces and SpaceBindings. The cache
 // provides methods to retrieve the workspaces the user is allowed to access
-func New(cfg *rest.Config, workspacesNamespace string) (*Cache, error) {
+func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
 	s := runtime.NewScheme()
 	s.AddKnownTypes(toolchainv1alpha1.GroupVersion, &toolchainv1alpha1.SpaceBinding{})
 	s.AddKnownTypes(workspacesv1alpha1.GroupVersion, &workspacesv1alpha1.Workspace{})
@@ -38,6 +38,10 @@ func New(cfg *rest.Config, workspacesNamespace string) (*Cache, error) {
 	c, err := cache.New(cfg, cache.Options{
 		Scheme:                      s,
 		ReaderFailOnMissingInformer: true,
+		DefaultNamespaces: map[string]cache.Config{
+			workspacesNamespace: {},
+			kubesawNamespace:    {},
+		},
 		// look into DefaultTransform to add some labels and/or remove unwanted/internals properties
 	})
 	if err != nil {
@@ -46,6 +50,7 @@ func New(cfg *rest.Config, workspacesNamespace string) (*Cache, error) {
 
 	return &Cache{
 		c:                   c,
+		kubesawNamespace:    kubesawNamespace,
 		workspacesNamespace: workspacesNamespace,
 	}, nil
 }
@@ -98,11 +103,8 @@ func (c *Cache) ReadUserWorkspace(ctx context.Context, user string, space string
 }
 
 // WaitForCacheSync Synchronizes the cache
-func (c *Cache) WaitForCacheSync(ctx context.Context) error {
-	if !c.c.WaitForCacheSync(ctx) {
-		return fmt.Errorf("error synching cache")
-	}
-	return nil
+func (c *Cache) WaitForCacheSync(ctx context.Context) bool {
+	return c.c.WaitForCacheSync(ctx)
 }
 
 // Start starts the cache. It Blocks.

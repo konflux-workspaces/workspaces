@@ -28,6 +28,11 @@ func run() error {
 		return fmt.Errorf("required Environment Variable WORKSPACES_NAMESPACE not found")
 	}
 
+	kns, ok := os.LookupEnv("KUBESAW_NAMESPACE")
+	if !ok {
+		return fmt.Errorf("required Environment Variable KUBESAW_NAMESPACE not found")
+	}
+
 	cfg, err := config.GetConfig()
 	if err != nil {
 		return err
@@ -38,9 +43,12 @@ func run() error {
 	defer cancel()
 
 	// setup read model
-	c, err := cache.New(cfg, wns)
+	c, err := cache.New(cfg, wns, kns)
 	if err != nil {
 		return err
+	}
+	if !c.WaitForCacheSync(ctx) {
+		return fmt.Errorf("error synching cache")
 	}
 
 	// setup write model
@@ -61,7 +69,7 @@ func run() error {
 		defer cancel()
 
 		if err := s.Shutdown(sctx); err != nil {
-			log.Fatal(err)
+			log.Fatalf("error gracefully shutting down the HTTP server: %v", err)
 		}
 	}()
 

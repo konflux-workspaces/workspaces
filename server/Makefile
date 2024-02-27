@@ -6,6 +6,9 @@ LD_FLAGS ?= -s -w
 IMG ?= workspaces/rest-api:latest
 NAMESPACE ?= workspaces-system
 
+KUBECLI ?= kubectl
+KUSTOMIZE ?= kustomize
+
 .PHONY: all
 all: clean
 	@:
@@ -40,10 +43,14 @@ docker-build:
 .PHONY: deploy
 deploy:
 	(\
-		f=$$(mktemp --directory /tmp/workspaces-rest.XXXXX) && \
+		toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
+			f=$$(mktemp --directory /tmp/workspaces-rest.XXXXX) && \
 			cp -r ./manifests "$$f" && \
 			cd "$$f/manifests/default" && \
-			kustomize edit set namespace $(NAMESPACE) && \
-			kustomize edit set image $(IMG) && \
-			kustomize build . | kubectl apply -f - \
+			$(KUSTOMIZE) edit set namespace $(NAMESPACE) && \
+			$(KUSTOMIZE) edit set image $(IMG) && \
+			$(KUSTOMIZE) edit add configmap rest-api-server-config \
+				--behavior=replace \
+				--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "toolchain-host-operator" ) \
+			$(KUSTOMIZE) build . | $(KUBECLI) apply -f - \
 	)
