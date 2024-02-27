@@ -42,15 +42,15 @@ docker-build:
 
 .PHONY: deploy
 deploy:
-	(\
+	( \
 		toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
 			f=$$(mktemp --directory /tmp/workspaces-rest.XXXXX) && \
 			cp -r ./manifests "$$f" && \
 			cd "$$f/manifests/default" && \
 			$(KUSTOMIZE) edit set namespace $(NAMESPACE) && \
-			$(KUSTOMIZE) edit set image $(IMG) && \
+			$(KUSTOMIZE) edit set image workspaces/rest-api=$(IMG) && \
 			$(KUSTOMIZE) edit add configmap rest-api-server-config \
 				--behavior=replace \
-				--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "toolchain-host-operator" ) \
+				--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "toolchain-host-operator" ) && \
 			$(KUSTOMIZE) build . | $(KUBECLI) apply -f - \
 	)

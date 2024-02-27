@@ -6,7 +6,8 @@ V ?=
 
 DATE_SUFFIX != date +'%s'
 QUAY_NAMESPACE ?= filario
-IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces:test-${DATE_SUFFIX}
+OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
+SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
 
 .PHONY: vet
@@ -15,28 +16,31 @@ vet:
 
 .PHONY: build-images
 build-images:
-	IMG=$(IMG) make -C ../operator/ docker-build
+	IMG=$(OPERATOR_IMG) make -C ../operator/ docker-build
+	IMG=$(SERVER_IMG) make -C ../server/ docker-build
 
 .PHONY: push-images
 push-images:
-	docker push $(IMG)
+	docker push $(OPERATOR_IMG) 
+	docker push $(SERVER_IMG)
 
 .PHONY: deploy-operator
 deploy-operator:
 	(\
 		f=$$(mktemp --directory /tmp/workspaces-config.XXXXX) && \
-		cp -r "../operator" "$$f" && \
+		cp -r "../operator" "../server" "$$f" && \
 		cd "$$f/operator" && \
 		( \
 			cd config/manager && \
 			( \
 				toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
-				$(KUSTOMIZE) edit add configmap cm \
+				$(KUSTOMIZE) edit add configmap operator-config \
 					--behavior=replace \
-					--from-literal=kubespace.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
+					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
-		IMG=$(IMG) make install deploy \
+		IMG=$(OPERATOR_IMG) make install deploy && \
+		IMG=$(SERVER_IMG) make -C ../server deploy \
 	)
 
 .PHONY: prepare
