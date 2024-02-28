@@ -7,19 +7,31 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"k8s.io/client-go/rest"
 )
 
 const (
-	keyHostClient          string = "host-client"
-	keyTestNamespace       string = "test-namespace"
-	keyScenarioId          string = "scenario-id"
-	keyKubespaceNamespace  string = "kubespace-namespace"
-	keyWorkspacesNamespace string = "workspaces-namespace"
-	keyWorkspace           string = "default-workspace"
-	keyUser                string = "default-user"
+	keyUnauthenticatedKubeconfig string = "unauth-kubeconfig"
+	keyHostClient                string = "host-client"
+	keyTestNamespace             string = "test-namespace"
+	keyScenarioId                string = "scenario-id"
+	keyKubespaceNamespace        string = "kubespace-namespace"
+	keyWorkspacesNamespace       string = "workspaces-namespace"
+	keyWorkspace                 string = "default-workspace"
+	keyUser                      string = "default-user"
+	keyUserWorkspaces            string = "workspaces"
 
 	msgNotFound string = "key not found in context"
 )
+
+// Kubeconfig
+func InjectUnauthKubeconfig(ctx context.Context, cli *rest.Config) context.Context {
+	return context.WithValue(ctx, keyUnauthenticatedKubeconfig, cli)
+}
+
+func RetrieveUnauthKubeconfig(ctx context.Context) *rest.Config {
+	return get[*rest.Config](ctx, keyUnauthenticatedKubeconfig)
+}
 
 // Host Client
 func InjectHostClient(ctx context.Context, cli cli.Cli) context.Context {
@@ -73,6 +85,15 @@ func InjectUser(ctx context.Context, u toolchainv1alpha1.UserSignup) context.Con
 
 func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
 	return get[toolchainv1alpha1.UserSignup](ctx, keyUser)
+}
+
+// Workspaces
+func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.WorkspaceList) context.Context {
+	return context.WithValue(ctx, keyUserWorkspaces, ww)
+}
+
+func RetrieveUserWorkspaces(ctx context.Context) workspacesv1alpha1.WorkspaceList {
+	return get[workspacesv1alpha1.WorkspaceList](ctx, keyUserWorkspaces)
 }
 
 // Scenario Id

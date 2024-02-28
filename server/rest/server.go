@@ -9,7 +9,7 @@ import (
 	"github.com/filariow/workspaces/server/rest/workspace"
 )
 
-const WorkspacesPrefix string = "/workspaces"
+const WorkspacesPrefix string = "/apis/workspaces.io/v1alpha1"
 
 func New(
 	addr string,

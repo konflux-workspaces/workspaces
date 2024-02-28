@@ -10,6 +10,7 @@ func InjectHooks(ctx *godog.ScenarioContext) {
 }
 
 func injectHookSetup(ctx *godog.ScenarioContext) {
+	ctx.Before(injectUnauthKubeconfig)
 	ctx.Before(injectHostClient)
 	ctx.Before(createAndInjectTestNamespace)
 	ctx.Before(injectKubespaceNamespace)

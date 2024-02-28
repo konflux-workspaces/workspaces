@@ -7,6 +7,8 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Given(`^A community workspace exists for an user$`, givenACommunityWorkspaceExists)
 	ctx.Given(`^A private workspace exists for an user$`, givenAPrivateWorkspaceExists)
 
+	ctx.Given(`^Default workspace is created for them$`, givenDefaultWorkspaceIsCreatedForThem)
+
 	// when
 	ctx.When(`^The user requests a new community workspace$`, whenUserRequestsANewCommunityWorkspace)
 	ctx.When(`^The user requests a new private workspace$`, whenUserRequestsANewPrivateWorkspace)

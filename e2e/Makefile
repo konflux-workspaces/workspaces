@@ -49,12 +49,14 @@ prepare: build-images push-images deploy-operator
 
 .PHONY: test
 test: vet clean
+	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
 wip: vet clean
+	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip

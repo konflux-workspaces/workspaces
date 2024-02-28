@@ -55,6 +55,8 @@ func NewListWorkspaceHandler(
 }
 
 func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(r.Context(), "user", "admin")
+
 	// map to query
 	q, err := h.MapperFunc(r)
 	if err != nil {
@@ -65,8 +67,9 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	log.Printf("executing list query %v", q)
 
 	// execute
-	qr, err := h.QueryHandler(r.Context(), *q)
+	qr, err := h.QueryHandler(ctx, *q)
 	if err != nil {
+		log.Printf("error handling query: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

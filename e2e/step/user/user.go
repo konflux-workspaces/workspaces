@@ -9,5 +9,10 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	// when
 	ctx.When(`^An user onboards$`, whenAnUserOnboards)
 
+	ctx.When(`^The user requests the list of workspaces$`, whenUserRequestsTheListOfWorkspaces)
+	ctx.When(`^The user requests their default workspace$`, whenUserRequestsTheirDefaultWorkspace)
+
 	// then
+	ctx.Then(`^The user retrieves a list of workspaces containing just the default one$`, thenTheUserRetrievesAListOfWorkspacesContainingJustTheDefaultOne)
+	ctx.Then(`^The user retrieves their default workspace$`, thenTheUserRetrievesTheirDefaultWorkspace)
 }

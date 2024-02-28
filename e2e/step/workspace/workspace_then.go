@@ -17,13 +17,7 @@ import (
 )
 
 func thenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
-	u := tcontext.RetrieveUser(ctx)
-	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
-	if err != nil {
-		return ctx, err
-	}
-
-	return tcontext.InjectWorkspace(ctx, *w), nil
+	return defaultWorkspaceIsCreatedForThem(ctx)
 }
 
 func thenTheWorkspaceIsReadableOnlyForGranted(ctx context.Context) error {

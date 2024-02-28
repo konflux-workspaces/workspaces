@@ -15,6 +15,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+func defaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
+	u := tcontext.RetrieveUser(ctx)
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
+	if err != nil {
+		return ctx, err
+	}
+
+	return tcontext.InjectWorkspace(ctx, *w), nil
+}
+
 func createUserSignupAndWaitForWorkspace(
 	ctx context.Context,
 	cli cli.Cli,

@@ -8,6 +8,10 @@ import (
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
+func givenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
+	return defaultWorkspaceIsCreatedForThem(ctx)
+}
+
 func givenAPrivateWorkspaceExists(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)

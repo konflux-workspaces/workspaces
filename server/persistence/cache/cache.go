@@ -32,8 +32,8 @@ type Cache struct {
 // provides methods to retrieve the workspaces the user is allowed to access
 func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
 	s := runtime.NewScheme()
-	s.AddKnownTypes(toolchainv1alpha1.GroupVersion, &toolchainv1alpha1.SpaceBinding{})
-	s.AddKnownTypes(workspacesv1alpha1.GroupVersion, &workspacesv1alpha1.Workspace{})
+	s.AddKnownTypes(toolchainv1alpha1.GroupVersion, &toolchainv1alpha1.SpaceBinding{}, &toolchainv1alpha1.SpaceBindingList{})
+	s.AddKnownTypes(workspacesv1alpha1.GroupVersion, &workspacesv1alpha1.Workspace{}, &workspacesv1alpha1.WorkspaceList{})
 
 	c, err := cache.New(cfg, cache.Options{
 		Scheme:                      s,
