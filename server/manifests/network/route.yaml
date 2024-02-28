@@ -3,17 +3,15 @@ kind: Route
 metadata:
   labels:
     provider: workspaces
-    run: rest-api-server
+    app: rest-api-server
   name: rest-api-server
-  namespace: workspaces-system
+  namespace: system
 spec:
   host: ''
   port:
     targetPort: 8080
   to:
     kind: Service
-    name: rest-api-server
+    name: workspaces-rest-api-server
     weight: 100
-  tls:
-    termination: edge
   wildcardPolicy: None

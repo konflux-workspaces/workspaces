@@ -8,10 +8,9 @@ metadata:
     run: rest-api-server
 spec:
   ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 8080
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
   selector:
     app: rest-api-server
   type: ClusterIP
