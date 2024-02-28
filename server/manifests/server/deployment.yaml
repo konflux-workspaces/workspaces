@@ -60,6 +60,9 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
+        ports:
+          - containerPort: 8080
+            name: http
       serviceAccountName: rest-api-server
       terminationGracePeriodSeconds: 60
 ---

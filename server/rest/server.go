@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/filariow/workspaces/server/rest/marshal"
@@ -17,17 +18,23 @@ func New(
 ) *http.Server {
 	return &http.Server{
 		Addr:    addr,
-		Handler: buildServerMux(readHandle, listHandle),
+		Handler: buildServerHandler(readHandle, listHandle),
 	}
 }
 
-func buildServerMux(
+func buildServerHandler(
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-) *http.ServeMux {
+) http.HandlerFunc {
 	mux := http.NewServeMux()
+	addHealthz(mux)
 	addWorkspaces(mux, readHandle, listHandle)
-	return mux
+
+	h := func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s", r.Method, r.URL.String())
+		mux.ServeHTTP(w, r)
+	}
+	return h
 }
 
 func addWorkspaces(
@@ -51,4 +58,11 @@ func addWorkspaces(
 			marshal.DefaultMarshal,
 			marshal.DefaultUnmarshal,
 		))
+}
+
+func addHealthz(mux *http.ServeMux) {
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("alive"))
+	})
 }

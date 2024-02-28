@@ -76,7 +76,7 @@ func run() error {
 
 	// start the cache
 	go func() {
-		log.Println("Start cache")
+		log.Println("starting cache")
 		if err := c.Start(ctx); err != nil {
 			if ctx.Err() == nil {
 				cancel()
@@ -85,13 +85,13 @@ func run() error {
 		}
 	}()
 
-	log.Println("Waiting for cache to sync...")
+	log.Println("waiting for cache to sync...")
 	if !c.WaitForCacheSync(ctx) {
 		return fmt.Errorf("error synching cache")
 	}
 
 	// start HTTP server
-	log.Printf("Start HTTP server at %s", s.Addr)
+	log.Printf("starting HTTP server at %s", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
 		return fmt.Errorf("error running server: %v", err)
 	}
