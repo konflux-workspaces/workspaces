@@ -193,6 +193,7 @@ func (c *Cache) ReadUserWorkspace(
 	if ow, ok := ll["workspaces.io/owner"]; !ok || ow != owner {
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
+	w.SetNamespace(owner)
 
 	w.DeepCopyInto(obj)
 	return nil

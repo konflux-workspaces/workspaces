@@ -63,6 +63,17 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 		return nil, err
 	}
 
+	for _, w := range ww.Items {
+		switch query.Namespace {
+		case "":
+			w.SetNamespace(query.Namespace)
+		default:
+			ll := w.GetLabels()
+			ow := ll["workspaces.io/owner"]
+			w.SetNamespace(ow)
+		}
+	}
+
 	// reply
 	return &ListWorkspaceResponse{Workspaces: ww}, nil
 }
