@@ -86,7 +86,8 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	log.Printf("written: %s", string(d))
 }
 
 func MapListWorkspaceHttp(r *http.Request) (*workspace.ListWorkspaceQuery, error) {

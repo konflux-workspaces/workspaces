@@ -5,12 +5,15 @@ import (
 	"errors"
 	"slices"
 
+	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	"github.com/filariow/workspaces/server/core/workspace"
@@ -31,20 +34,51 @@ type Cache struct {
 // New creates a new Cache that caches Workspaces and SpaceBindings. The cache
 // provides methods to retrieve the workspaces the user is allowed to access
 func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
+	rest.HTTPClientFor(cfg)
 	s := runtime.NewScheme()
-	s.AddKnownTypes(toolchainv1alpha1.GroupVersion, &toolchainv1alpha1.SpaceBinding{}, &toolchainv1alpha1.SpaceBindingList{})
-	s.AddKnownTypes(workspacesv1alpha1.GroupVersion, &workspacesv1alpha1.Workspace{}, &workspacesv1alpha1.WorkspaceList{})
+	if err := corev1.AddToScheme(s); err != nil {
+		return nil, err
+	}
+	if err := metav1.AddMetaToScheme(s); err != nil {
+		return nil, err
+	}
+	if err := workspacesv1alpha1.AddToScheme(s); err != nil {
+		return nil, err
+	}
+	if err := toolchainv1alpha1.AddToScheme(s); err != nil {
+		return nil, err
+	}
+
+	hc, err := rest.HTTPClientFor(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := apiutil.NewDynamicRESTMapper(cfg, hc)
+	if err != nil {
+		return nil, err
+	}
 
 	c, err := cache.New(cfg, cache.Options{
 		Scheme:                      s,
+		Mapper:                      m,
 		ReaderFailOnMissingInformer: true,
-		DefaultNamespaces: map[string]cache.Config{
-			workspacesNamespace: {},
-			kubesawNamespace:    {},
+		ByObject: map[client.Object]cache.ByObject{
+			&toolchainv1alpha1.SpaceBinding{}: {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
+			&workspacesv1alpha1.Workspace{}:   {Namespaces: map[string]cache.Config{workspacesNamespace: {}}},
 		},
 		// look into DefaultTransform to add some labels and/or remove unwanted/internals properties
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.TODO()
+	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{}); err != nil {
+		return nil, err
+	}
+
+	if _, err := c.GetInformer(ctx, &workspacesv1alpha1.Workspace{}); err != nil {
 		return nil, err
 	}
 
