@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"slices"
 
@@ -98,7 +99,12 @@ func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache
 	}
 	iw.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			log.Printf("obj added: %v", obj)
+			w, ok := obj.(*workspacesv1alpha1.Workspace)
+			if !ok {
+				panic(fmt.Sprintf("can not convert obj to *workspaces.io/Workspace: %v", w))
+			}
+
+			log.Printf("workspace added: %v", w)
 		},
 		DeleteFunc: func(obj interface{}) {
 			log.Printf("obj deleted: %v", obj)
@@ -116,13 +122,18 @@ func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache
 }
 
 // ListUserWorkspaces Returns all the workspaces the user has access to
-func (c *Cache) ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.WorkspaceList, opts ...client.ListOption) error {
+func (c *Cache) ListUserWorkspaces(
+	ctx context.Context,
+	user string,
+	objs *workspacesv1alpha1.WorkspaceList,
+	opts ...client.ListOption,
+) error {
 	sbb := toolchainv1alpha1.SpaceBindingList{}
 	if err := c.c.List(ctx, &sbb, &client.ListOptions{}); err != nil {
 		return err
 	}
 
-	log.Printf("retrieved %d sbb:\n%v", len(sbb.Items), sbb)
+	log.Printf("retrieved %d sbb: %v", len(sbb.Items), sbb)
 	if len(sbb.Items) == 0 {
 		return nil
 	}
@@ -146,7 +157,14 @@ func (c *Cache) ListUserWorkspaces(ctx context.Context, user string, objs *works
 }
 
 // ReadUserWorkspace Returns the Workspace details only if the user has access to it
-func (c *Cache) ReadUserWorkspace(ctx context.Context, user string, space string, obj *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
+func (c *Cache) ReadUserWorkspace(
+	ctx context.Context,
+	user string,
+	owner string,
+	space string,
+	obj *workspacesv1alpha1.Workspace,
+	opts ...client.GetOption,
+) error {
 	sbb := toolchainv1alpha1.SpaceBindingList{}
 	if err := c.c.List(ctx, &sbb, &client.ListOptions{}); err != nil {
 		return err
@@ -161,7 +179,23 @@ func (c *Cache) ReadUserWorkspace(ctx context.Context, user string, space string
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
 
-	return c.c.Get(ctx, c.workspaceNamespacedName(space), obj, opts...)
+	w := &workspacesv1alpha1.Workspace{}
+	err := c.c.Get(ctx, c.workspaceNamespacedName(space), w, opts...)
+	if err != nil {
+		return err
+	}
+
+	ll := w.GetLabels()
+	if len(ll) == 0 {
+		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
+	}
+
+	if ow, ok := ll["workspaces.io/owner"]; !ok || ow != owner {
+		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
+	}
+
+	w.DeepCopyInto(obj)
+	return nil
 }
 
 // WaitForCacheSync Synchronizes the cache

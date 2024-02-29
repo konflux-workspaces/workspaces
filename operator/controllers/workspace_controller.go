@@ -115,7 +115,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 
 func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
 	// skip if home workspace
-	if ll := w.GetLabels(); ll != nil && ll[HomeWorkspaceLabel] != "" {
+	if ll := w.GetLabels(); ll != nil && ll[LabelHomeWorkspace] != "" {
 		return nil
 	}
 

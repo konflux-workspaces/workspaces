@@ -3,11 +3,13 @@ package user
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/cucumber/godog"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -32,6 +34,38 @@ func whenAnUserOnboards(ctx context.Context) (context.Context, error) {
 }
 
 func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, error) {
+	c, err := buildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+	ww := workspacesiov1alpha1.WorkspaceList{}
+	if err := c.List(ctx, &ww, &client.ListOptions{}); err != nil {
+		u := tcontext.RetrieveUser(ctx)
+		k := tcontext.RetrieveUnauthKubeconfig(ctx)
+		return ctx, fmt.Errorf("error retrieving workspaces from host %s as user %s: %w", k.Host, u.Status.CompliantUsername, err)
+	}
+
+	return tcontext.InjectUserWorkspaces(ctx, ww), nil
+}
+
+func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context, error) {
+	c, err := buildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	u := tcontext.RetrieveUser(ctx)
+	w := workspacesiov1alpha1.Workspace{}
+	wk := types.NamespacedName{Namespace: u.Name, Name: u.Name}
+	if err := c.Get(ctx, wk, &w, &client.GetOptions{}); err != nil {
+		k := tcontext.RetrieveUnauthKubeconfig(ctx)
+		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, u.Status.CompliantUsername, err)
+	}
+	log.Printf("retrieved workspace: %v", w)
+	return tcontext.InjectWorkspace(ctx, w), nil
+}
+
+func buildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
@@ -42,11 +76,26 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 	t := auth.BuildJwtForUser(u.Status.CompliantUsername)
 	ts, err := t.SignedString([]byte("randomkey"))
 	if err != nil {
-		return ctx, err
+		return nil, err
 	}
+	log.Printf("token: %s", ts)
 	k.BearerToken = ts
 	k.Host = os.Getenv("PROXY_URL")
 
+	m, err := buildRESTMapper()
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := client.New(k, client.Options{Scheme: scheme, Mapper: m})
+	if err != nil {
+		return nil, fmt.Errorf("error building client for host %s and user %s: %w", k.Host, u.Status.CompliantUsername, err)
+	}
+
+	return c, nil
+}
+
+func buildRESTMapper() (meta.RESTMapper, error) {
 	p := func() string {
 		e := os.Getenv("KUBECONFIG")
 		if e != "" {
@@ -62,26 +111,12 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 
 	hc, err := rest.HTTPClientFor(cfg)
 	if err != nil {
-		return ctx, err
+		return nil, err
 	}
+
 	m, err := apiutil.NewDynamicRESTMapper(cfg, hc)
 	if err != nil {
-		return ctx, err
+		return nil, err
 	}
-
-	c, err := client.New(k, client.Options{Scheme: scheme, Mapper: m})
-	if err != nil {
-		return ctx, fmt.Errorf("error building client for host %s and user %s: %w", k.Host, u.Status.CompliantUsername, err)
-	}
-
-	ww := workspacesiov1alpha1.WorkspaceList{}
-	if err := c.List(ctx, &ww, &client.ListOptions{}); err != nil {
-		return ctx, fmt.Errorf("error retrieving workspaces from host %s as user %s: %w", k.Host, u.Status.CompliantUsername, err)
-	}
-
-	return tcontext.InjectUserWorkspaces(ctx, ww), nil
-}
-
-func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context, error) {
-	return ctx, godog.ErrPending
+	return m, nil
 }

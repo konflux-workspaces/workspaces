@@ -88,10 +88,10 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func MapReadWorkspaceHttp(r *http.Request) (*workspace.ReadWorkspaceQuery, error) {
 	c := r.PathValue("name")
-	return &workspace.ReadWorkspaceQuery{Name: c}, nil
+	ns := r.PathValue("namespace")
+	return &workspace.ReadWorkspaceQuery{Name: c, Owner: ns}, nil
 }

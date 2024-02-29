@@ -10,7 +10,10 @@ import (
 	"github.com/filariow/workspaces/server/rest/workspace"
 )
 
-const WorkspacesPrefix string = "/apis/workspaces.io/v1alpha1/workspaces"
+const (
+	WorkspacesPrefix           string = `/apis/workspaces.io/v1alpha1/workspaces`
+	NamespacedWorkspacesPrefix string = `/apis/workspaces.io/v1alpha1/namespaces/{namespace}/workspaces`
+)
 
 func New(
 	addr string,
@@ -43,7 +46,7 @@ func addWorkspaces(
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
 ) {
 	// Read
-	mux.Handle(fmt.Sprintf("GET %s/{name}", WorkspacesPrefix),
+	mux.Handle(fmt.Sprintf("GET %s/{name}", NamespacedWorkspacesPrefix),
 		auth.NewJwtBearerMiddleware(
 			workspace.NewReadWorkspaceHandler(
 				workspace.MapReadWorkspaceHttp,
@@ -52,14 +55,16 @@ func addWorkspaces(
 			)))
 
 	// List
-	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix),
-		auth.NewJwtBearerMiddleware(
-			workspace.NewListWorkspaceHandler(
-				workspace.MapListWorkspaceHttp,
-				listHandle,
-				marshal.DefaultMarshal,
-				marshal.DefaultUnmarshal,
-			)))
+	lh := auth.NewJwtBearerMiddleware(
+		workspace.NewListWorkspaceHandler(
+			workspace.MapListWorkspaceHttp,
+			listHandle,
+			marshal.DefaultMarshal,
+			marshal.DefaultUnmarshal,
+		),
+	)
+	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix), lh)
+	mux.Handle(fmt.Sprintf("GET %s", NamespacedWorkspacesPrefix), lh)
 }
 
 func addHealthz(mux *http.ServeMux) {

@@ -90,5 +90,10 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func MapListWorkspaceHttp(r *http.Request) (*workspace.ListWorkspaceQuery, error) {
-	return &workspace.ListWorkspaceQuery{}, nil
+	q := workspace.ListWorkspaceQuery{}
+	ns := r.PathValue("namespace")
+	if ns != "" {
+		q.Namespace = ns
+	}
+	return &q, nil
 }

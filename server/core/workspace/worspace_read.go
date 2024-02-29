@@ -10,7 +10,8 @@ import (
 
 // ReadWorkspaceQuery contains the information needed to retrieve a Workspace the user has access to from the data source
 type ReadWorkspaceQuery struct {
-	Name string
+	Name  string
+	Owner string
 }
 
 // ReadWorkspaceResponse contains the workspace the user requested
@@ -20,7 +21,7 @@ type ReadWorkspaceResponse struct {
 
 // WorkspaceReader is the interface the data source needs to implement to allow the ReadWorkspaceHandler to fetch data from it
 type WorkspaceReader interface {
-	ReadUserWorkspace(ctx context.Context, user, space string, obj *workspacesv1alpha1.Workspace, opts ...client.GetOption) error
+	ReadUserWorkspace(ctx context.Context, user, owner, space string, obj *workspacesv1alpha1.Workspace, opts ...client.GetOption) error
 }
 
 // ReadWorkspaceHandler processes ReadWorkspaceQuery and returns ReadWorkspaceResponse fetching data from a WorkspaceReader
@@ -48,7 +49,7 @@ func (h *ReadWorkspaceHandler) Handle(ctx context.Context, query ReadWorkspaceQu
 
 	// data access
 	var w workspacesv1alpha1.Workspace
-	if err := h.reader.ReadUserWorkspace(ctx, u, query.Name, &w); err != nil {
+	if err := h.reader.ReadUserWorkspace(ctx, u, query.Owner, query.Name, &w); err != nil {
 		return nil, err
 	}
 

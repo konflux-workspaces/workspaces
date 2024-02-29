@@ -2,15 +2,24 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/cucumber/godog"
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 )
 
 func thenTheUserRetrievesTheirDefaultWorkspace(ctx context.Context) (context.Context, error) {
-	return ctx, godog.ErrPending
+	w := tcontext.RetrieveWorkspace(ctx)
+	u := tcontext.RetrieveUser(ctx)
+
+	errs := []error{}
+	if w.Namespace != u.Name {
+		errs = append(errs, fmt.Errorf("expected workspace namespace to be %s, found %s", u.Name, w.Namespace))
+	}
+	if w.Name != u.Name {
+		errs = append(errs, fmt.Errorf("expected workspace name to be %s, found %s", u.Name, w.Namespace))
+	}
+	return ctx, errors.Join(errs...)
 }
 
 func thenTheUserRetrievesAListOfWorkspacesContainingJustTheDefaultOne(ctx context.Context) (context.Context, error) {

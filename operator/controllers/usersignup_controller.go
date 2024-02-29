@@ -36,7 +36,10 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-const HomeWorkspaceLabel string = "workspaces.io/home-workspace"
+const (
+	LabelHomeWorkspace  string = "workspaces.io/home-workspace"
+	LabelWorkspaceOwner string = "workspaces.io/owner"
+)
 
 // UserSignupReconciler reconciles a Workspace object
 type UserSignupReconciler struct {
@@ -82,7 +85,8 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		if ll == nil {
 			ll = map[string]string{}
 		}
-		ll[HomeWorkspaceLabel] = u.Name
+		ll[LabelHomeWorkspace] = u.Name
+		ll[LabelWorkspaceOwner] = u.Name
 		w.Labels = ll
 
 		w.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityPrivate
@@ -99,7 +103,7 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 }
 
 func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, name string) error {
-	lr, err := labels.NewRequirement(HomeWorkspaceLabel, selection.Equals, []string{name})
+	lr, err := labels.NewRequirement(LabelHomeWorkspace, selection.Equals, []string{name})
 	if err != nil {
 		return errors.Join(ErrNonTransient, err)
 	}

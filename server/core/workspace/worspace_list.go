@@ -11,7 +11,9 @@ import (
 )
 
 // ListWorkspaceQuery contains the information needed to retrieve all the workspaces the user has access to from the data source
-type ListWorkspaceQuery struct{}
+type ListWorkspaceQuery struct {
+	Namespace string
+}
 
 // ListWorkspaceResponse contains all the workspaces the user can access
 type ListWorkspaceResponse struct {
@@ -54,7 +56,10 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 		},
 		Items: []workspacesv1alpha1.Workspace{},
 	}
-	if err := h.lister.ListUserWorkspaces(ctx, u, &ww, &client.ListOptions{}); err != nil {
+	opts := &client.ListOptions{
+		Namespace: query.Namespace,
+	}
+	if err := h.lister.ListUserWorkspaces(ctx, u, &ww, opts); err != nil {
 		return nil, err
 	}
 
