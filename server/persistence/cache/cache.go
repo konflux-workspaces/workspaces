@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"log"
 	"slices"
 
 	corev1 "k8s.io/api/core/v1"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -74,13 +76,37 @@ func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache
 	}
 
 	ctx := context.TODO()
-	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{}); err != nil {
+	isb, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{})
+	if err != nil {
 		return nil, err
 	}
+	isb.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			log.Printf("obj added: %v", obj)
+		},
+		DeleteFunc: func(obj interface{}) {
+			log.Printf("obj deleted: %v", obj)
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			log.Printf("obj updated (old---new):%v\n---\n%v", oldObj, newObj)
+		},
+	})
 
-	if _, err := c.GetInformer(ctx, &workspacesv1alpha1.Workspace{}); err != nil {
+	iw, err := c.GetInformer(ctx, &workspacesv1alpha1.Workspace{})
+	if err != nil {
 		return nil, err
 	}
+	iw.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			log.Printf("obj added: %v", obj)
+		},
+		DeleteFunc: func(obj interface{}) {
+			log.Printf("obj deleted: %v", obj)
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			log.Printf("obj updated (old---new):%v\n---\n%v", oldObj, newObj)
+		},
+	})
 
 	return &Cache{
 		c:                   c,
@@ -95,6 +121,8 @@ func (c *Cache) ListUserWorkspaces(ctx context.Context, user string, objs *works
 	if err := c.c.List(ctx, &sbb, &client.ListOptions{}); err != nil {
 		return err
 	}
+
+	log.Printf("retrieved %d sbb:\n%v", len(sbb.Items), sbb)
 	if len(sbb.Items) == 0 {
 		return nil
 	}

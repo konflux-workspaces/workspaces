@@ -24,8 +24,8 @@ type ListWorkspaceHandler struct {
 	MapperFunc   ListWorkspaceMapperFunc
 	QueryHandler ListWorkspaceQueryHandlerFunc
 
-	Marshal   marshal.MarshalFunc
-	Unmarshal marshal.UnmarshalFunc
+	Marshaler marshal.Marshaler
+	Unmarshal marshal.Unmarshaler
 }
 
 func NewDefaultListWorkspaceHandler(
@@ -43,20 +43,18 @@ func NewDefaultListWorkspaceHandler(
 func NewListWorkspaceHandler(
 	mapperFunc ListWorkspaceMapperFunc,
 	queryHandler ListWorkspaceQueryHandlerFunc,
-	marshalFunc marshal.MarshalFunc,
-	unmarshalFunc marshal.UnmarshalFunc,
+	marshaler marshal.Marshaler,
+	unmarshaler marshal.Unmarshaler,
 ) *ListWorkspaceHandler {
 	return &ListWorkspaceHandler{
 		MapperFunc:   mapperFunc,
 		QueryHandler: queryHandler,
-		Marshal:      marshalFunc,
-		Unmarshal:    unmarshalFunc,
+		Marshaler:    marshaler,
+		Unmarshal:    unmarshaler,
 	}
 }
 
 func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := context.WithValue(r.Context(), "user", "admin")
-
 	// map to query
 	q, err := h.MapperFunc(r)
 	if err != nil {
@@ -67,7 +65,7 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	log.Printf("executing list query %v", q)
 
 	// execute
-	qr, err := h.QueryHandler(ctx, *q)
+	qr, err := h.QueryHandler(r.Context(), *q)
 	if err != nil {
 		log.Printf("error handling query: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -75,13 +73,14 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// marshal response
-	d, err := h.Marshal(qr.Workspaces)
+	d, err := h.Marshaler.Marshal(qr.Workspaces)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
+	w.Header().Add("Content-Type", h.Marshaler.ContentType())
 	if _, err := w.Write(d); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

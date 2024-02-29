@@ -4,7 +4,9 @@ go 1.22
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
+	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
 	k8s.io/client-go v0.29.1
 	sigs.k8s.io/controller-runtime v0.17.2
@@ -46,7 +48,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.29.1 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240209001042-7a0d5b415232 // indirect
 	k8s.io/utils v0.0.0-20240102154912-e7106e64919e // indirect

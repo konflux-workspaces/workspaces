@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/cucumber/godog"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/auth"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
@@ -42,7 +47,29 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 	k.BearerToken = ts
 	k.Host = os.Getenv("PROXY_URL")
 
-	c, err := client.New(k, client.Options{Scheme: scheme})
+	p := func() string {
+		e := os.Getenv("KUBECONFIG")
+		if e != "" {
+			return e
+		}
+		return filepath.Join(homedir.HomeDir(), ".kube", "config")
+	}()
+
+	cfg, err := clientcmd.BuildConfigFromFlags("", p)
+	if err != nil {
+		panic(fmt.Sprintf("error building config: %v", err))
+	}
+
+	hc, err := rest.HTTPClientFor(cfg)
+	if err != nil {
+		return ctx, err
+	}
+	m, err := apiutil.NewDynamicRESTMapper(cfg, hc)
+	if err != nil {
+		return ctx, err
+	}
+
+	c, err := client.New(k, client.Options{Scheme: scheme, Mapper: m})
 	if err != nil {
 		return ctx, fmt.Errorf("error building client for host %s and user %s: %w", k.Host, u.Status.CompliantUsername, err)
 	}

@@ -1,12 +1,16 @@
 package marshal
 
-import "encoding/json"
+type Marshaler interface {
+	ContentType() string
+	Marshal(any) ([]byte, error)
+}
+
+type Unmarshaler interface {
+	ContentType() string
+	Unmarshal([]byte, any) error
+}
 
 var (
-	DefaultMarshal   MarshalFunc   = json.Marshal
-	DefaultUnmarshal UnmarshalFunc = json.Unmarshal
+	DefaultMarshal   Marshaler   = &JsonMarshaler{}
+	DefaultUnmarshal Unmarshaler = &JsonUnmarshaler{}
 )
-
-type MarshalFunc func(any) ([]byte, error)
-
-type UnmarshalFunc func([]byte, any) error

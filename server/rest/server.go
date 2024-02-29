@@ -2,14 +2,15 @@ package rest
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/filariow/workspaces/server/rest/marshal"
+	"github.com/filariow/workspaces/server/rest/middleware"
+	"github.com/filariow/workspaces/server/rest/middleware/auth"
 	"github.com/filariow/workspaces/server/rest/workspace"
 )
 
-const WorkspacesPrefix string = "/apis/workspaces.io/v1alpha1"
+const WorkspacesPrefix string = "/apis/workspaces.io/v1alpha1/workspaces"
 
 func New(
 	addr string,
@@ -25,16 +26,15 @@ func New(
 func buildServerHandler(
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-) http.HandlerFunc {
+) http.Handler {
 	mux := http.NewServeMux()
 	addHealthz(mux)
 	addWorkspaces(mux, readHandle, listHandle)
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
 
-	h := func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL.String())
-		mux.ServeHTTP(w, r)
-	}
-	return h
+	return middleware.NewLogRequestMiddleware(mux)
 }
 
 func addWorkspaces(
@@ -44,20 +44,22 @@ func addWorkspaces(
 ) {
 	// Read
 	mux.Handle(fmt.Sprintf("GET %s/{name}", WorkspacesPrefix),
-		workspace.NewReadWorkspaceHandler(
-			workspace.MapReadWorkspaceHttp,
-			readHandle,
-			marshal.DefaultMarshal,
-		))
+		auth.NewJwtBearerMiddleware(
+			workspace.NewReadWorkspaceHandler(
+				workspace.MapReadWorkspaceHttp,
+				readHandle,
+				marshal.DefaultMarshal,
+			)))
 
 	// List
 	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix),
-		workspace.NewListWorkspaceHandler(
-			workspace.MapListWorkspaceHttp,
-			listHandle,
-			marshal.DefaultMarshal,
-			marshal.DefaultUnmarshal,
-		))
+		auth.NewJwtBearerMiddleware(
+			workspace.NewListWorkspaceHandler(
+				workspace.MapListWorkspaceHttp,
+				listHandle,
+				marshal.DefaultMarshal,
+				marshal.DefaultUnmarshal,
+			)))
 }
 
 func addHealthz(mux *http.ServeMux) {

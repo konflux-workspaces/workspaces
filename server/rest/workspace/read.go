@@ -26,7 +26,7 @@ type ReadWorkspaceHandler struct {
 	MapperFunc   ReadWorkspaceMapperFunc
 	QueryHandler ReadWorkspaceQueryHandlerFunc
 
-	Marshal marshal.MarshalFunc
+	Marshaler marshal.Marshaler
 }
 
 // NewReadWorkspaceHandler creates a ReadWorkspaceHandler
@@ -44,12 +44,12 @@ func NewDefaultReadWorkspaceHandler(
 func NewReadWorkspaceHandler(
 	mapperFunc ReadWorkspaceMapperFunc,
 	queryHandler ReadWorkspaceQueryHandlerFunc,
-	marshalFunc marshal.MarshalFunc,
+	marshaler marshal.Marshaler,
 ) *ReadWorkspaceHandler {
 	return &ReadWorkspaceHandler{
 		MapperFunc:   mapperFunc,
 		QueryHandler: queryHandler,
-		Marshal:      marshalFunc,
+		Marshaler:    marshaler,
 	}
 }
 
@@ -76,13 +76,14 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// marshal response
-	d, err := h.Marshal(qr.Workspace)
+	d, err := h.Marshaler.Marshal(qr.Workspace)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
+	w.Header().Add("Content-Type", h.Marshaler.ContentType())
 	if _, err := w.Write(d); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

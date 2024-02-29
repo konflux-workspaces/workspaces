@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -46,7 +47,13 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 	// TODO: sanitize input, block reserved labels, etc
 
 	// data access
-	ww := workspacesv1alpha1.WorkspaceList{}
+	ww := workspacesv1alpha1.WorkspaceList{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "WorkspaceList",
+			APIVersion: "workspaces.io/v1alpha1",
+		},
+		Items: []workspacesv1alpha1.Workspace{},
+	}
 	if err := h.lister.ListUserWorkspaces(ctx, u, &ww, &client.ListOptions{}); err != nil {
 		return nil, err
 	}
