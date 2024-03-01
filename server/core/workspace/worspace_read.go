@@ -37,7 +37,6 @@ func NewReadWorkspaceHandler(reader WorkspaceReader) *ReadWorkspaceHandler {
 // Handle handles a ReadWorkspaceQuery and returns a ReadWorkspaceResponse or an error
 func (h *ReadWorkspaceHandler) Handle(ctx context.Context, query ReadWorkspaceQuery) (*ReadWorkspaceResponse, error) {
 	// authorization
-	// TODO: disable unauthenticated access in the HTTP Server
 	// If required, implement here complex logic like multiple-domains filtering, etc
 	u, ok := ctx.Value("user").(string)
 	if !ok {

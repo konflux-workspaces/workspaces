@@ -38,7 +38,6 @@ func NewListWorkspaceHandler(lister WorkspaceLister) *ListWorkspaceHandler {
 // Handle handles a ListWorkspaceQuery abd returns a ListWorkspaceResponse or an error
 func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQuery) (*ListWorkspaceResponse, error) {
 	// authorization
-	// TODO: disable unauthenticated access in the HTTP Server
 	// If required, implement here complex logic like multiple-domains filtering, etc
 	u, ok := ctx.Value("user").(string)
 	if !ok {

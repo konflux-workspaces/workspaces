@@ -37,7 +37,6 @@ func NewUpdateWorkspaceHandler(reader WorkspaceUpdater) *UpdateWorkspaceHandler 
 // Handle handles a UpdateWorkspaceCommand and returns a UpdateWorkspaceResponse or an error
 func (h *UpdateWorkspaceHandler) Handle(ctx context.Context, query UpdateWorkspaceCommand) (*UpdateWorkspaceResponse, error) {
 	// authorization
-	// TODO: disable unauthenticated access in the HTTP Server
 	// If required, implement here complex logic like multiple-domains filtering, etc
 	u, ok := ctx.Value("user").(string)
 	if !ok {
