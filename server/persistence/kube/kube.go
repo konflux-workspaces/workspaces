@@ -16,20 +16,38 @@ var (
 	_ workspace.WorkspaceUpdater = &Client{}
 )
 
+type BuildClientFunc func(string) (client.Client, error)
+
 type Client struct {
+	buildClient         BuildClientFunc
 	workspacesNamespace string
-	config              *rest.Config
 }
 
-func New(cfg *rest.Config, workspacesNamespace string) *Client {
+func New(buildClient BuildClientFunc, workspacesNamespace string) *Client {
 	return &Client{
+		buildClient:         buildClient,
 		workspacesNamespace: workspacesNamespace,
-		config:              rest.CopyConfig(cfg),
 	}
 }
 
+func (c *Client) CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.CreateOption) error {
+	cli, err := c.buildClient(user)
+	if err != nil {
+		return err
+	}
+
+	ow := workspace.GetNamespace()
+	defer func() {
+		workspace.SetNamespace(ow)
+	}()
+
+	workspace.SetNamespace(c.workspacesNamespace)
+	log.Printf("cli.Create %v ", workspace)
+	return cli.Create(ctx, workspace, opts...)
+}
+
 func (c *Client) UpdateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.UpdateOption) error {
-	cli, err := c.buildImpersonatingClient(user)
+	cli, err := c.buildClient(user)
 	if err != nil {
 		return err
 	}
@@ -44,16 +62,18 @@ func (c *Client) UpdateUserWorkspace(ctx context.Context, user string, workspace
 	return cli.Update(ctx, workspace, opts...)
 }
 
-func (c *Client) buildImpersonatingClient(user string) (client.Client, error) {
-	config := rest.CopyConfig(c.config)
-	config.Impersonate.UserName = user
+func BuildClient(config *rest.Config) BuildClientFunc {
+	newConfig := rest.CopyConfig(config)
+	return func(user string) (client.Client, error) {
+		newConfig.Impersonate.UserName = user
 
-	s := runtime.NewScheme()
-	if err := workspacesv1alpha1.AddToScheme(s); err != nil {
-		return nil, err
+		s := runtime.NewScheme()
+		if err := workspacesv1alpha1.AddToScheme(s); err != nil {
+			return nil, err
+		}
+
+		return client.New(newConfig, client.Options{
+			Scheme: s,
+		})
 	}
-
-	return client.New(config, client.Options{
-		Scheme: s,
-	})
 }

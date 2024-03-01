@@ -20,11 +20,12 @@ func New(
 	addr string,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	createHandle workspace.CreateWorkspaceCreateHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) *http.Server {
 	return &http.Server{
 		Addr:              addr,
-		Handler:           buildServerHandler(readHandle, listHandle, updateHandle),
+		Handler:           buildServerHandler(readHandle, listHandle, createHandle, updateHandle),
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 }
@@ -32,11 +33,12 @@ func New(
 func buildServerHandler(
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	createHandle workspace.CreateWorkspaceCreateHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) http.Handler {
 	mux := http.NewServeMux()
 	addHealthz(mux)
-	addWorkspaces(mux, readHandle, listHandle, updateHandle)
+	addWorkspaces(mux, readHandle, listHandle, createHandle, updateHandle)
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
@@ -48,6 +50,7 @@ func addWorkspaces(
 	mux *http.ServeMux,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	postHandle workspace.CreateWorkspaceCreateHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) {
 	// Read
@@ -77,6 +80,16 @@ func addWorkspaces(
 			workspace.NewUpdateWorkspaceHandler(
 				workspace.MapUpdateWorkspaceHttp,
 				updateHandle,
+				marshal.DefaultMarshalerProvider,
+				marshal.DefaultUnmarshalerProvider,
+			)))
+
+	// Create
+	mux.Handle(fmt.Sprintf("POST %s", NamespacedWorkspacesPrefix),
+		auth.NewJwtBearerMiddleware(
+			workspace.NewPostWorkspaceHandler(
+				workspace.MapPostWorkspaceHttp,
+				postHandle,
 				marshal.DefaultMarshalerProvider,
 				marshal.DefaultUnmarshalerProvider,
 			)))
