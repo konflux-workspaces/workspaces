@@ -19,20 +19,22 @@ func New(
 	addr string,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) *http.Server {
 	return &http.Server{
 		Addr:    addr,
-		Handler: buildServerHandler(readHandle, listHandle),
+		Handler: buildServerHandler(readHandle, listHandle, updateHandle),
 	}
 }
 
 func buildServerHandler(
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) http.Handler {
 	mux := http.NewServeMux()
 	addHealthz(mux)
-	addWorkspaces(mux, readHandle, listHandle)
+	addWorkspaces(mux, readHandle, listHandle, updateHandle)
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
@@ -44,6 +46,7 @@ func addWorkspaces(
 	mux *http.ServeMux,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
+	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) {
 	// Read
 	mux.Handle(fmt.Sprintf("GET %s/{name}", NamespacedWorkspacesPrefix),
@@ -51,7 +54,7 @@ func addWorkspaces(
 			workspace.NewReadWorkspaceHandler(
 				workspace.MapReadWorkspaceHttp,
 				readHandle,
-				marshal.DefaultMarshal,
+				marshal.DefaultMarshalerProvider,
 			)))
 
 	// List
@@ -59,12 +62,22 @@ func addWorkspaces(
 		workspace.NewListWorkspaceHandler(
 			workspace.MapListWorkspaceHttp,
 			listHandle,
-			marshal.DefaultMarshal,
-			marshal.DefaultUnmarshal,
+			marshal.DefaultMarshalerProvider,
+			marshal.DefaultUnmarshalerProvider,
 		),
 	)
 	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix), lh)
 	mux.Handle(fmt.Sprintf("GET %s", NamespacedWorkspacesPrefix), lh)
+
+	// Update
+	mux.Handle(fmt.Sprintf("PUT %s/{name}", NamespacedWorkspacesPrefix),
+		auth.NewJwtBearerMiddleware(
+			workspace.NewUpdateWorkspaceHandler(
+				workspace.MapUpdateWorkspaceHttp,
+				updateHandle,
+				marshal.DefaultMarshalerProvider,
+				marshal.DefaultUnmarshalerProvider,
+			)))
 }
 
 func addHealthz(mux *http.ServeMux) {

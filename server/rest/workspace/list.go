@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/filariow/workspaces/server/core/workspace"
+	"github.com/filariow/workspaces/server/rest/header"
 	"github.com/filariow/workspaces/server/rest/marshal"
 )
 
@@ -24,8 +25,8 @@ type ListWorkspaceHandler struct {
 	MapperFunc   ListWorkspaceMapperFunc
 	QueryHandler ListWorkspaceQueryHandlerFunc
 
-	Marshaler marshal.Marshaler
-	Unmarshal marshal.Unmarshaler
+	MarshalerProvider marshal.MarshalerProvider
+	UnmarshalProvider marshal.UnmarshalerProvider
 }
 
 func NewDefaultListWorkspaceHandler(
@@ -34,8 +35,8 @@ func NewDefaultListWorkspaceHandler(
 	return NewListWorkspaceHandler(
 		MapListWorkspaceHttp,
 		handler,
-		marshal.DefaultMarshal,
-		marshal.DefaultUnmarshal,
+		marshal.DefaultMarshalerProvider,
+		marshal.DefaultUnmarshalerProvider,
 	)
 }
 
@@ -43,18 +44,25 @@ func NewDefaultListWorkspaceHandler(
 func NewListWorkspaceHandler(
 	mapperFunc ListWorkspaceMapperFunc,
 	queryHandler ListWorkspaceQueryHandlerFunc,
-	marshaler marshal.Marshaler,
-	unmarshaler marshal.Unmarshaler,
+	marshalerProvider marshal.MarshalerProvider,
+	unmarshalerProvider marshal.UnmarshalerProvider,
 ) *ListWorkspaceHandler {
 	return &ListWorkspaceHandler{
-		MapperFunc:   mapperFunc,
-		QueryHandler: queryHandler,
-		Marshaler:    marshaler,
-		Unmarshal:    unmarshaler,
+		MapperFunc:        mapperFunc,
+		QueryHandler:      queryHandler,
+		MarshalerProvider: marshalerProvider,
+		UnmarshalProvider: unmarshalerProvider,
 	}
 }
 
 func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// build marshaler for the given request
+	m, err := h.MarshalerProvider(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// map to query
 	q, err := h.MapperFunc(r)
 	if err != nil {
@@ -73,14 +81,14 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// marshal response
-	d, err := h.Marshaler.Marshal(qr.Workspaces)
+	d, err := m.Marshal(qr.Workspaces)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
-	w.Header().Add("Content-Type", h.Marshaler.ContentType())
+	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

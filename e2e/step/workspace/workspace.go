@@ -24,4 +24,6 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Then(`^Default workspace is created for them$`, thenDefaultWorkspaceIsCreatedForThem)
 	ctx.Then(`^The owner is granted admin access to the workspace$`, thenTheOwnerIsGrantedAdminAccessToTheWorkspace)
 	ctx.Then(`^The workspace visibility is set to "([^"]*)"$`, thenTheWorkspaceVisibilityIsSetTo)
+
+	ctx.Then(`^The workspace visibility is updated to "([^"]*)"$`, thenTheWorkspaceVisibilityIsUpdatedTo)
 }

@@ -36,11 +36,6 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-const (
-	LabelHomeWorkspace  string = "workspaces.io/home-workspace"
-	LabelWorkspaceOwner string = "workspaces.io/owner"
-)
-
 // UserSignupReconciler reconciles a Workspace object
 type UserSignupReconciler struct {
 	client.Client
@@ -49,7 +44,7 @@ type UserSignupReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=usersignups,verbs=get;list;watch
-//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -85,8 +80,8 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		if ll == nil {
 			ll = map[string]string{}
 		}
-		ll[LabelHomeWorkspace] = u.Name
-		ll[LabelWorkspaceOwner] = u.Name
+		ll[workspacesv1alpha1.LabelHomeWorkspace] = u.Name
+		ll[workspacesv1alpha1.LabelWorkspaceOwner] = u.Name
 		w.Labels = ll
 
 		w.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityPrivate
@@ -103,7 +98,7 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 }
 
 func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, name string) error {
-	lr, err := labels.NewRequirement(LabelHomeWorkspace, selection.Equals, []string{name})
+	lr, err := labels.NewRequirement(workspacesv1alpha1.LabelHomeWorkspace, selection.Equals, []string{name})
 	if err != nil {
 		return errors.Join(ErrNonTransient, err)
 	}

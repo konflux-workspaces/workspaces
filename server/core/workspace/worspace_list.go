@@ -69,7 +69,7 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 			w.SetNamespace(query.Namespace)
 		default:
 			ll := w.GetLabels()
-			ow := ll["workspaces.io/owner"]
+			ow := ll[workspacesv1alpha1.LabelWorkspaceOwner]
 			w.SetNamespace(ow)
 		}
 	}

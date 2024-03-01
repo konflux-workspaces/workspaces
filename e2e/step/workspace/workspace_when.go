@@ -23,10 +23,11 @@ func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Contex
 }
 
 func createNewWorkspace(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+	u := tcontext.RetrieveUser(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
 
-	w, err := createWorkspace(ctx, cli, ns, name, visibility)
+	w, err := createWorkspace(ctx, cli, ns, name, u.Status.CompliantUsername, visibility)
 	if err != nil {
 		return ctx, err
 	}
@@ -78,7 +79,7 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 	return tcontext.InjectWorkspace(ctx, w), nil
 }
 
-func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
+func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name, user string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
 	w := workspacesv1alpha1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -86,6 +87,7 @@ func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name string, v
 		},
 		Spec: workspacesv1alpha1.WorkspaceSpec{
 			Visibility: visibility,
+			Owner:      workspacesv1alpha1.Owner{Id: user},
 		},
 	}
 

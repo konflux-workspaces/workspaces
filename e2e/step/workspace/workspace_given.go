@@ -35,7 +35,7 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 		return ctx, err
 	}
 
-	w, err := createWorkspace(ctx, cli, ns, "new-community", workspacesiov1alpha1.WorkspaceVisibilityCommunity)
+	w, err := createWorkspace(ctx, cli, ns, "new-community", u.Status.CompliantUsername, workspacesiov1alpha1.WorkspaceVisibilityCommunity)
 	if err != nil {
 		return ctx, err
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/filariow/workspaces/server/core/workspace"
 	"github.com/filariow/workspaces/server/persistence/cache"
+	"github.com/filariow/workspaces/server/persistence/kube"
 	"github.com/filariow/workspaces/server/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -52,7 +53,7 @@ func run() error {
 	}
 
 	// setup write model
-	// TODO
+	writer := kube.New(cfg, wns)
 
 	// setup REST over HTTP server
 	log.Println("setting up REST over HTTP server")
@@ -60,6 +61,7 @@ func run() error {
 		DefaultAddr,
 		workspace.NewReadWorkspaceHandler(c).Handle,
 		workspace.NewListWorkspaceHandler(c).Handle,
+		workspace.NewUpdateWorkspaceHandler(writer).Handle,
 	)
 
 	// HTTP Server graceful shutdown

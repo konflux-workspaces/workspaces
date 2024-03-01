@@ -136,3 +136,21 @@ func workspaceIsReadableForEveryone(ctx context.Context, cli cli.Cli, namespace,
 		return nil
 	}
 }
+
+func thenTheWorkspaceVisibilityIsUpdatedTo(ctx context.Context, visibility string) error {
+	w := tcontext.RetrieveWorkspace(ctx)
+	cli := tcontext.RetrieveHostClient(ctx)
+	wk := client.ObjectKeyFromObject(&w)
+
+	return wait.PollWithContext(ctx, 1*time.Second, 1*time.Minute, func(ctx context.Context) (done bool, err error) {
+		if err := cli.Get(ctx, wk, &w); err != nil {
+			return false, err
+		}
+
+		if w.Spec.Visibility != workspacesv1alpha1.WorkspaceVisibility(visibility) {
+			return false, nil
+		}
+
+		return true, nil
+	})
+}

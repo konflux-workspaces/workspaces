@@ -120,3 +120,18 @@ func buildRESTMapper() (meta.RESTMapper, error) {
 	}
 	return m, nil
 }
+
+func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
+	w := tcontext.RetrieveWorkspace(ctx)
+
+	cli, err := buildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	w.Spec.Visibility = workspacesiov1alpha1.WorkspaceVisibility(visibility)
+	if err := cli.Update(ctx, &w, &client.UpdateOptions{}); err != nil {
+		return ctx, err
+	}
+	return tcontext.InjectWorkspace(ctx, w), nil
+}

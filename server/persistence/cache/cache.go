@@ -190,7 +190,7 @@ func (c *Cache) ReadUserWorkspace(
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
 
-	if ow, ok := ll["workspaces.io/owner"]; !ok || ow != owner {
+	if ow, ok := ll[workspacesv1alpha1.LabelWorkspaceOwner]; !ok || ow != owner {
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
 	w.SetNamespace(owner)

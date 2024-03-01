@@ -8,6 +8,7 @@ import (
 
 	"github.com/filariow/workspaces/server/core"
 	"github.com/filariow/workspaces/server/core/workspace"
+	"github.com/filariow/workspaces/server/rest/header"
 	"github.com/filariow/workspaces/server/rest/marshal"
 )
 
@@ -26,7 +27,7 @@ type ReadWorkspaceHandler struct {
 	MapperFunc   ReadWorkspaceMapperFunc
 	QueryHandler ReadWorkspaceQueryHandlerFunc
 
-	Marshaler marshal.Marshaler
+	MarshalerProvider marshal.MarshalerProvider
 }
 
 // NewReadWorkspaceHandler creates a ReadWorkspaceHandler
@@ -36,7 +37,7 @@ func NewDefaultReadWorkspaceHandler(
 	return NewReadWorkspaceHandler(
 		MapReadWorkspaceHttp,
 		handler,
-		marshal.DefaultMarshal,
+		marshal.DefaultMarshalerProvider,
 	)
 }
 
@@ -44,16 +45,23 @@ func NewDefaultReadWorkspaceHandler(
 func NewReadWorkspaceHandler(
 	mapperFunc ReadWorkspaceMapperFunc,
 	queryHandler ReadWorkspaceQueryHandlerFunc,
-	marshaler marshal.Marshaler,
+	marshalerProvider marshal.MarshalerProvider,
 ) *ReadWorkspaceHandler {
 	return &ReadWorkspaceHandler{
-		MapperFunc:   mapperFunc,
-		QueryHandler: queryHandler,
-		Marshaler:    marshaler,
+		MapperFunc:        mapperFunc,
+		QueryHandler:      queryHandler,
+		MarshalerProvider: marshalerProvider,
 	}
 }
 
 func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// build marshaler for the given request
+	m, err := h.MarshalerProvider(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// map
 	q, err := h.MapperFunc(r)
 	if err != nil {
@@ -76,14 +84,14 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// marshal response
-	d, err := h.Marshaler.Marshal(qr.Workspace)
+	d, err := m.Marshal(qr.Workspace)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
-	w.Header().Add("Content-Type", h.Marshaler.ContentType())
+	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
