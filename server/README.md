@@ -13,7 +13,7 @@ The Server code is based on Hexagonal architecture and CQRS.
 
 * Business Logic is stored under `core`
 * Driving Adapters
-    * REST over HTTP server implementations is stored under `rest`
+    * REST over HTTP server implementation is stored under `rest`
 * Driven Adapters
     * Read-Model Cache under `persistence/cache`
     * Write-Model Kubernetes client under `persistence/kube`
