@@ -2,7 +2,7 @@
 
 set -e
 
-export QUAY_NAMESPACE=${QUAY_NAMESPACE:-filario}
+export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
 
 f=$(mktemp --directory /tmp/toolchain.XXXX)
 

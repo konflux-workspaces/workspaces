@@ -5,7 +5,7 @@ GO = go
 V ?=
 
 DATE_SUFFIX != date +'%s'
-QUAY_NAMESPACE ?= filario
+QUAY_NAMESPACE ?= workspaces
 OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1

@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/filariow/workspaces/server/core/workspace"
-	"github.com/filariow/workspaces/server/persistence/cache"
-	"github.com/filariow/workspaces/server/persistence/kube"
-	"github.com/filariow/workspaces/server/rest"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/persistence/cache"
+	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
+	"github.com/konflux-workspaces/workspaces/server/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/filariow/workspaces/server/rest/marshal"
-	"github.com/filariow/workspaces/server/rest/middleware"
-	"github.com/filariow/workspaces/server/rest/middleware/auth"
-	"github.com/filariow/workspaces/server/rest/workspace"
+	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
+	"github.com/konflux-workspaces/workspaces/server/rest/middleware"
+	"github.com/konflux-workspaces/workspaces/server/rest/middleware/auth"
+	"github.com/konflux-workspaces/workspaces/server/rest/workspace"
 )
 
 const (

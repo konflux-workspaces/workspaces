@@ -1,4 +1,4 @@
-module github.com/filariow/workspaces/server
+module github.com/konflux-workspaces/workspaces/server
 
 go 1.22
 

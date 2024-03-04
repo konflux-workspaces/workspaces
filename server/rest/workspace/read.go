@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/filariow/workspaces/server/core"
-	"github.com/filariow/workspaces/server/core/workspace"
-	"github.com/filariow/workspaces/server/rest/header"
-	"github.com/filariow/workspaces/server/rest/marshal"
+	"github.com/konflux-workspaces/workspaces/server/core"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/rest/header"
+	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 )
 
 var (
