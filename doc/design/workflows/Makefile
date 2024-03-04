@@ -1,3 +1,5 @@
+MMDC ?= docker run --rm -u $(shell id -u):$(shell id -g) -v $(PWD):/workspace -w /workspace minlag/mermaid-cli:latest 
+
 .PHONY: all
 all: generate
 	@:
@@ -6,8 +8,8 @@ all: generate
 imgs:
 	@mkdir imgs 2> /dev/null || true
 
-user_onboard.png:
-	mmdc \
+user_onboard.png: imgs
+	$(MMDC) \
 		-i user_onboard.mmd \
 		-e png \
 		--scale 10 \
@@ -15,8 +17,8 @@ user_onboard.png:
 		--theme dark \
 		--backgroundColor "grey"
 
-user_change_visibility.png:
-	mmdc \
+user_change_visibility.png: imgs
+	$(MMDC) \
 		-i user_change_visibility.mmd \
 		-e png \
 		--scale 10 \
