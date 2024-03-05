@@ -32,6 +32,14 @@ build: clean bin
 run:
 	$(GO) run main.go
 
+.PHONY: lint
+lint:
+	golangci-lint run ./...
+
+.PHONY: vet
+vet:
+	$(GO) vet ./...
+
 .PHONY: fmt
 fmt:
 	$(GO) fmt ./...
