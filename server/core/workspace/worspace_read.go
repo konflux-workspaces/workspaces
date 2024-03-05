@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
 // ReadWorkspaceQuery contains the information needed to retrieve a Workspace the user has access to from the data source
@@ -38,7 +40,7 @@ func NewReadWorkspaceHandler(reader WorkspaceReader) *ReadWorkspaceHandler {
 func (h *ReadWorkspaceHandler) Handle(ctx context.Context, query ReadWorkspaceQuery) (*ReadWorkspaceResponse, error) {
 	// authorization
 	// If required, implement here complex logic like multiple-domains filtering, etc
-	u, ok := ctx.Value("user").(string)
+	u, ok := ctx.Value(ccontext.UserKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}

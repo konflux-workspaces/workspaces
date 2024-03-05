@@ -47,7 +47,7 @@ func run() error {
 
 	// setup read model
 	log.Println("setting up cache")
-	c, err := cache.New(cfg, wns, kns)
+	c, err := cache.New(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
 	}

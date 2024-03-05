@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"slices"
 
@@ -13,14 +12,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
-	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 )
 
 var (
@@ -36,8 +34,7 @@ type Cache struct {
 
 // New creates a new Cache that caches Workspaces and SpaceBindings. The cache
 // provides methods to retrieve the workspaces the user is allowed to access
-func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
-	rest.HTTPClientFor(cfg)
+func New(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
 	s := runtime.NewScheme()
 	if err := corev1.AddToScheme(s); err != nil {
 		return nil, err
@@ -76,43 +73,12 @@ func New(cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache
 		return nil, err
 	}
 
-	ctx := context.TODO()
-	isb, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{})
-	if err != nil {
+	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{}); err != nil {
 		return nil, err
 	}
-	isb.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			log.Printf("obj added: %v", obj)
-		},
-		DeleteFunc: func(obj interface{}) {
-			log.Printf("obj deleted: %v", obj)
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			log.Printf("obj updated (old---new):%v\n---\n%v", oldObj, newObj)
-		},
-	})
-
-	iw, err := c.GetInformer(ctx, &workspacesv1alpha1.Workspace{})
-	if err != nil {
+	if _, err := c.GetInformer(ctx, &workspacesv1alpha1.Workspace{}); err != nil {
 		return nil, err
 	}
-	iw.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			w, ok := obj.(*workspacesv1alpha1.Workspace)
-			if !ok {
-				panic(fmt.Sprintf("can not convert obj to *workspaces.io/Workspace: %v", w))
-			}
-
-			log.Printf("workspace added: %v", w)
-		},
-		DeleteFunc: func(obj interface{}) {
-			log.Printf("obj deleted: %v", obj)
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			log.Printf("obj updated (old---new):%v\n---\n%v", oldObj, newObj)
-		},
-	})
 
 	return &Cache{
 		c:                   c,

@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
+	jwt "github.com/golang-jwt/jwt/v5"
+
+	rcontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
 var _ http.Handler = &JwtBearerMiddleware{}
@@ -29,15 +31,27 @@ func (p *JwtBearerMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	// TODO: Verify Signature
 	tkn, _, err := jp.ParseUnverified(t, jwt.MapClaims{})
+	if err != nil {
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	u, err := tkn.Claims.GetSubject()
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, "user", u)
+	ctx = context.WithValue(ctx, rcontext.UserKey, u)
 
 	p.next.ServeHTTP(w, r.WithContext(ctx))
 }

@@ -82,7 +82,10 @@ func addWorkspaces(
 
 func addHealthz(mux *http.ServeMux) {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		if _, err := w.Write([]byte("alive")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("alive"))
 	})
 }
