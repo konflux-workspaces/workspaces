@@ -10,16 +10,18 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+type ContextKey string
+
 const (
-	keyUnauthenticatedKubeconfig string = "unauth-kubeconfig"
-	keyHostClient                string = "host-client"
-	keyTestNamespace             string = "test-namespace"
-	keyScenarioId                string = "scenario-id"
-	keyKubespaceNamespace        string = "kubespace-namespace"
-	keyWorkspacesNamespace       string = "workspaces-namespace"
-	keyWorkspace                 string = "default-workspace"
-	keyUser                      string = "default-user"
-	keyUserWorkspaces            string = "workspaces"
+	keyUnauthenticatedKubeconfig ContextKey = "unauth-kubeconfig"
+	keyHostClient                ContextKey = "host-client"
+	keyTestNamespace             ContextKey = "test-namespace"
+	keyScenarioId                ContextKey = "scenario-id"
+	keyKubespaceNamespace        ContextKey = "kubespace-namespace"
+	keyWorkspacesNamespace       ContextKey = "workspaces-namespace"
+	keyWorkspace                 ContextKey = "default-workspace"
+	keyUser                      ContextKey = "default-user"
+	keyUserWorkspaces            ContextKey = "workspaces"
 
 	msgNotFound string = "key not found in context"
 )
@@ -106,7 +108,7 @@ func RetrieveScenarioId(ctx context.Context) string {
 }
 
 // auxiliary
-func get[T any](ctx context.Context, key string) T {
+func get[T any](ctx context.Context, key ContextKey) T {
 	v, ok := ctx.Value(key).(T)
 	if !ok {
 		panic(fmt.Sprintf("%s: %s", msgNotFound, key))
