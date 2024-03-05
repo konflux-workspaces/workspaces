@@ -8,8 +8,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 )
 
 var (
@@ -18,7 +18,6 @@ var (
 
 type Client struct {
 	workspacesNamespace string
-	opts                client.Options
 	config              *rest.Config
 }
 

@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
 // ListWorkspaceQuery contains the information needed to retrieve all the workspaces the user has access to from the data source
@@ -39,7 +40,7 @@ func NewListWorkspaceHandler(lister WorkspaceLister) *ListWorkspaceHandler {
 func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQuery) (*ListWorkspaceResponse, error) {
 	// authorization
 	// If required, implement here complex logic like multiple-domains filtering, etc
-	u, ok := ctx.Value("user").(string)
+	u, ok := ctx.Value(ccontext.UserKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}
