@@ -32,6 +32,10 @@ build: clean bin
 run:
 	$(GO) run main.go
 
+.PHONY: fmt
+fmt:
+	$(GO) fmt ./...
+
 .PHONY: test
 test:
 	$(GO) test ./...
