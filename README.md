@@ -6,7 +6,7 @@ This repository contains the following components:
 * The [REST over HTTP Server](./server/README.md)
 * The [End-To-End Tests](./e2e/README.md)
 
-![image](./doc/design/architecture/architecture.png)
+![image](./doc/design/architecture/imgs/architecture.png)
 
 ## Demo
 
