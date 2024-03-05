@@ -95,7 +95,7 @@ func run() error {
 	// start HTTP server
 	log.Printf("starting HTTP server at %s", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
-		return fmt.Errorf("error running server: %v", err)
+		return fmt.Errorf("error running server: %w", err)
 	}
 	return nil
 }

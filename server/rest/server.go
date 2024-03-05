@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 	"github.com/konflux-workspaces/workspaces/server/rest/middleware"
@@ -22,8 +23,9 @@ func New(
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) *http.Server {
 	return &http.Server{
-		Addr:    addr,
-		Handler: buildServerHandler(readHandle, listHandle, updateHandle),
+		Addr:              addr,
+		Handler:           buildServerHandler(readHandle, listHandle, updateHandle),
+		ReadHeaderTimeout: 3 * time.Second,
 	}
 }
 
