@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: workspace-edit
+spec:
+  background: false
+  validationFailureAction: Enforce
+  rules:
+    - name: update
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - UPDATE
+      validate:
+        message: "Requestor is not granted access as they are neither the owner nor the creator of the workspace"
+        deny:
+          conditions:
+            all:
+            - key: '{{ request.oldObject.metadata.labels."workspaces.io/owner" }}'
+              operator: NotEquals
+              value: "{{ request.userInfo.username }}"
+            - key: '{{ request.oldObject.metadata.labels."workspaces.io/creator" }}'
+              operator: NotEquals
+              value: "{{ request.userInfo.username }}"

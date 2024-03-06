@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: workspace-quota
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: quota
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - CREATE
+      context:
+      - name: ownedWorkspaces
+        apiCall:
+          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.userInfo.username }}"
+          jmesPath: "items | length(@)"
+      validate:
+        message: "Maximum number of workspaces (1) reached for the owner"
+        deny:
+          conditions:
+            any:
+            - key: "{{ ownedWorkspaces }}"
+              operator: GreaterThan
+              value: 1
