@@ -17,13 +17,22 @@ spec:
             operations:
             - UPDATE
       validate:
-        message: "Requestor is not granted access as they are neither the owner nor the creator of the workspace"
+        message: "Requestor ({{ request.userInfo.username }}) is not granted access as they are neither the owner nor the creator of workspace {{ request.object.metadata.name }}"
         deny:
           conditions:
             all:
-            - key: '{{ request.oldObject.metadata.labels."workspaces.io/owner" }}'
+            - key: '{{ request.oldObject.metadata.labels."workspaces.io/owner" | to_string(@) }}'
               operator: NotEquals
-              value: "{{ request.userInfo.username }}"
-            - key: '{{ request.oldObject.metadata.labels."workspaces.io/creator" }}'
+              value: '{{ request.userInfo.username }}'
+            - key: '{{ request.oldObject.metadata.labels."workspaces.io/creator" | to_string(@) }}'
               operator: NotEquals
-              value: "{{ request.userInfo.username }}"
+              value: '{{ request.userInfo.username }}'
+            - key: >-
+                {{
+                  join('/', [
+                    request.oldObject.metadata.labels."workspaces.io/creator-namespace",
+                    request.oldObject.metadata.labels."workspaces.io/creator-serviceaccount" 
+                  ])
+                }}
+              operator: NotEquals
+              value: "{{ join('/', [serviceAccountNamespace, serviceAccountName]) }}"

@@ -18,13 +18,45 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.userInfo.username }}"
+          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.object.spec.owner.id }}"
           jmesPath: "items | length(@)"
+      - name: workspacesLimit
+        variable:
+          value: 1
       validate:
-        message: "Maximum number of workspaces (1) reached for the owner"
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.id }}"
         deny:
           conditions:
-            any:
+            all:
             - key: "{{ ownedWorkspaces }}"
               operator: GreaterThan
-              value: 1
+              value: "{{ sum([workspacesLimit, `-1`]) }}"
+    - name: owner-change
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - UPDATE
+      context:
+      - name: ownedWorkspaces
+        apiCall:
+          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.object.spec.owner.id }}"
+          jmesPath: "items | length(@)"
+      - name: workspacesLimit
+        variable:
+          value: 1
+      validate:
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.id }}"
+        deny:
+          conditions:
+            all:
+            - key: "{{ ownedWorkspaces }}"
+              operator: GreaterThan
+              value: "{{ sum([workspacesLimit, `-1`]) }}"
+            - key: "{{ request.oldObject.spec.owner.id }}"
+              operator: NotEquals
+              value: "{{ request.object.spec.owner.id }}"
