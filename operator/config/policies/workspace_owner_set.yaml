@@ -13,9 +13,44 @@ spec:
             - Workspace
             namespaces:
             - workspaces-system
+            operations:
+            - CREATE
       mutate:
         patchStrategicMerge:
           metadata:
             labels:
-              workspaces.io/creator: "{{request.userInfo.username}}"
-              workspaces.io/owner: "{{request.object.spec.owner.id}}"
+              workspaces.io/creator-serviceaccount: "{{ starts_with(request.userInfo.username, 'system:serviceaccount:' ) | to_string(@) }}"
+              workspaces.io/owner: "{{ request.object.spec.owner.id }}"
+    - name: set-owner-workspace-serviceaccount-namespace
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - CREATE
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              (workspaces.io/creator-serviceaccount): "true"
+              workspaces.io/creator: "{{ request.userInfo.username | split(@, ':') | [3] }}"
+              workspaces.io/creator-namespace: "{{ request.userInfo.username | split(@, ':') | [2] }}"
+    - name: set-owner-workspace-user
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - CREATE
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              (workspaces.io/creator-serviceaccount): "false"
+              workspaces.io/creator: "{{ request.userInfo.username }}"
