@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: set-owner-workspace
+spec:
+  background: false
+  rules:
+    - name: set-owner-workspace
+      match:
+        any:
+        - resources:
+            kinds:
+            - Workspace
+            namespaces:
+            - workspaces-system
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              workspaces.io/creator: "{{request.userInfo.username}}"
+              workspaces.io/owner: "{{request.object.spec.owner.id}}"
