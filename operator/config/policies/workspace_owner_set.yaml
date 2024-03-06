@@ -19,7 +19,7 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              workspaces.io/creator-serviceaccount: "{{ starts_with(request.userInfo.username, 'system:serviceaccount:' ) | to_string(@) }}"
+              workspaces.io/is-creator-serviceaccount: "{{ starts_with(request.userInfo.username, 'system:serviceaccount:' ) | to_string(@) }}"
               workspaces.io/owner: "{{ request.object.spec.owner.id }}"
     - name: set-owner-workspace-serviceaccount-namespace
       match:
@@ -35,9 +35,9 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              (workspaces.io/creator-serviceaccount): "true"
-              workspaces.io/creator: "{{ request.userInfo.username | split(@, ':') | [3] }}"
-              workspaces.io/creator-namespace: "{{ request.userInfo.username | split(@, ':') | [2] }}"
+              (workspaces.io/is-creator-serviceaccount): "true"
+              workspaces.io/creator-serviceaccount: "{{ serviceAccountName }}"
+              workspaces.io/creator-namespace: "{{ serviceAccountNamespace }}"
     - name: set-owner-workspace-user
       match:
         any:
@@ -52,5 +52,5 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              (workspaces.io/creator-serviceaccount): "false"
+              (workspaces.io/is-creator-serviceaccount): "false"
               workspaces.io/creator: "{{ request.userInfo.username }}"
