@@ -8,7 +8,7 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
-  - role
+  - rolebindings
   verbs:
   - create
   - delete
@@ -20,7 +20,7 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
-  - rolebinding
+  - roles
   verbs:
   - create
   - delete
@@ -68,6 +68,7 @@ rules:
   verbs:
   - create
   - delete
+  - deletecollection
   - get
   - list
   - patch
