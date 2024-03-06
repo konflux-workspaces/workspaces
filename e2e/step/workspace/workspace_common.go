@@ -59,7 +59,7 @@ func getWorkspace(ctx context.Context, cli cli.Cli, ns, name string) (*workspace
 		},
 	}
 	if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
-		if err := cli.Get(ctx, client.ObjectKeyFromObject(&w), &w); err != nil {
+		if err := cli.Client.Get(ctx, client.ObjectKeyFromObject(&w), &w); err != nil {
 			return false, client.IgnoreNotFound(err)
 		}
 		return true, nil

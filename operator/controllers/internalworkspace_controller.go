@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 
-	rbacv1 "k8s.io/api/rbac/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -75,10 +74,6 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-	if err := r.ensureOwnerAccessToWorkspace(ctx, &w); err != nil {
-		return ctrl.Result{}, err
-	}
-
 	if err := r.ensureSpaceIsPresent(ctx, w); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -91,63 +86,6 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
-}
-
-func (r *WorkspaceReconciler) ensureOwnerAccessToWorkspace(ctx context.Context, w *workspacescomv1alpha1.InternalWorkspace) error {
-	// create role
-	rn := fmt.Sprintf("%s:owner", w.Name)
-	{
-		or := rbacv1.Role{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: w.Namespace,
-				Name:      rn,
-			},
-		}
-		if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, &or, func() error {
-			or.Rules = []rbacv1.PolicyRule{
-				{
-					Verbs:         []string{"get", "update", "delete"},
-					APIGroups:     []string{workspacesv1alpha1.GroupVersion.Group},
-					Resources:     []string{"internalworkspaces"},
-					ResourceNames: []string{w.Name},
-				},
-			}
-
-			return controllerutil.SetOwnerReference(w, &or, r.Scheme)
-		}); err != nil {
-			return err
-		}
-	}
-
-	// create role binding
-	{
-		orb := rbacv1.RoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: w.Namespace,
-				Name:      rn,
-			},
-		}
-		if _, err := controllerutil.CreateOrUpdate(ctx, r.Client, &orb, func() error {
-			orb.RoleRef = rbacv1.RoleRef{
-				APIGroup: "rbac.authorization.k8s.io",
-				Kind:     "Role",
-				Name:     rn,
-			}
-			orb.Subjects = []rbacv1.Subject{
-				{
-					APIGroup:  "rbac.authorization.k8s.io",
-					Kind:      "User",
-					Name:      w.Spec.Owner.Id,
-					Namespace: w.Namespace,
-				},
-			}
-
-			return controllerutil.SetOwnerReference(w, &orb, r.Scheme)
-		}); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacescomv1alpha1.InternalWorkspace) error {
@@ -195,7 +133,8 @@ func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w worksp
 		if ll == nil {
 			ll = map[string]string{}
 		}
-		ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.Id
+		// TODO(@filariow): this need to be set to UserSignup.Status.CompliantName
+		// ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.JWTInfo.Sub
 
 		s.SetLabels(ll)
 		return nil

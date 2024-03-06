@@ -28,27 +28,13 @@ const (
 )
 
 const (
-	LabelHomeWorkspace  string = "workspaces.io/home-workspace"
-	LabelWorkspaceOwner string = "workspaces.io/owner"
+	LabelHomeWorkspace string = "workspaces.io/home-workspace"
 )
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-type Owner struct {
-	// +required
-	// Name string `json:"name"`
-
-	// +required
-	Id string `json:"id"`
-}
 
 // WorkspaceSpec defines the desired state of Workspace
 type WorkspaceSpec struct {
 	// +required
 	Visibility WorkspaceVisibility `json:"visibility"`
-	// +required
-	Owner Owner `json:"owner"`
 }
 
 // WorkspaceStatus defines the observed state of Workspace

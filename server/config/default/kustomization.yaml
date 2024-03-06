@@ -6,3 +6,66 @@ resources:
 - ../server
 - ../network
 namePrefix: workspaces-
+
+namespace: mynamespace
+
+configMapGenerator:
+  - name: rest-api-server-cm
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - toolchain_namespace=toolchain-host-operator
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: rest-api-server-cm
+      fieldPath: data.toolchain_namespace
+      options:
+        create: true
+    targets:
+      - options:
+          create: false
+        select:
+          kind: RoleBinding
+          group: rbac.authorization.k8s.io
+          name: rest-api-server:spacebinding-reader
+        fieldPaths:
+          - 'metadata.namespace'
+      - options:
+          create: false
+        select:
+          kind: Role
+          group: rbac.authorization.k8s.io
+          name: spacebinding-reader
+        fieldPaths:
+          - 'metadata.namespace'
+      - options:
+          create: false
+        select:
+          kind: RoleBinding
+          group: rbac.authorization.k8s.io
+          name: rest-api-server:spacebinding-reader
+        fieldPaths:
+          - 'metadata.namespace'
+      - options:
+          create: false
+        select:
+          kind: Role
+          group: rbac.authorization.k8s.io
+          name: spacebinding-reader
+        fieldPaths:
+          - 'metadata.namespace'
+  - source:
+      kind: ServiceAccount
+      name: rest-api-server
+      fieldPath: metadata.namespace
+    targets:
+      - options:
+          create: false
+        select:
+          kind: RoleBinding
+          group: rbac.authorization.k8s.io
+          name: rest-api-server:spacebinding-reader
+        fieldPaths:
+          - 'subjects.0.namespace'

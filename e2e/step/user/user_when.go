@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 	wrest "github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -74,10 +76,45 @@ func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility str
 		}
 		return &w, nil
 	}()
+	if err != nil {
+		return ctx, err
+	}
 
 	w.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
 	if err := cli.Update(ctx, w, &client.UpdateOptions{}); err != nil {
 		return ctx, err
 	}
 	return tcontext.InjectUserWorkspace(ctx, *w), nil
+}
+
+func whenUserRequestsANewPrivateWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspace(ctx, "new-private", restworkspacesv1alpha1.WorkspaceVisibilityPrivate)
+}
+
+func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspace(ctx, "new-community", restworkspacesv1alpha1.WorkspaceVisibilityCommunity)
+}
+
+func createNewWorkspace(ctx context.Context, name string, visibility restworkspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+	u := tcontext.RetrieveUser(ctx)
+
+	cli, err := rest.BuildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	w := restworkspacesv1alpha1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: u.Spec.IdentityClaims.PreferredUsername,
+		},
+		Spec: restworkspacesv1alpha1.WorkspaceSpec{
+			Visibility: visibility,
+		},
+	}
+
+	if err := cli.Create(ctx, &w); err != nil {
+		return nil, err
+	}
+	return tcontext.InjectUserWorkspace(ctx, w), nil
 }

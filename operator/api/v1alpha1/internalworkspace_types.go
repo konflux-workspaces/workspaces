@@ -30,29 +30,36 @@ const (
 
 	LabelInternalDomain string = "internal.workspaces.konflux.io/"
 	LabelHomeWorkspace  string = LabelInternalDomain + "home-workspace"
-	LabelWorkspaceOwner string = LabelInternalDomain + "owner"
 	LabelDisplayName    string = LabelInternalDomain + "display-name"
 
 	PublicViewerName string = "kubesaw-authenticated"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// UserInfo collects information for a logged user
+type UserInfo struct {
+	//+required
+	JWTInfo JwtInfo `json:"jwtInfo"`
+}
 
-type Owner struct {
-	// +required
-	// Name string `json:"name"`
+// JwtInfo collects information from the User JSON Web Token
+type JwtInfo struct {
+	//+required
+	Sub string `json:"sub"`
 
-	// +required
-	Id string `json:"id"`
+	//+required
+	Username string `json:"username"`
+
+	//+optional
+	Email string `json:"email"`
 }
 
 // InternalWorkspaceSpec defines the desired state of Workspace
 type InternalWorkspaceSpec struct {
-	// +required
+	//+required
 	Visibility InternalWorkspaceVisibility `json:"visibility"`
-	// +required
-	Owner Owner `json:"owner"`
+
+	//+required
+	Owner UserInfo `json:"owner"`
 }
 
 // WorkspaceStatus defines the observed state of Workspace
@@ -62,7 +69,7 @@ type WorkspaceStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
+//+kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
 
 // InternalWorkspace is the Schema for the workspaces API
 type InternalWorkspace struct {

@@ -1,10 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- clusterrole_spacebinding_reader.yaml
-- clusterrole_workspace_reader.yaml
-- clusterrolebinding_spacebinding_reader.yaml
-- clusterrolebinding_workspace_reader.yaml
+- role_spacebinding_reader.yaml
+- role_workspace_server_editor.yaml
+- rolebinding_spacebinding_reader.yaml
+- rolebinding_workspace_server_editor.yaml
 - serviceaccount.yaml
-- ./clusterrole_user_impersonator.yaml
-- ./clusterrolebinding_user_impersonator.yaml

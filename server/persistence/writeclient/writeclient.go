@@ -43,7 +43,8 @@ func BuildBuildClientFuncForConfig(config *rest.Config) BuildClientFunc {
 	newConfig := rest.CopyConfig(config)
 
 	return func(user string) (client.Client, error) {
-		newConfig.Impersonate.UserName = user
+		// TODO(@filariow): clear this
+		// newConfig.Impersonate.UserName = user
 
 		s := runtime.NewScheme()
 		if err := restworkspacesv1alpha1.AddToScheme(s); err != nil {

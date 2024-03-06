@@ -1,7 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
-  name: workspace-reader
+  name: workspace-server-editor
+  namespace: system
 rules:
 - apiGroups:
   - workspaces.konflux.io
@@ -11,3 +12,4 @@ rules:
   - list
   - get
   - watch
+  - update

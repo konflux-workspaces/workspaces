@@ -26,7 +26,7 @@ func (c *Client) GetAsUser(
 ) error {
 	l := log.FromContext(ctx).With("key", key, "user", user)
 	l.Debug("retrieving InternalWorkspace")
-	w, err := c.fetchInternalWorkspaceByLabel(ctx, user, key.Owner, key.Name, nil)
+	w, err := c.fetchInternalWorkspaceByLabel(ctx, key.Owner, key.Name, nil)
 	if err != nil {
 		l.Error("error retrieving InternalWorkspace", "error", err)
 		return err
@@ -56,7 +56,6 @@ func (c *Client) GetAsUser(
 
 func (c *Client) fetchInternalWorkspaceByLabel(
 	ctx context.Context,
-	user string,
 	owner string,
 	space string,
 	_ ...client.GetOption,
@@ -64,20 +63,33 @@ func (c *Client) fetchInternalWorkspaceByLabel(
 	ww := workspacesv1alpha1.InternalWorkspaceList{}
 	opts := []client.ListOption{
 		client.MatchingLabels{
-			workspacesv1alpha1.LabelDisplayName:    space,
-			workspacesv1alpha1.LabelWorkspaceOwner: owner,
+			workspacesv1alpha1.LabelDisplayName: space,
 		},
 	}
 	if err := c.backend.List(ctx, &ww, opts...); err != nil {
 		return nil, err
 	}
 
-	switch ni := len(ww.Items); ni {
-	case 0:
-		return nil, ErrWorkspaceNotFound
-	case 1:
-		return &ww.Items[0], nil
-	default:
-		return nil, ErrMoreThanOneFound
+	return findOneByNamespace(&ww, owner)
+}
+
+func findOneByNamespace(ww *workspacesv1alpha1.InternalWorkspaceList, owner string) (*workspacesv1alpha1.InternalWorkspace, error) {
+	var r *workspacesv1alpha1.InternalWorkspace
+
+	for _, w := range ww.Items {
+		if w.Spec.Owner.JWTInfo.Username != owner {
+			continue
+		}
+
+		if r != nil {
+			return nil, ErrMoreThanOneFound
+		}
+
+		r = &w
 	}
+
+	if r == nil {
+		return nil, ErrWorkspaceNotFound
+	}
+	return r, nil
 }

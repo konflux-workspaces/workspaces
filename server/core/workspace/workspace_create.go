@@ -34,7 +34,7 @@ func NewCreateWorkspaceHandler(creator WorkspaceCreator) *CreateWorkspaceHandler
 }
 
 func (h *CreateWorkspaceHandler) Handle(ctx context.Context, request CreateWorkspaceCommand) (*CreateWorkspaceResponse, error) {
-	u, ok := ctx.Value(ccontext.UserKey).(string)
+	u, ok := ctx.Value(ccontext.UserUsernameKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}

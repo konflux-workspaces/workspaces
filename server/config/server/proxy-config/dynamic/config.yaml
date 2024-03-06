@@ -29,3 +29,4 @@ http:
           keys: []
           jwtHeaders:
             X-Subject: sub
+            X-Username: username

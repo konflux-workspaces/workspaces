@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/google/uuid"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
@@ -17,6 +18,8 @@ import (
 )
 
 const DefaultUserName string = "default-user"
+
+var uuidSub = uuid.New()
 
 func OnBoardUserInKubespaceNamespace(ctx context.Context, name string) (*toolchainv1alpha1.UserSignup, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
@@ -31,6 +34,7 @@ func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*too
 	h := md5.New()
 	h.Write([]byte(e))
 	eh := hex.EncodeToString(h.Sum(nil))
+	prefixedName := cli.EnsurePrefix(name)
 
 	u := toolchainv1alpha1.UserSignup{
 		ObjectMeta: metav1.ObjectMeta{
@@ -44,8 +48,9 @@ func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*too
 			IdentityClaims: toolchainv1alpha1.IdentityClaimsEmbedded{
 				PropagatedClaims: toolchainv1alpha1.PropagatedClaims{
 					Email: e,
+					Sub:   fmt.Sprintf("f:%s:%s", uuidSub.String(), prefixedName),
 				},
-				PreferredUsername: cli.EnsurePrefix(name),
+				PreferredUsername: prefixedName,
 			},
 			States: []toolchainv1alpha1.UserSignupState{toolchainv1alpha1.UserSignupStateApproved},
 		},
