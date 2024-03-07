@@ -7,8 +7,8 @@ IMG ?= workspaces/rest-api:latest
 NAMESPACE ?= workspaces-system
 
 KUBECLI ?= kubectl
-KUSTOMIZE ?= go run -modfile $(shell dirname $(realpath .))/hack/kustomize/go.mod sigs.k8s.io/kustomize/kustomize/v4
-GOLANG_CI ?= go run -modfile $(shell dirname $(realpath .))/hack/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+KUSTOMIZE ?= go run -modfile $(shell dirname $(realpath .))/hack/tools/kustomize/go.mod sigs.k8s.io/kustomize/kustomize/v4
+GOLANG_CI ?= go run -modfile $(shell dirname $(realpath .))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: all
 all: clean

@@ -1,4 +1,4 @@
-module github.com/konflux-workspaces/workspaces/hack/golang-ci
+module github.com/konflux-workspaces/workspaces/hack/tools/golang-ci
 
 go 1.22
 

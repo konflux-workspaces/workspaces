@@ -1,4 +1,4 @@
-module github.com/konflux-workspaces/workspaces/hack/kustomize
+module github.com/konflux-workspaces/workspaces/hack/tools/kustomize
 
 go 1.22.0
 
