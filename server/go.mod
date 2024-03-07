@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
