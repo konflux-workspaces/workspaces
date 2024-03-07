@@ -1,4 +1,5 @@
-BIN_FOLDER := bin/
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+BIN_FOLDER := $(ROOT_DIR)/bin
 
 GO ?= go
 LD_FLAGS ?= -s -w
@@ -7,8 +8,8 @@ IMG ?= workspaces/rest-api:latest
 NAMESPACE ?= workspaces-system
 
 KUBECLI ?= kubectl
-KUSTOMIZE ?= go run -modfile $(shell dirname $(realpath .))/hack/tools/kustomize/go.mod sigs.k8s.io/kustomize/kustomize/v4
-GOLANG_CI ?= go run -modfile $(shell dirname $(realpath .))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+KUSTOMIZE ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod sigs.k8s.io/kustomize/kustomize/v4
+GOLANG_CI ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: all
 all: clean
@@ -16,18 +17,20 @@ all: clean
 
 .PHONY: clean
 clean:
-	@-rm -rf $(BIN_FOLDER)
-
-bin:
-	@mkdir $(BIN_FOLDER)
+	@-rm $(BIN_FOLDER)/server
 
 .PHONY: build
-build: clean bin
-	$(GO) build \
+build: clean
+	@$(GO) build \
 		-ldflags '$(LD_FLAGS)' \
 		-trimpath \
-		-o $(BIN_FOLDER)server \
+		-o $(BIN_FOLDER)/server \
 		main.go
+
+.PHONY: generate
+generate:
+	@echo $(GO) generate ./...
+	@PATH=$(ROOT_DIR)/bin:${PATH} $(GO) generate ./...
 
 .PHONY: run
 run:
@@ -46,8 +49,12 @@ fmt:
 	$(GO) fmt ./...
 
 .PHONY: test
-test:
+test: generate
 	$(GO) test ./...
+
+.PHONY: test-with-coverage
+test-with-coverage: generate
+	$(GO) test ./... -covermode=atomic -coverprofile cover.out
 
 .PHONY: docker-build
 docker-build:

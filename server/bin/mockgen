@@ -1,0 +1,9 @@
+#!/bin/bash
+
+GO=${GO:-go}
+
+FILEPATH="$(realpath "$0")"
+PARENTDIR="$(dirname "${FILEPATH}")"
+MOD_PATH="$(realpath "${PARENTDIR}"/../../hack/tools/mockgen/go.mod)"
+
+${GO} run -modfile "${MOD_PATH}" go.uber.org/mock/mockgen "$@"

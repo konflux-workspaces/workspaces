@@ -53,7 +53,7 @@ func run() error {
 	}
 
 	// setup write model
-	writer := kube.New(cfg, wns)
+	writer := kube.New(kube.BuildClient(cfg), wns)
 
 	// setup REST over HTTP server
 	log.Println("setting up REST over HTTP server")
@@ -61,6 +61,7 @@ func run() error {
 		DefaultAddr,
 		workspace.NewReadWorkspaceHandler(c).Handle,
 		workspace.NewListWorkspaceHandler(c).Handle,
+		workspace.NewCreateWorkspaceHandler(writer).Handle,
 		workspace.NewUpdateWorkspaceHandler(writer).Handle,
 	)
 
