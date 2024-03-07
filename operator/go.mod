@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
-	github.com/onsi/ginkgo/v2 v2.15.0
+	github.com/onsi/ginkgo/v2 v2.16.0
 	github.com/onsi/gomega v1.31.1
 	k8s.io/api v0.29.2
 	k8s.io/apimachinery v0.29.2
