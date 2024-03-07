@@ -1,0 +1,23 @@
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: set-owner-workspace
+policies:
+  - ../../../workspace_owner_set.yaml
+resources:
+  - ./resource.yaml
+userinfo: userinfo.yaml
+results:
+  - policy: set-owner-workspace
+    rule: set-owner-workspace-serviceaccount-namespace
+    resources: 
+      - workspaces-system/workspace-sample
+    kind: Workspace
+    result: skip
+  - patchedResource: ./patched_resource.yaml
+    policy: set-owner-workspace
+    rule: set-owner-workspace-user
+    resources: 
+      - workspaces-system/workspace-sample
+    kind: Workspace
+    result: pass

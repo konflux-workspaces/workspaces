@@ -1,0 +1,9 @@
+apiVersion: workspaces.io/v1alpha1
+kind: Workspace
+metadata:
+  name: workspace-sample
+  namespace: workspaces-system
+spec:
+  visibility: private
+  owner:
+    id: owner

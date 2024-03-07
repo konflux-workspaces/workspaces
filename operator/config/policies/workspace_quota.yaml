@@ -5,7 +5,7 @@ metadata:
 spec:
   validationFailureAction: Enforce
   rules:
-    - name: quota
+    - name: quota-same-user
       match:
         any:
         - resources:
@@ -31,7 +31,7 @@ spec:
             - key: "{{ ownedWorkspaces }}"
               operator: GreaterThan
               value: "{{ sum([workspacesLimit, `-1`]) }}"
-    - name: owner-change
+    - name: quota-owner-change
       match:
         any:
         - resources:

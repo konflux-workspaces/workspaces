@@ -1,0 +1,12 @@
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Value
+metadata:
+  name: values
+globalValues:
+  request.operation: UPDATE
+policies:
+  - name: workspace-quota
+    rules:
+      - name: quota-owner-change
+        values:
+          ownedWorkspaces: 0
