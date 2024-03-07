@@ -1,0 +1,13 @@
+apiVersion: workspaces.io/v1alpha1
+kind: Workspace
+metadata:
+  labels:
+    workspaces.io/is-creator-serviceaccount: "false"
+    workspaces.io/creator: creator
+    workspaces.io/owner: owner
+  name: workspace-sample
+  namespace: workspaces-system
+spec:
+  owner:
+    id: owner
+  visibility: private
