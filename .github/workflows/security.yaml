@@ -61,3 +61,29 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
+
+  lint-sh:
+    name: Lint shell scripts
+    runs-on: ubuntu-22.04
+    permissions:
+      security-events: write
+
+    steps: 
+      - name: Checkout Git Repository
+        uses: actions/checkout@v4
+        with:
+          # we need a full history for differential shellcheck
+          fetch-depth: 0
+
+      - name: Differential ShellCheck
+        id: ShellCheck
+        uses: redhat-plumbers-in-action/differential-shellcheck@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: ${{ always() }}
+        name: Upload ShellCheck defects
+        uses: actions/upload-artifact@v4
+        with:
+          name: Differential ShellCheck SARIF
+          path: ${{ steps.ShellCheck.outputs.sarif }}
