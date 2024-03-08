@@ -51,7 +51,7 @@ func run() error {
 	defer cancel()
 
 	// setup read model
-	l.Debug("setting up cache")
+	l.Info("setting up cache")
 	c, err := cache.New(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func run() error {
 	writer := kube.New(kube.BuildClient(cfg), wns)
 
 	// setup REST over HTTP server
-	l.Debug("setting up REST over HTTP server")
+	l.Info("setting up REST over HTTP server")
 	s := rest.New(
 		l,
 		DefaultAddr,
@@ -86,7 +86,7 @@ func run() error {
 
 	// start the cache
 	go func() {
-		l.Debug("starting cache")
+		l.Info("starting cache")
 		if err := c.Start(ctx); err != nil {
 			if ctx.Err() == nil {
 				cancel()
@@ -95,13 +95,13 @@ func run() error {
 		}
 	}()
 
-	l.Debug("waiting for cache to sync...")
+	l.Info("waiting for cache to sync...")
 	if !c.WaitForCacheSync(ctx) {
 		return fmt.Errorf("error synching cache")
 	}
 
 	// start HTTP server
-	l.Debug("starting HTTP server", "address", s.Addr)
+	l.Info("starting HTTP server", "address", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
 		return fmt.Errorf("error running server: %w", err)
 	}
