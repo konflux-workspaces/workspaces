@@ -1,4 +1,6 @@
-bin/server
+bin/*
+
+!bin/mockgen
 
 # ignore code coverage information
 cover.out
