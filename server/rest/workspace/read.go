@@ -3,7 +3,6 @@ package workspace
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/konflux-workspaces/workspaces/server/core"
@@ -68,8 +67,6 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	log.Printf("executing read query %v", q)
 
 	// execute
 	qr, err := h.QueryHandler(r.Context(), *q)

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/konflux-workspaces/workspaces/server/core"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 
@@ -62,30 +62,35 @@ func NewUpdateWorkspaceHandler(
 }
 
 func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  l := log.FromContext(r.Context())
+  l.Debug("executing update")
+
 	// build marshaler for the given request
 	m, err := h.MarshalerProvider(r)
 	if err != nil {
+    l.Debug("error building marshaler for request", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// map
-	q, err := h.MapperFunc(r, h.UnmarshalerProvider)
+	c, err := h.MapperFunc(r, h.UnmarshalerProvider)
 	if err != nil {
+    l.Debug("error mapping request to command", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("executing update query %+v", q)
-
 	// execute
-	qr, err := h.CommandHandler(r.Context(), *q)
+  l.Debug("executing update command", "command", c)
+	qr, err := h.CommandHandler(r.Context(), *c)
 	if err != nil {
-		log.Printf("error executing update command: %v", err)
+		l.Debug("error executing update command", "error", err)
 		switch {
 		case errors.Is(err, core.ErrNotFound):
 			w.WriteHeader(http.StatusNotFound)
 		default:
+      l.Error("unexpected error executing update command", "command", c, "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
@@ -94,6 +99,7 @@ func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	// marshal response
 	d, err := m.Marshal(qr.Workspace)
 	if err != nil {
+    l.Error("unexpected error marshaling response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -101,6 +107,7 @@ func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	// reply
 	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
+    l.Error("unexpected error writing response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

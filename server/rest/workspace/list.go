@@ -2,10 +2,10 @@ package workspace
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 )
@@ -70,12 +70,10 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Printf("executing list query %v", q)
-
 	// execute
 	qr, err := h.QueryHandler(r.Context(), *q)
 	if err != nil {
-		log.Printf("error handling query: %v", err)
+		log.FromContext(r.Context()).Error("error executing list query", "query", *q, "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,8 +91,6 @@ func (h *ListWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("written: %s", string(d))
 }
 
 func MapListWorkspaceHttp(r *http.Request) (*workspace.ListWorkspaceQuery, error) {

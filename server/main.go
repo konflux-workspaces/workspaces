@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -17,24 +17,29 @@ import (
 const DefaultAddr string = ":8080"
 
 func main() {
+	l := slog.Default()
+
 	if err := run(); err != nil {
-		log.Fatal(err)
+		l.Error("error configuring and running the server", "error", err)
+		os.Exit(1)
 	}
 }
 
 func run() error {
+	l := slog.Default()
+
 	// fetch configuration
 	wns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
 	if !ok {
 		return fmt.Errorf("required Environment Variable WORKSPACES_NAMESPACE not found")
 	}
-	log.Printf("Workspaces namespace is: %s", wns)
+	l.Debug("retrieving configuration from env variables", "workspaces namespace", wns)
 
 	kns, ok := os.LookupEnv("KUBESAW_NAMESPACE")
 	if !ok {
 		return fmt.Errorf("required Environment Variable KUBESAW_NAMESPACE not found")
 	}
-	log.Printf("KubeSaw namespace is: %s", kns)
+	l.Debug("retrieving configuration from env variables", "kubesaw namespace", kns)
 
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -46,7 +51,7 @@ func run() error {
 	defer cancel()
 
 	// setup read model
-	log.Println("setting up cache")
+	l.Debug("setting up cache")
 	c, err := cache.New(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
@@ -56,8 +61,9 @@ func run() error {
 	writer := kube.New(kube.BuildClient(cfg), wns)
 
 	// setup REST over HTTP server
-	log.Println("setting up REST over HTTP server")
+	l.Debug("setting up REST over HTTP server")
 	s := rest.New(
+		l,
 		DefaultAddr,
 		workspace.NewReadWorkspaceHandler(c).Handle,
 		workspace.NewListWorkspaceHandler(c).Handle,
@@ -73,30 +79,32 @@ func run() error {
 		defer cancel()
 
 		if err := s.Shutdown(sctx); err != nil {
-			log.Fatalf("error gracefully shutting down the HTTP server: %v", err)
+			l.Error("error gracefully shutting down the HTTP server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	// start the cache
 	go func() {
-		log.Println("starting cache")
+		l.Debug("starting cache")
 		if err := c.Start(ctx); err != nil {
 			if ctx.Err() == nil {
 				cancel()
 			}
-			log.Printf("error starting cache: %s", err)
+			l.Error("error starting cache", "error", err)
 		}
 	}()
 
-	log.Println("waiting for cache to sync...")
+	l.Debug("waiting for cache to sync...")
 	if !c.WaitForCacheSync(ctx) {
 		return fmt.Errorf("error synching cache")
 	}
 
 	// start HTTP server
-	log.Printf("starting HTTP server at %s", s.Addr)
+	l.Debug("starting HTTP server", "address", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
 		return fmt.Errorf("error running server: %w", err)
 	}
+
 	return nil
 }

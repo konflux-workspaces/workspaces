@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -42,7 +41,6 @@ func (c *Client) CreateUserWorkspace(ctx context.Context, user string, workspace
 	}()
 
 	workspace.SetNamespace(c.workspacesNamespace)
-	log.Printf("cli.Create %v ", workspace)
 	return cli.Create(ctx, workspace, opts...)
 }
 
@@ -58,7 +56,6 @@ func (c *Client) UpdateUserWorkspace(ctx context.Context, user string, workspace
 	}()
 
 	workspace.SetNamespace(c.workspacesNamespace)
-	log.Printf("cli.Update %v ", workspace)
 	return cli.Update(ctx, workspace, opts...)
 }
 

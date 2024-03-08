@@ -3,11 +3,11 @@ package workspace
 import (
 	"context"
 	"io"
-	"log"
 	"net/http"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 )
@@ -40,7 +40,9 @@ var _ http.Handler = &PostWorkspaceHandler{}
 
 // ServeHTTP implements http.Handler.
 func (p *PostWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// build marshaler for the given request
+  l := log.FromContext(r.Context())
+
+  // build marshaler for the given request
 	m, err := p.MarshalerProvider(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -54,12 +56,12 @@ func (p *PostWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Printf("executing create command %v", q)
+	l.Debug("executing create command", "command", q)
 
 	// execute
 	cwr, err := p.CreateHandler(r.Context(), *q)
 	if err != nil {
-		log.Printf("error handling query: %v", err)
+		l.Error("error handling query", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -78,7 +80,7 @@ func (p *PostWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Printf("written: %s", string(d))
+	l.Debug("written data", "data", string(d))
 }
 
 func MapPostWorkspaceHttp(r *http.Request, unmarshaler marshal.UnmarshalerProvider) (*workspace.CreateWorkspaceCommand, error) {
