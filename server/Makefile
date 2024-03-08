@@ -34,10 +34,10 @@ all: clean
 
 .PHONY: clean
 clean:
-	@-rm $(BIN_FOLDER)/server
+	@-rm -r $(BIN_FOLDER)
 
 .PHONY: build
-build: clean
+build:
 	@$(GO) build \
 		-ldflags '$(LD_FLAGS)' \
 		-trimpath \
