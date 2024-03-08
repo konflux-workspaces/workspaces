@@ -7,6 +7,7 @@ import (
 
 	"github.com/konflux-workspaces/workspaces/server/core"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 )
@@ -54,23 +55,32 @@ func NewReadWorkspaceHandler(
 }
 
 func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	l := log.FromContext(r.Context())
+	l.Debug("executing read")
+
 	// build marshaler for the given request
+	l.Debug("building marshaler for request")
 	m, err := h.MarshalerProvider(r)
 	if err != nil {
+		l.Error("error building marshaler for request", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// map
+	l.Debug("mapping request to read query")
 	q, err := h.MapperFunc(r)
 	if err != nil {
+		l.Error("error mapping request to read query", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// execute
+	l.Debug("executing create query", "query", q)
 	qr, err := h.QueryHandler(r.Context(), *q)
 	if err != nil {
+		l.Error("error executing read query", "error", err)
 		switch {
 		case errors.Is(err, core.ErrNotFound):
 			w.WriteHeader(http.StatusNotFound)
@@ -81,15 +91,19 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// marshal response
+	l.Debug("marshaling response", "query", qr)
 	d, err := m.Marshal(qr.Workspace)
 	if err != nil {
+		l.Error("error handling command", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
+	l.Debug("writing response", "response", d)
 	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
+		l.Error("error writing response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

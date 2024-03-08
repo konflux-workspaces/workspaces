@@ -3,6 +3,7 @@ package workspace
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -62,52 +63,57 @@ func NewUpdateWorkspaceHandler(
 }
 
 func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  l := log.FromContext(r.Context())
-  l.Debug("executing update")
+	l := log.FromContext(r.Context())
+	l.Debug("executing update")
 
 	// build marshaler for the given request
+	l.Debug("building marshaler for request")
 	m, err := h.MarshalerProvider(r)
 	if err != nil {
-    l.Debug("error building marshaler for request", "error", err)
+		l.Debug("error building marshaler for request", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// map
+	l.Debug("mapping request to update command")
 	c, err := h.MapperFunc(r, h.UnmarshalerProvider)
 	if err != nil {
-    l.Debug("error mapping request to command", "error", err)
+		l.Debug("error mapping request to command", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// execute
-  l.Debug("executing update command", "command", c)
-	qr, err := h.CommandHandler(r.Context(), *c)
+	l.Debug("executing update command", "command", c)
+	cr, err := h.CommandHandler(r.Context(), *c)
 	if err != nil {
-		l.Debug("error executing update command", "error", err)
+		l = l.With("error", err)
 		switch {
 		case errors.Is(err, core.ErrNotFound):
+			l.Debug("error executing update command: resource not found")
 			w.WriteHeader(http.StatusNotFound)
 		default:
-      l.Error("unexpected error executing update command", "command", c, "error", err)
+			l.Error("error executing update command")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
 
 	// marshal response
-	d, err := m.Marshal(qr.Workspace)
+	l.Debug("marshaling response", "response", &cr)
+	d, err := m.Marshal(cr.Workspace)
 	if err != nil {
-    l.Error("unexpected error marshaling response", "error", err)
+		l.Error("unexpected error marshaling response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
+	l.Debug("writing response", "response", d)
 	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
-    l.Error("unexpected error writing response", "error", err)
+		l.Error("unexpected error writing response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -117,19 +123,19 @@ func MapUpdateWorkspaceHttp(r *http.Request, provider marshal.UnmarshalerProvide
 	// build unmarshaler for the given request
 	u, err := provider(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error building unmarshaler body: %w", err)
 	}
 
 	// parse request body
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading request body: %w", err)
 	}
 
 	// unmarshal body to Workspace
 	w := workspacesv1alpha1.Workspace{}
 	if err := u.Unmarshal(d, &w); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling request body: %w", err)
 	}
 
 	// retrieve namespace from path
