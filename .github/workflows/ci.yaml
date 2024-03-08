@@ -52,3 +52,27 @@ jobs:
         with:
           version: ${{ steps.golangci_version.version }}
           working-directory: server
+
+  lint-sh:
+    permissions:
+      security-events: write
+
+    name: 
+      - name: Checkout Git Repository
+        uses: actions/checkout@v4
+        with:
+          # we need a full history for differential shellcheck
+          fetch-depth: 0
+
+      - name: Differential ShellCheck
+        id: ShellCheck
+        uses: redhat-plumbers-in-action/differential-shellcheck@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: ${{ always() }}
+        name: Upload ShellCheck defects
+        uses: actions/upload-artifact@v4
+        with:
+          name: Differential ShellCheck SARIF
+          path: ${{ steps.ShellCheck.outputs.sarif }}
