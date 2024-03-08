@@ -1,5 +1,7 @@
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BIN_FOLDER := $(ROOT_DIR)/bin
+$(BIN_FOLDER):
+	mkdir $(BIN_FOLDER)
 
 GO ?= go
 LD_FLAGS ?= -s -w
@@ -9,6 +11,7 @@ NAMESPACE ?= workspaces-system
 
 KUBECLI ?= kubectl
 KUSTOMIZE ?= $(BIN_FOLDER)/kustomize
+MOCKGEN ?= $(BIN_FOLDER)/mockgen
 GOLANG_CI ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: kustomize
@@ -19,6 +22,11 @@ $(KUSTOMIZE):
 			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod \
 			-o $(BIN_FOLDER)/kustomize \
 			sigs.k8s.io/kustomize/kustomize/v4
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN)
+$(MOCKGEN): $(BIN_FOLDER)
+	@cp hack/tools/mockgen $(BIN_FOLDER)/
 
 .PHONY: all
 all: clean
@@ -37,7 +45,7 @@ build: clean
 		main.go
 
 .PHONY: generate
-generate:
+generate: mockgen
 	@echo $(GO) generate ./...
 	@PATH=$(ROOT_DIR)/bin:${PATH} $(GO) generate ./...
 
