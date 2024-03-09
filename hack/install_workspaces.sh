@@ -4,9 +4,10 @@ set -e
 
 export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
 
-f=$(mktemp --directory /tmp/workspaces-demo.XXXX)
+f="$(pwd)"
+[[ "${f}" == "/tmp/*" ]] || {
+  f=$(mktemp --directory /tmp/workspaces-demo.XXXX)
+  cp -r hack/ operator/ e2e/ server/ ingress/ "$f" 
+}
 
-cp -r hack/ operator/ e2e/ server/ "$f"
-cd "$f" 
-
-make -C e2e prepare
+make -C "$f/e2e" prepare

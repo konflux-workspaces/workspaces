@@ -23,5 +23,3 @@ Feature: Read workspaces via REST API
 
   @skip
   Scenario: users can fetch just the public workspaces
-
-

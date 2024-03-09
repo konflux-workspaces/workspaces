@@ -10,6 +10,8 @@ OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
 
+INGRESS_ROUTE := workspaces-ingress-proxy
+
 .PHONY: vet
 vet:
 	$(GO) vet ./...
@@ -23,6 +25,10 @@ build-images:
 push-images:
 	docker push $(OPERATOR_IMG) 
 	docker push $(SERVER_IMG)
+
+.PHONY: deploy-workspaces
+deploy-workspaces: deploy-operator deploy-server deploy-ingress
+	@:
 
 .PHONY: deploy-operator
 deploy-operator:
@@ -39,24 +45,31 @@ deploy-operator:
 					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
-		IMG=$(OPERATOR_IMG) make install deploy && \
-		IMG=$(SERVER_IMG) make -C ../server deploy \
+		IMG=$(OPERATOR_IMG) make install deploy \
 	)
 
+.PHONY: deploy-server
+deploy-server:
+	IMG=$(SERVER_IMG) make -C ../server deploy
+
+.PHONY: deploy-ingress
+deploy-ingress:
+	$(KUSTOMIZE) build ../ingress/manifests/overlays/ocp | $(KUBECLI) apply -f - 
+
 .PHONY: prepare
-prepare: build-images push-images deploy-operator
+prepare: build-images push-images deploy-workspaces
 	@:
 
 .PHONY: test
 test: vet clean
-	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
+	PROXY_URL=$$($(KUBECLI) get route $(INGRESS_ROUTE) -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
 wip: vet clean
-	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
+	PROXY_URL=$$($(KUBECLI) get route $(INGRESS_ROUTE) -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
