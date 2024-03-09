@@ -78,5 +78,5 @@ docker-build:
 	docker build -t ${IMG} -f Dockerfile ..
 
 .PHONY: deploy
-deploy: generate kustomize
+deploy: kustomize
 	KUSTOMIZE=$(KUSTOMIZE) ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
