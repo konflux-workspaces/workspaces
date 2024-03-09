@@ -1,5 +1,7 @@
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BIN_FOLDER := $(ROOT_DIR)/bin
+$(BIN_FOLDER):
+	mkdir $(BIN_FOLDER)
 
 GO ?= go
 LD_FLAGS ?= -s -w
@@ -8,8 +10,23 @@ IMG ?= workspaces/rest-api:latest
 NAMESPACE ?= workspaces-system
 
 KUBECLI ?= kubectl
-KUSTOMIZE ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod sigs.k8s.io/kustomize/kustomize/v4
+KUSTOMIZE ?= $(BIN_FOLDER)/kustomize
+MOCKGEN ?= $(BIN_FOLDER)/mockgen
 GOLANG_CI ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE)
+$(KUSTOMIZE):
+	test -s $(BIN_FOLDER)/kustomize || \
+		go build \
+			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod \
+			-o $(BIN_FOLDER)/kustomize \
+			sigs.k8s.io/kustomize/kustomize/v4
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN)
+$(MOCKGEN): $(BIN_FOLDER)
+	@cp hack/tools/mockgen $(BIN_FOLDER)/
 
 .PHONY: all
 all: clean
@@ -17,10 +34,10 @@ all: clean
 
 .PHONY: clean
 clean:
-	@-rm $(BIN_FOLDER)/server
+	@-rm -r $(BIN_FOLDER)
 
 .PHONY: build
-build: clean
+build:
 	@$(GO) build \
 		-ldflags '$(LD_FLAGS)' \
 		-trimpath \
@@ -28,7 +45,7 @@ build: clean
 		main.go
 
 .PHONY: generate
-generate:
+generate: mockgen
 	@echo $(GO) generate ./...
 	@PATH=$(ROOT_DIR)/bin:${PATH} $(GO) generate ./...
 
@@ -61,16 +78,5 @@ docker-build:
 	docker build -t ${IMG} -f Dockerfile ..
 
 .PHONY: deploy
-deploy:
-	( \
-		toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
-			f=$$(mktemp --directory /tmp/workspaces-rest.XXXXX) && \
-			cp -r ./manifests "$$f" && \
-			cd "$$f/manifests/default" && \
-			$(KUSTOMIZE) edit set namespace $(NAMESPACE) && \
-			$(KUSTOMIZE) edit set image workspaces/rest-api=$(IMG) && \
-			$(KUSTOMIZE) edit add configmap rest-api-server-config \
-				--behavior=replace \
-				--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "toolchain-host-operator" ) && \
-			$(KUSTOMIZE) build . | $(KUBECLI) apply -f - \
-	)
+deploy: kustomize
+	KUSTOMIZE=$(KUSTOMIZE) ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"

@@ -1,4 +1,4 @@
-bin/server
+bin
 
 # ignore code coverage information
 cover.out
