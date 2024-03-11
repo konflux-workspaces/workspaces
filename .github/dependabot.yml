@@ -6,12 +6,17 @@ updates:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directory: "/server"
+  directory: "/e2e"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/operator"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/server"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
@@ -22,6 +27,11 @@ updates:
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/hack/kustomize"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/hack/mockgen"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
