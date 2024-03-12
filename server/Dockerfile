@@ -17,6 +17,7 @@ RUN go -C server mod download
 COPY server/main.go server/main.go
 COPY server/core/ server/core/
 COPY server/rest/ server/rest/
+COPY server/log/ server/log/
 COPY server/persistence/ server/persistence/
 
 # Build
