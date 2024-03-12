@@ -1,0 +1,21 @@
+{{- if .Values.kubesaw.enabled -}}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kubesaw-proxy
+  namespace: {{ template "traefik.namespace" .Subcharts.traefik }}
+spec:
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/apis/toolchain.dev.openshift.com/v1alpha1/workspaces`)
+    priority: 10
+    middlewares: []
+    services:
+    - kind: Service
+      name: api
+      namespace: {{ .Values.kubesaw.namespace }}
+      port: 80
+      scheme: http
+      weight: 10
+{{- end }}
+

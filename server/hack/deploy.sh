@@ -1,6 +1,9 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -e -o pipefail +x
+
+_namespace="$1"
+_image="$2"
 
 LOCATION=$(readlink -f "$0")
 DIR=$(dirname "${LOCATION}")
@@ -9,25 +12,29 @@ KUBECLI=${KUBECLI:-kubectl}
 KUSTOMIZE=${KUSTOMIZE:-kustomize}
 
 # retrieving toolchain-host namespace
-toolchain_host=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
-if [[ -z "${toolchain_host}" ]]; then
-    toolchain_host="toolchain-host_operator"
+toolchain_host_ns=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
+if [[ -z "${toolchain_host_ns}" ]]; then
+    toolchain_host_ns="toolchain-host_operator"
 fi
 
-# prepare temporary folder
-f=$(mktemp --directory /tmp/workspaces-rest.XXXXX)
-cp -r "${ROOT_DIR}/server/manifests" "${f}/manifests"
+# retrieve OCP cluster domain
+domain=$(oc get dns cluster -o jsonpath='{ .spec.baseDomain }')
 
-# updating manifests locally
-cd "${f}/manifests/default"
-${KUSTOMIZE} edit set namespace "$1"
-${KUSTOMIZE} edit set image workspaces/rest-api="$2"
-${KUSTOMIZE} edit add configmap rest-api-server-config \
-        --behavior=replace \
-        --from-literal=kubesaw.namespace="${toolchain_host}"
+# prepare temporary folder
+wd=$(mktemp --directory /tmp/workspaces-rest.XXXXX)
+cp -r "${ROOT_DIR}/server/manifests" "${wd}/manifests"
+
+# prepare overlay in the temporary folder
+"${DIR}/prepare_overlay.sh" \
+  "${wd}/manifests" \
+  "local" \
+  "${_namespace}" \
+  "${_image}" \
+  "${toolchain_host_ns}" \
+  "apps.${domain}"
 
 # apply manifests
-${KUSTOMIZE} build . | ${KUBECLI} apply -f -
+${KUSTOMIZE} build "${wd}/manifests/overlays/local" | ${KUBECLI} apply -f -
 
 # cleanup
-rm -r "${f}"
+rm -r "${wd}"

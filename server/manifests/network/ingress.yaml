@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  namespace: system
+  annotations:
+    kubernetes.io/ingress.class: workspaces-ingress-internal
+spec:
+  ingressClassName: workspaces-ingress-internal
+  rules:
+  - host: api-workspaces.cluster.local # replace this with your current domain
+    http:
+      paths:
+      - backend:
+          service:
+            name: workspaces-rest-api-server
+            port:
+              number: 8080
+        path: /healthz
+        pathType: Exact
+      - backend:
+          service:
+            name: workspaces-rest-api-server
+            port:
+              number: 8080
+        path: /apis/workspaces.io/v1alpha1/workspaces
+        pathType: Exact
+      - backend:
+          service:
+            name: workspaces-rest-api-server
+            port:
+              number: 8080
+        path: /apis/workspaces.io/v1alpha1/workspaces/{name:[a-zA-Z0-9-]+}
+        pathType: Exact
+      - backend:
+          service:
+            name: workspaces-rest-api-server
+            port:
+              number: 8080
+        path: /apis/workspaces.io/v1alpha1/namespaces/{namespace:[a-zA-Z0-9-]+}/workspaces
+        pathType: Exact
+      - backend:
+          service:
+            name: workspaces-rest-api-server
+            port:
+              number: 8080
+        path: /apis/workspaces.io/v1alpha1/namespaces/{namespace:[a-zA-Z0-9-]+}/workspaces/{name:[a-zA-Z0-9-]+}
+        pathType: Exact
