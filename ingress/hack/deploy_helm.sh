@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -o pipefail +x
+set -e -o pipefail
 
 _namespace="$1"
 
@@ -24,9 +24,11 @@ domain=$(oc get dns cluster -o jsonpath='{ .spec.baseDomain }')
 # deploy with Helm
 helm_folder="${ROOT_DIR}/ingress/helm"
 ${HELM} dependency build "$helm_folder" 
-${HELM} upgrade --install workspaces-ingress-internal "$helm_folder" \
+${HELM} upgrade --install \
+  workspaces-ingress-internal "$helm_folder" \
   --namespace "$_namespace" --create-namespace \
-  --set "traefik.providers.kubernetesCRD.namespaces=$_namespace" \
   --set "traefik.host=workspaces-api.apps.${domain}" \
-  --set "traefik.providers.kubernetesIngress.namespaces={$_namespace,$toolchain_host_ns}" \
-  --set "kubesaw.url=${toolchain_api_route}"
+  --set "traefik.providers.kubernetesCRD.namespaces={${_namespace},${toolchain_host_ns}}" \
+  --set "traefik.providers.kubernetesIngress.namespaces={${_namespace}}" \
+  --set "kubesaw.url=${toolchain_api_route}" \
+  --set "kubesaw.namespace=${toolchain_host_ns}"

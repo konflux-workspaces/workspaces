@@ -1,6 +1,7 @@
 host: ""
 kubesaw:
   enabled: true
+  namespace: ""
   url: ""
 ocp:
   enabled: true 
