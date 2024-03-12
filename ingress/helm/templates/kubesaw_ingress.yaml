@@ -1,0 +1,39 @@
+# {{- if .Values.kubesaw.enabled -}}
+
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: kubesaw-proxy
+#   namespace: {{ template "traefik.namespace" .Subcharts.traefik }}
+#   annotations:
+#     kubernetes.io/ingress.class: {{ .Values.traefik.ingressClass.name }}
+# spec:
+#   ingressClassName: {{ .Values.traefik.ingressClass.name }}
+#   rules:
+#   - host: {{ .Values.host }}
+#     http:
+#       paths:
+#       - backend:
+#           service:
+#             name: kubesaw-proxy
+#             port:
+#               number: 8081
+#         path: /apis/workspaces.io/v1alpha1/workspaces/{name:[a-zA-Z0-9-]+}/
+#         pathType: Prefix
+#       - backend:
+#           service:
+#             name: kubesaw-proxy
+#             port:
+#               number: 8081
+#         path: /apis/workspaces.io/v1alpha1/namespaces/{namespace:[a-zA-Z0-9-]+}/workspaces/
+#         pathType: Prefix
+#       - backend:
+#           service:
+#             name: kubesaw-proxy
+#             port:
+#               number: 8081
+#         path: /apis/workspaces.io/v1alpha1/namespaces/{namespace:[a-zA-Z0-9-]+}/workspaces/{name:[a-zA-Z0-9-]+}/
+#         pathType: Prefix
+# {{- end }}
+

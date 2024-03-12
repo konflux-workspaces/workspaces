@@ -1,4 +1,7 @@
 host: ""
+kubesaw:
+  enabled: true
+  url: ""
 ocp:
   enabled: true 
 traefik:
