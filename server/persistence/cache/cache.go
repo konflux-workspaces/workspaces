@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"errors"
-	"log"
 	"slices"
 
 	corev1 "k8s.io/api/core/v1"
@@ -99,7 +98,6 @@ func (c *Cache) ListUserWorkspaces(
 		return err
 	}
 
-	log.Printf("retrieved %d sbb: %v", len(sbb.Items), sbb)
 	if len(sbb.Items) == 0 {
 		return nil
 	}

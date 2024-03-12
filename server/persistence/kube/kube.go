@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -10,6 +9,7 @@ import (
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
 var (
@@ -42,7 +42,7 @@ func (c *Client) CreateUserWorkspace(ctx context.Context, user string, workspace
 	}()
 
 	workspace.SetNamespace(c.workspacesNamespace)
-	log.Printf("cli.Create %v ", workspace)
+	log.FromContext(ctx).Debug("creating user workspace", "workspace", workspace, "user", user)
 	return cli.Create(ctx, workspace, opts...)
 }
 
@@ -58,7 +58,7 @@ func (c *Client) UpdateUserWorkspace(ctx context.Context, user string, workspace
 	}()
 
 	workspace.SetNamespace(c.workspacesNamespace)
-	log.Printf("cli.Update %v ", workspace)
+	log.FromContext(ctx).Debug("updating user workspace", "workspace", workspace, "user", user)
 	return cli.Update(ctx, workspace, opts...)
 }
 
