@@ -6,12 +6,29 @@ updates:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directory: "/server"
+  directory: "/e2e"
+  groups:
+    kubernetes:
+      patterns:
+      - "k8s.io/*"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/operator"
+  groups:
+    kubernetes:
+      patterns:
+      - "k8s.io/*"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/server"
+  groups:
+    kubernetes:
+      patterns:
+      - "k8s.io/*"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
@@ -22,6 +39,11 @@ updates:
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
   directory: "/hack/kustomize"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/hack/mockgen"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10

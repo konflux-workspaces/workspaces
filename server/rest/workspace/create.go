@@ -2,12 +2,13 @@ package workspace
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 )
@@ -40,45 +41,53 @@ var _ http.Handler = &PostWorkspaceHandler{}
 
 // ServeHTTP implements http.Handler.
 func (p *PostWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	l := log.FromContext(r.Context())
+	l.Debug("executing create")
+
 	// build marshaler for the given request
+	l.Debug("building marshaler for request")
 	m, err := p.MarshalerProvider(r)
 	if err != nil {
+		l.Error("error building marshaler for request", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// map
+	l.Debug("mapping request to create command")
 	q, err := p.MapperFunc(r, p.UnmarshalerProvider)
 	if err != nil {
+		l.Error("error mapping request to create command", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("executing create command %v", q)
-
 	// execute
-	cwr, err := p.CreateHandler(r.Context(), *q)
+	l.Debug("executing create command", "command", q)
+	cr, err := p.CreateHandler(r.Context(), *q)
 	if err != nil {
-		log.Printf("error handling query: %v", err)
+		l.Error("error executing create command", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// marshal response
-	d, err := m.Marshal(cwr.Workspace)
+	l.Debug("marshaling response", "response", &cr)
+	d, err := m.Marshal(cr.Workspace)
 	if err != nil {
+		l.Error("error marshaling response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// reply
+	l.Debug("writing response", "response", d)
 	w.Header().Add(header.ContentType, m.ContentType())
 	if _, err := w.Write(d); err != nil {
+		l.Error("error writing response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("written: %s", string(d))
 }
 
 func MapPostWorkspaceHttp(r *http.Request, unmarshaler marshal.UnmarshalerProvider) (*workspace.CreateWorkspaceCommand, error) {
@@ -94,13 +103,13 @@ func MapPostWorkspaceHttp(r *http.Request, unmarshaler marshal.UnmarshalerProvid
 	// check here for completeness's sake.
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading request body: %w", err)
 	}
 
 	// unmarshal body to Workspace
 	w := workspacesv1alpha1.Workspace{}
 	if err := u.Unmarshal(d, &w); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling request body: %w", err)
 	}
 
 	// retrieve namespace from path

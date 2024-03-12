@@ -26,6 +26,7 @@ helm_folder="${ROOT_DIR}/ingress/helm"
 ${HELM} dependency build "$helm_folder" 
 ${HELM} upgrade --install workspaces-ingress-internal "$helm_folder" \
   --namespace "$_namespace" --create-namespace \
-  --set providers.kubernetesIngress.namespaces="$_namespace" \
-  --set host="workspaces-api.apps.${domain}" \
-  --set kubesaw.url="${toolchain_api_route}"
+  --set "traefik.providers.kubernetesCRD.namespaces=$_namespace" \
+  --set "traefik.host=workspaces-api.apps.${domain}" \
+  --set "traefik.providers.kubernetesIngress.namespaces={$_namespace,$toolchain_host_ns}" \
+  --set "kubesaw.url=${toolchain_api_route}"

@@ -2,9 +2,11 @@ package kube_test
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,6 +17,8 @@ import (
 )
 
 func TestKube(t *testing.T) {
+	slog.SetDefault(slog.New(&log.NoOpHandler{}))
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Kube Suite")
 }

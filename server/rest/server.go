@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -17,6 +18,7 @@ const (
 )
 
 func New(
+	logger *slog.Logger,
 	addr string,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
@@ -25,12 +27,13 @@ func New(
 ) *http.Server {
 	return &http.Server{
 		Addr:              addr,
-		Handler:           buildServerHandler(readHandle, listHandle, createHandle, updateHandle),
+		Handler:           buildServerHandler(logger, readHandle, listHandle, createHandle, updateHandle),
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 }
 
 func buildServerHandler(
+	logger *slog.Logger,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
 	createHandle workspace.CreateWorkspaceCreateHandlerFunc,
@@ -43,7 +46,13 @@ func buildServerHandler(
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	return middleware.NewLogRequestMiddleware(mux)
+	if logger == nil {
+		return mux
+	}
+
+	return middleware.NewLoggerInjectorMiddleware(logger,
+		middleware.NewRequestLoggerMiddleware(mux),
+	)
 }
 
 func addWorkspaces(
