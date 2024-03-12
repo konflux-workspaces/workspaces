@@ -54,7 +54,7 @@ deploy-server:
 
 .PHONY: deploy-ingress
 deploy-ingress:
-	$(KUSTOMIZE) build ../ingress/manifests/overlays/ocp | $(KUBECLI) apply -f - 
+	../ingress/hack/deploy_helm.sh "workspaces-system"
 
 .PHONY: prepare
 prepare: build-images push-images deploy-workspaces

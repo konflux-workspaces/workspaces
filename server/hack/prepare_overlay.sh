@@ -3,7 +3,8 @@
 set -e -o pipefail
 
 # parsing positional arguments
-[[ "$#" -ne "6" ]] && echo "expected 6 arguments, found $#" && exit 1
+EXPECTED_ARGS=6
+[[ "$#" -ne "${EXPECTED_ARGS}" ]] && echo "expected ${EXPECTED_ARGS} arguments, found $#" && exit 1
 _manifests_folder="$1"
 _overlay="$2"
 _namespace="$3"
@@ -32,7 +33,7 @@ ${KUSTOMIZE} edit add configmap rest-api-server-config \
 cat << EOF > 'patch-ingress.yaml'
 - op: replace
   path: /spec/rules/0/host
-  value: workspaces-ingress-proxy-${_namespace}.${_domain}
+  value: workspaces-api.${_domain}
 EOF
 
 ${KUSTOMIZE} edit add patch \

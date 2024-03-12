@@ -1,0 +1,21 @@
+{{- if .Values.ocp.enabled -}}
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    provider: workspaces
+    app: ingress-proxy
+  name: {{ template "traefik.fullname" .Subcharts.traefik }}
+  namespace: {{ template "traefik.namespace" .Subcharts.traefik }}
+spec:
+  host: "{{ .Values.host }}"
+  port:
+    targetPort: {{ .Values.traefik.ports.traefik.port }}
+  to:
+    kind: Service
+    name: {{ template "traefik.fullname" .Subcharts.traefik }}
+    weight: 100
+  wildcardPolicy: None
+{{- end }}
