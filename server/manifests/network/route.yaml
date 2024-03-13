@@ -9,7 +9,7 @@ metadata:
 spec:
   host: ''
   port:
-    targetPort: 8080
+    targetPort: 8000
   to:
     kind: Service
     name: workspaces-rest-api-server

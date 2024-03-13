@@ -1,0 +1,27 @@
+entryPoints:
+  web:
+    address: ":8000"
+  metrics:
+    address: ":8001"
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yaml
+
+# Configure Logger
+log:
+  level: INFO
+  format: json
+
+# Print acess logs
+accessLog:
+  format: json
+  
+# enable Prometheus metrics
+metrics:
+  prometheus:
+    entryPoint: metrics
+
+# enable Jaeger tracing
+# tracing:
+#   jaeger: {}

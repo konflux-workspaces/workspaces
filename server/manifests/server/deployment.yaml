@@ -23,6 +23,12 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
+      - image: traefik:v2.11.0
+        name: proxy
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: "traefik-config"
+          mountPath: "/etc/traefik"
       - image: workspaces/rest-api:latest
         name: rest-api
         imagePullPolicy: IfNotPresent
@@ -63,6 +69,10 @@ spec:
         ports:
           - containerPort: 8080
             name: http
+      volumes:
+      - name: "traefik-config"
+        configMap:
+          name: "traefik-sidecar-config"
       serviceAccountName: rest-api-server
       terminationGracePeriodSeconds: 60
 ---
@@ -72,3 +82,47 @@ metadata:
   name: rest-api-server-config
 data:
   kubesaw.namespace=system
+---
+apiVersion: v1
+data:
+  dynamic.yaml: |
+    http:
+      services:
+        app:
+          loadBalancer:
+            servers:
+            - url: "http://localhost:8080/"
+      routers:
+        app:
+          service: app
+          entrypoints:
+          - app
+          rule: Path(`/apis/workspaces.io/*`)
+  traefik.yaml: |
+    entryPoints:
+      web:
+        address: ":8000"
+      metrics:
+        address: ":8001"
+
+    providers:
+      file:
+        filename: /etc/traefik/dynamic.yaml
+
+    # Configure Logger
+    log:
+      level: INFO
+      format: json
+
+    # Print acess logs
+    accessLog:
+      format: json
+      
+    # enable Prometheus metrics
+    metrics:
+      prometheus:
+        entryPoint: metrics
+kind: ConfigMap
+metadata:
+  name: traefik-sidecar-config
+
