@@ -1,0 +1,28 @@
+http:
+  services:
+    web:
+      loadBalancer:
+        servers:
+        - url: "http://localhost:8080/"
+  routers:
+    app-apis:
+      service: web
+      entrypoints:
+      - web
+      rule: PathPrefix(`/apis/workspaces.io`)
+    app-healthz:
+      service: web
+      entrypoints:
+      - web
+      rule: Path(`/healthz`)
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+  
+metrics:
+  prometheus: {}
+tracing: {}
