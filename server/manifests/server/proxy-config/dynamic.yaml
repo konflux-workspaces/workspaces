@@ -16,11 +16,6 @@ http:
       - web
       rule: Path(`/healthz`)
 
-# # Circuit Breaker: Latency Check
-#   middlewares:
-#     latency-check:
-#       circuitBreaker:
-#         expression: "LatencyAtQuantileMS(50.0) > 100"
 log:
   level: INFO
   format: json
