@@ -52,7 +52,7 @@ func run() error {
 
 	// setup read model
 	l.Info("setting up cache")
-	c, err := cache.New(ctx, cfg, wns, kns)
+	c, crc, err := cache.NewWithCRCache(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func run() error {
 	// start the cache
 	go func() {
 		l.Info("starting cache")
-		if err := c.Start(ctx); err != nil {
+		if err := crc.Start(ctx); err != nil {
 			if ctx.Err() == nil {
 				cancel()
 			}
@@ -96,7 +96,7 @@ func run() error {
 	}()
 
 	l.Info("waiting for cache to sync...")
-	if !c.WaitForCacheSync(ctx) {
+	if !crc.WaitForCacheSync(ctx) {
 		return fmt.Errorf("error synching cache")
 	}
 

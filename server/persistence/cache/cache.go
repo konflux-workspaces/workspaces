@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 
 	corev1 "k8s.io/api/core/v1"
@@ -26,14 +27,13 @@ var (
 )
 
 type Cache struct {
-	c                   cache.Cache
+	c client.Reader
+
 	kubesawNamespace    string
 	workspacesNamespace string
 }
 
-// New creates a new Cache that caches Workspaces and SpaceBindings. The cache
-// provides methods to retrieve the workspaces the user is allowed to access
-func New(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, error) {
+func NewCRCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (cache.Cache, error) {
 	s := runtime.NewScheme()
 	if err := corev1.AddToScheme(s); err != nil {
 		return nil, err
@@ -79,11 +79,28 @@ func New(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawName
 		return nil, err
 	}
 
+	return c, nil
+}
+
+// NewWithCRCache creates a new Cache that caches Workspaces and SpaceBindings. The cache
+// provides methods to retrieve the workspaces the user is allowed to access
+func NewWithCRCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*Cache, cache.Cache, error) {
+	c, err := NewCRCache(ctx, cfg, workspacesNamespace, kubesawNamespace)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return NewWithReader(c, workspacesNamespace, kubesawNamespace), c, nil
+}
+
+// NewWithReader creates a new Cache that caches Workspaces and SpaceBindings.
+func NewWithReader(reader client.Reader, workspacesNamespace, kubesawNamespace string) *Cache {
 	return &Cache{
-		c:                   c,
+		c: reader,
+
 		kubesawNamespace:    kubesawNamespace,
 		workspacesNamespace: workspacesNamespace,
-	}, nil
+	}
 }
 
 // ListUserWorkspaces Returns all the workspaces the user has access to
@@ -115,9 +132,30 @@ func (c *Cache) ListUserWorkspaces(
 			continue
 		}
 
+		ow, err := getOwner(&w)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		w.Namespace = *ow
 		objs.Items = append(objs.Items, w)
 	}
 	return errors.Join(errs...)
+}
+
+var errWorkspaceWithoutOwner = fmt.Errorf("error workspace has no owner")
+
+func getOwner(w *workspacesv1alpha1.Workspace) (*string, error) {
+	ll := w.GetLabels()
+	if len(ll) == 0 {
+		return nil, fmt.Errorf("%w: %v", errWorkspaceWithoutOwner, client.ObjectKeyFromObject(w))
+	}
+
+	ol, ok := ll[workspacesv1alpha1.LabelWorkspaceOwner]
+	if !ok || ol == "" {
+		return nil, fmt.Errorf("%w: %v", errWorkspaceWithoutOwner, client.ObjectKeyFromObject(w))
+	}
+	return &ol, nil
 }
 
 // ReadUserWorkspace Returns the Workspace details only if the user has access to it
@@ -161,16 +199,6 @@ func (c *Cache) ReadUserWorkspace(
 
 	w.DeepCopyInto(obj)
 	return nil
-}
-
-// WaitForCacheSync Synchronizes the cache
-func (c *Cache) WaitForCacheSync(ctx context.Context) bool {
-	return c.c.WaitForCacheSync(ctx)
-}
-
-// Start starts the cache. It Blocks.
-func (c *Cache) Start(ctx context.Context) error {
-	return c.c.Start(ctx)
 }
 
 func (c *Cache) workspaceNamespacedName(space string) client.ObjectKey {
