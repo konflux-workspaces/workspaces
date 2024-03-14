@@ -6,7 +6,8 @@ entryPoints:
 
 providers:
   file:
-    filename: /etc/traefik/dynamic.yaml
+    directory: /etc/traefik/dynamic/
+    watch: true
 
 # Configure Logger
 log:
@@ -25,3 +26,9 @@ metrics:
 # enable Jaeger tracing
 # tracing:
 #   jaeger: {}
+
+experimental:
+  plugins:
+    jwt:
+      moduleName: github.com/traefik-plugins/traefik-jwt-plugin
+      version: v0.7.1

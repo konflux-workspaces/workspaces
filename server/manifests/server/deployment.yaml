@@ -27,8 +27,12 @@ spec:
         name: proxy
         imagePullPolicy: IfNotPresent
         volumeMounts:
-        - name: "traefik-config"
+        - name: "traefik-static-config"
           mountPath: "/etc/traefik"
+        - name: "traefik-dynamic-config"
+          mountPath: "/etc/traefik/dynamic"
+        - name: "traefik-plugin-storage"
+          mountPath: "/plugins-storage" 
       - image: workspaces/rest-api:latest
         name: rest-api
         imagePullPolicy: IfNotPresent
@@ -50,7 +54,7 @@ spec:
         # livenessProbe:
         #   httpGet:
         #     path: /healthz
-        #     port: 8081
+        #     port: 8080
         #   initialDelaySeconds: 15
         #   periodSeconds: 20
         # readinessProbe:
@@ -70,9 +74,15 @@ spec:
           - containerPort: 8080
             name: http
       volumes:
-      - name: "traefik-config"
+      - name: "traefik-plugin-storage"
+        emptyDir:
+          sizeLimit: 20Mi
+      - name: "traefik-static-config"
         configMap:
-          name: "traefik-sidecar-config"
+          name: "traefik-sidecar-static-config"
+      - name: "traefik-dynamic-config"
+        configMap:
+          name: "traefik-sidecar-dynamic-config"
       serviceAccountName: rest-api-server
       terminationGracePeriodSeconds: 60
 ---
@@ -84,45 +94,13 @@ data:
   kubesaw.namespace=system
 ---
 apiVersion: v1
-data:
-  dynamic.yaml: |
-    http:
-      services:
-        app:
-          loadBalancer:
-            servers:
-            - url: "http://localhost:8080/"
-      routers:
-        app:
-          service: app
-          entrypoints:
-          - app
-          rule: Path(`/apis/workspaces.io/*`)
-  traefik.yaml: |
-    entryPoints:
-      web:
-        address: ":8000"
-      metrics:
-        address: ":8001"
-
-    providers:
-      file:
-        filename: /etc/traefik/dynamic.yaml
-
-    # Configure Logger
-    log:
-      level: INFO
-      format: json
-
-    # Print acess logs
-    accessLog:
-      format: json
-      
-    # enable Prometheus metrics
-    metrics:
-      prometheus:
-        entryPoint: metrics
+data: {}
 kind: ConfigMap
 metadata:
-  name: traefik-sidecar-config
-
+  name: traefik-sidecar-static-config
+---
+apiVersion: v1
+data: {}
+kind: ConfigMap
+metadata:
+  name: traefik-sidecar-dynamic-config
