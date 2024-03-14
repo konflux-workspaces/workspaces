@@ -73,13 +73,13 @@ func buildWorkspacesClient(ctx context.Context) (client.Client, error) {
 
 	u := tcontext.RetrieveUser(ctx)
 	k := tcontext.RetrieveUnauthKubeconfig(ctx)
-	t := auth.BuildJwtForUser(u.Status.CompliantUsername)
-	ts, err := t.SignedString([]byte("randomkey"))
+
+	t, err := auth.BuildJwtForUser(ctx, u.Status.CompliantUsername)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("token: %s", ts)
-	k.BearerToken = ts
+	log.Printf("token: %s", t)
+	k.BearerToken = t
 	k.Host = os.Getenv("PROXY_URL")
 
 	m, err := buildRESTMapper()

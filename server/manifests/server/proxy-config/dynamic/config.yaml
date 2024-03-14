@@ -10,19 +10,22 @@ http:
       entrypoints:
       - web
       rule: PathPrefix(`/apis/workspaces.io`)
+      middlewares:
+        - jwt-authorizer
     app-healthz:
       service: web
       entrypoints:
       - web
       rule: Path(`/healthz`)
 
-log:
-  level: INFO
-  format: json
+# Middlewares
+  middlewares:
 
-accessLog:
-  format: json
-  
-metrics:
-  prometheus: {}
-tracing: {}
+# JWT Auth
+    jwt-authorizer:
+      plugin:
+        jwt:
+          required: true
+          keys: []
+          jwtHeaders:
+            X-Subject: sub
