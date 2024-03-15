@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
-	"github.com/konflux-workspaces/workspaces/server/persistence/cache"
 	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 	"github.com/konflux-workspaces/workspaces/server/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -52,13 +51,13 @@ func run() error {
 
 	// setup read model
 	l.Info("setting up cache")
-	c, crc, err := cache.NewWithCRCache(ctx, cfg, wns, kns)
+	c, crc, err := kube.NewReadClientWithCache(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
 	}
 
 	// setup write model
-	writer := kube.New(kube.BuildClient(cfg), wns)
+	writer := kube.NewWriteClient(kube.BuildClient(cfg), wns)
 
 	// setup REST over HTTP server
 	l.Info("setting up REST over HTTP server")

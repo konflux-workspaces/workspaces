@@ -1,12 +1,13 @@
-package cache_test
+package kube_test
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"slices"
-	"testing"
 
+	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -14,23 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	"github.com/konflux-workspaces/workspaces/server/log"
-	"github.com/konflux-workspaces/workspaces/server/persistence/cache"
 )
 
-func TestCache(t *testing.T) {
-	slog.SetDefault(slog.New(&log.NoOpHandler{}))
-
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cache Suite")
-}
-
-var _ = Describe("Cache", func() {
+var _ = Describe("ReadClient", func() {
 	var ctx context.Context
-	var c *cache.Cache
+	var c *kube.ReadClient
 
 	ksns := "kubesaw-namespace"
 	wsns := "workspaces-namespace"
@@ -39,7 +28,7 @@ var _ = Describe("Cache", func() {
 		ctx = context.Background()
 	})
 
-	It("should not return any workspace if no SpaceBinding exists", func() {
+	When("no SpaceBinding exists for a workspace", func() {
 		// given
 		c = buildCache(ksns, wsns,
 			&workspacesv1alpha1.Workspace{
@@ -52,16 +41,28 @@ var _ = Describe("Cache", func() {
 				},
 			})
 
-		// when
-		var ww workspacesv1alpha1.WorkspaceList
-		err := c.ListUserWorkspaces(ctx, "owner", &ww)
-		Expect(err).NotTo(HaveOccurred())
+		It("should not return the workspace in list", func() {
+			// when
+			var ww workspacesv1alpha1.WorkspaceList
+			err := c.ListUserWorkspaces(ctx, "owner", &ww)
+			Expect(err).NotTo(HaveOccurred())
 
-		// then
-		Expect(ww.Items).Should(HaveLen(0))
+			// then
+			Expect(ww.Items).Should(HaveLen(0))
+		})
+
+		It("should not return the workspace in read", func() {
+			// when
+			var ww workspacesv1alpha1.Workspace
+			err := c.ReadUserWorkspace(ctx, "owner", "owner", "no-space-binding", &ww)
+
+			// then
+			Expect(err).To(HaveOccurred())
+			Expect(kerrors.IsNotFound(err)).To(BeTrue())
+		})
 	})
 
-	It("should not return any workspace that has no owner label", func() {
+	When("owner label is not set on workspace", func() {
 		// given
 		c = buildCache(ksns, wsns,
 			&workspacesv1alpha1.Workspace{
@@ -83,13 +84,25 @@ var _ = Describe("Cache", func() {
 			},
 		)
 
-		// when
-		var ww workspacesv1alpha1.WorkspaceList
-		err := c.ListUserWorkspaces(ctx, "owner", &ww)
-		Expect(err).NotTo(HaveOccurred())
+		It("should not return the workspace in list", func() {
+			// when
+			var ww workspacesv1alpha1.WorkspaceList
+			err := c.ListUserWorkspaces(ctx, "owner", &ww)
+			Expect(err).NotTo(HaveOccurred())
 
-		// then
-		Expect(ww.Items).Should(HaveLen(0))
+			// then
+			Expect(ww.Items).Should(HaveLen(0))
+		})
+
+		It("should not return the workspace in read", func() {
+			// when
+			var ww workspacesv1alpha1.Workspace
+			err := c.ReadUserWorkspace(ctx, "owner", "owner", "no-label", &ww)
+
+			// then
+			Expect(err).To(HaveOccurred())
+			Expect(kerrors.IsNotFound(err)).To(BeTrue())
+		})
 	})
 
 	When("one valid workspace exists", func() {
@@ -165,7 +178,7 @@ var _ = Describe("Cache", func() {
 		})
 	})
 
-	When("more than one workspace exists", func() {
+	When("more than one valid workspace exist", func() {
 		ww := make([]*workspacesv1alpha1.Workspace, 10)
 		sbs := make([]*toolchainv1alpha1.SpaceBinding, len(ww))
 		for i := 0; i < len(ww); i++ {
@@ -286,6 +299,7 @@ var _ = Describe("Cache", func() {
 				},
 			)
 		})
+
 		It("is not returned in list", func() {
 			// when
 			var ww workspacesv1alpha1.WorkspaceList
@@ -295,6 +309,7 @@ var _ = Describe("Cache", func() {
 			// then
 			Expect(ww.Items).Should(HaveLen(0))
 		})
+
 		It("is not returned in read", func() {
 			// when
 			var w workspacesv1alpha1.Workspace
@@ -306,7 +321,7 @@ var _ = Describe("Cache", func() {
 	})
 })
 
-func buildCache(ksns, wsns string, objs ...client.Object) *cache.Cache {
+func buildCache(ksns, wsns string, objs ...client.Object) *kube.ReadClient {
 	var err error
 	scheme := runtime.NewScheme()
 	err = workspacesv1alpha1.AddToScheme(scheme)
@@ -315,5 +330,5 @@ func buildCache(ksns, wsns string, objs ...client.Object) *cache.Cache {
 	Expect(err).NotTo(HaveOccurred())
 
 	fc := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
-	return cache.NewWithReader(fc, wsns, ksns)
+	return kube.NewReadClientWithReader(fc, wsns, ksns)
 }
