@@ -50,7 +50,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(0))
+			Expect(ww.Items).Should(BeEmpty())
 		})
 
 		It("should not return the workspace in read", func() {
@@ -93,7 +93,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(0))
+			Expect(ww.Items).Should(BeEmpty())
 		})
 
 		It("should not return the workspace in read", func() {
@@ -165,7 +165,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(0))
+			Expect(ww.Items).Should(BeEmpty())
 		})
 
 		It("should NOT be returned in read of not-owner-user workspace", func() {
@@ -259,7 +259,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(0))
+			Expect(ww.Items).Should(BeEmpty())
 		})
 
 		It("should NOT be returned in read of not-owner-user workspace", func() {
@@ -309,7 +309,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(0))
+			Expect(ww.Items).Should(BeEmpty())
 		})
 
 		It("is not returned in read", func() {
