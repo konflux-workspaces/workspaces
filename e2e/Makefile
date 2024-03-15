@@ -39,13 +39,16 @@ deploy-operator:
 					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
-		IMG=$(OPERATOR_IMG) make install deploy && \
-		IMG=$(SERVER_IMG) make -C ../server deploy \
+		IMG=$(OPERATOR_IMG) $(MAKE) install deploy \
 	)
 
 .PHONY: prepare
-prepare: build-images push-images deploy-operator
+prepare: build-images push-images deploy-operator deploy-server
 	@:
+
+.PHONY: deploy-server
+deploy-server:
+	IMG=$(SERVER_IMG) $(MAKE) -C ../server deploy
 
 .PHONY: test
 test: vet clean

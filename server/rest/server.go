@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
 	"github.com/konflux-workspaces/workspaces/server/rest/middleware"
-	"github.com/konflux-workspaces/workspaces/server/rest/middleware/auth"
 	"github.com/konflux-workspaces/workspaces/server/rest/workspace"
 )
 
@@ -64,7 +64,7 @@ func addWorkspaces(
 ) {
 	// Read
 	mux.Handle(fmt.Sprintf("GET %s/{name}", NamespacedWorkspacesPrefix),
-		auth.NewJwtBearerMiddleware(
+		withAuthHeaderInfo(
 			workspace.NewReadWorkspaceHandler(
 				workspace.MapReadWorkspaceHttp,
 				readHandle,
@@ -72,7 +72,7 @@ func addWorkspaces(
 			)))
 
 	// List
-	lh := auth.NewJwtBearerMiddleware(
+	lh := withAuthHeaderInfo(
 		workspace.NewListWorkspaceHandler(
 			workspace.MapListWorkspaceHttp,
 			listHandle,
@@ -85,7 +85,7 @@ func addWorkspaces(
 
 	// Update
 	mux.Handle(fmt.Sprintf("PUT %s/{name}", NamespacedWorkspacesPrefix),
-		auth.NewJwtBearerMiddleware(
+		withAuthHeaderInfo(
 			workspace.NewUpdateWorkspaceHandler(
 				workspace.MapUpdateWorkspaceHttp,
 				updateHandle,
@@ -95,13 +95,19 @@ func addWorkspaces(
 
 	// Create
 	mux.Handle(fmt.Sprintf("POST %s", NamespacedWorkspacesPrefix),
-		auth.NewJwtBearerMiddleware(
+		withAuthHeaderInfo(
 			workspace.NewPostWorkspaceHandler(
 				workspace.MapPostWorkspaceHttp,
 				postHandle,
 				marshal.DefaultMarshalerProvider,
 				marshal.DefaultUnmarshalerProvider,
 			)))
+}
+
+func withAuthHeaderInfo(next http.Handler) http.Handler {
+	return middleware.NewHeaderInfoMiddleware(next, map[string]interface{}{
+		"X-Subject": ccontext.UserKey,
+	})
 }
 
 func addHealthz(mux *http.ServeMux) {

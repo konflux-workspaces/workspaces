@@ -23,6 +23,16 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
+      - image: traefik:v2.11.0
+        name: proxy
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: "traefik-static-config"
+          mountPath: "/etc/traefik"
+        - name: "traefik-dynamic-config"
+          mountPath: "/etc/traefik/dynamic"
+        - name: "traefik-plugin-storage"
+          mountPath: "/plugins-storage" 
       - image: workspaces/rest-api:latest
         name: rest-api
         imagePullPolicy: IfNotPresent
@@ -44,7 +54,7 @@ spec:
         # livenessProbe:
         #   httpGet:
         #     path: /healthz
-        #     port: 8081
+        #     port: 8080
         #   initialDelaySeconds: 15
         #   periodSeconds: 20
         # readinessProbe:
@@ -63,6 +73,16 @@ spec:
         ports:
           - containerPort: 8080
             name: http
+      volumes:
+      - name: "traefik-plugin-storage"
+        emptyDir:
+          sizeLimit: 20Mi
+      - name: "traefik-static-config"
+        configMap:
+          name: "traefik-sidecar-static-config"
+      - name: "traefik-dynamic-config"
+        configMap:
+          name: "traefik-sidecar-dynamic-config"
       serviceAccountName: rest-api-server
       terminationGracePeriodSeconds: 60
 ---
@@ -72,3 +92,15 @@ metadata:
   name: rest-api-server-config
 data:
   kubesaw.namespace=system
+---
+apiVersion: v1
+data: {}
+kind: ConfigMap
+metadata:
+  name: traefik-sidecar-static-config
+---
+apiVersion: v1
+data: {}
+kind: ConfigMap
+metadata:
+  name: traefik-sidecar-dynamic-config
