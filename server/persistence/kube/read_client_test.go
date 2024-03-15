@@ -208,8 +208,7 @@ var _ = Describe("ReadClient", func() {
 			}
 		}
 
-		ees := len(ww) + len(sbs)
-		ee := make([]client.Object, ees, ees)
+		ee := make([]client.Object, len(ww)+len(sbs))
 		for i, w := range ww {
 			ee[i] = w
 		}
