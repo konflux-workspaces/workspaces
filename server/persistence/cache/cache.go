@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -119,7 +118,6 @@ func (c *Cache) ListUserWorkspaces(
 		return nil
 	}
 
-	errs := []error{}
 	for _, sb := range sbb.Items {
 		if sb.Spec.MasterUserRecord != user {
 			continue
@@ -128,19 +126,17 @@ func (c *Cache) ListUserWorkspaces(
 		k := c.workspaceNamespacedName(sb.Spec.Space)
 		w := workspacesv1alpha1.Workspace{}
 		if err := c.c.Get(ctx, k, &w, &client.GetOptions{}); err != nil {
-			errs = append(errs, err)
 			continue
 		}
 
 		ow, err := getOwner(&w)
 		if err != nil {
-			errs = append(errs, err)
 			continue
 		}
 		w.Namespace = *ow
 		objs.Items = append(objs.Items, w)
 	}
-	return errors.Join(errs...)
+	return nil
 }
 
 var errWorkspaceWithoutOwner = fmt.Errorf("error workspace has no owner")
