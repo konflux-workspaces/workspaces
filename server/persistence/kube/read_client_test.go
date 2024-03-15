@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -15,6 +12,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+
+	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 )
 
 var _ = Describe("ReadClient", func() {
