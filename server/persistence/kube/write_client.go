@@ -8,29 +8,30 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
 var (
-	_ workspace.WorkspaceUpdater = &Client{}
+	_ workspace.WorkspaceUpdater = &WriteClient{}
 )
 
 type BuildClientFunc func(string) (client.Client, error)
 
-type Client struct {
+type WriteClient struct {
 	buildClient         BuildClientFunc
 	workspacesNamespace string
 }
 
-func New(buildClient BuildClientFunc, workspacesNamespace string) *Client {
-	return &Client{
+func NewWriteClient(buildClient BuildClientFunc, workspacesNamespace string) *WriteClient {
+	return &WriteClient{
 		buildClient:         buildClient,
 		workspacesNamespace: workspacesNamespace,
 	}
 }
 
-func (c *Client) CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.CreateOption) error {
+func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.CreateOption) error {
 	cli, err := c.buildClient(user)
 	if err != nil {
 		return err
@@ -46,7 +47,7 @@ func (c *Client) CreateUserWorkspace(ctx context.Context, user string, workspace
 	return cli.Create(ctx, workspace, opts...)
 }
 
-func (c *Client) UpdateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.UpdateOption) error {
+func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.UpdateOption) error {
 	cli, err := c.buildClient(user)
 	if err != nil {
 		return err
