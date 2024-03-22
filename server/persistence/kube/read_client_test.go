@@ -458,7 +458,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(w.Namespace).Should(Equal("owner-user"))
 		})
 
-		When("label selection is retrieve only private workspaces", func() {
+		When("label selection is set to retrieve only private workspaces", func() {
 			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityPrivate)})
 			Expect(err).NotTo(HaveOccurred())
 			ls := labels.NewSelector().Add(*r)
@@ -476,7 +476,7 @@ var _ = Describe("ReadClient", func() {
 			})
 		})
 
-		When("label selection is retrieve only community workspaces", func() {
+		When("label selection is set to retrieve only community workspaces", func() {
 			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
 			Expect(err).NotTo(HaveOccurred())
 			ls := labels.NewSelector().Add(*r)
