@@ -33,17 +33,22 @@ updates:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directory: "/hack/golang-ci"
+  directory: "/hack/tools/golang-ci"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directory: "/hack/kustomize"
+  directory: "/hack/tools/kustomize"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directory: "/hack/mockgen"
+  directory: "/hack/tools/mockgen"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+- package-ecosystem: gomod
+  directory: "/hack/tools/yq"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
