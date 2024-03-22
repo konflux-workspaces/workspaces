@@ -275,7 +275,7 @@ var _ = Describe("ReadClient", func() {
 		})
 	})
 
-	When("workspace is created outside monitored namespaced", func() {
+	When("workspace is created outside monitored namespaces", func() {
 		BeforeEach(func() {
 			c = buildCache(ksns, wsns,
 				&workspacesv1alpha1.Workspace{
@@ -320,6 +320,68 @@ var _ = Describe("ReadClient", func() {
 			Expect(kerrors.IsNotFound(err)).To(BeTrue())
 		})
 	})
+
+	// workspace shared with user
+	When("workspace is shared with other users", func() {
+		BeforeEach(func() {
+			c = buildCache(ksns, wsns,
+				&workspacesv1alpha1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-ws",
+						Namespace: wsns,
+						Labels: map[string]string{
+							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+						},
+					},
+				},
+				&toolchainv1alpha1.SpaceBinding{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-sb",
+						Namespace: ksns,
+					},
+					Spec: toolchainv1alpha1.SpaceBindingSpec{
+						MasterUserRecord: "owner-user",
+						SpaceRole:        "admin",
+						Space:            "owner-ws",
+					},
+				},
+				&toolchainv1alpha1.SpaceBinding{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "other-sb",
+						Namespace: ksns,
+					},
+					Spec: toolchainv1alpha1.SpaceBindingSpec{
+						MasterUserRecord: "other-user",
+						SpaceRole:        "viewer",
+						Space:            "owner-ws",
+					},
+				},
+			)
+		})
+
+		It("is returned in other-user's list", func() {
+			// when
+			var ww workspacesv1alpha1.WorkspaceList
+			err := c.ListUserWorkspaces(ctx, "other-user", &ww)
+			Expect(err).NotTo(HaveOccurred())
+
+			// then
+			Expect(ww.Items).Should(HaveLen(1))
+			Expect(ww.Items[0].Name).Should(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).Should(Equal("owner-user"))
+		})
+
+		It("is returned in read", func() {
+			// when
+			var w workspacesv1alpha1.Workspace
+			err := c.ReadUserWorkspace(ctx, "other-user", "owner-user", "owner-ws", &w)
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(w.Name).Should(Equal("owner-ws"))
+			Expect(w.Namespace).Should(Equal("owner-user"))
+		})
+	})
+
 })
 
 func buildCache(ksns, wsns string, objs ...client.Object) *kube.ReadClient {
