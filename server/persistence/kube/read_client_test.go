@@ -9,7 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -454,6 +456,44 @@ var _ = Describe("ReadClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(w.Name).Should(Equal("owner-ws"))
 			Expect(w.Namespace).Should(Equal("owner-user"))
+		})
+
+		When("label selection is retrieve only private workspaces", func() {
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityPrivate)})
+			Expect(err).NotTo(HaveOccurred())
+			ls := labels.NewSelector().Add(*r)
+
+			It("is not returned in list", func() {
+				// when
+
+				var ww workspacesv1alpha1.WorkspaceList
+				opts := client.ListOptions{LabelSelector: ls}
+				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
+				Expect(err).NotTo(HaveOccurred())
+
+				// then
+				Expect(ww.Items).Should(BeEmpty())
+			})
+		})
+
+		When("label selection is retrieve only community workspaces", func() {
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
+			Expect(err).NotTo(HaveOccurred())
+			ls := labels.NewSelector().Add(*r)
+
+			It("is returned in list", func() {
+				// when
+
+				var ww workspacesv1alpha1.WorkspaceList
+				opts := client.ListOptions{LabelSelector: ls}
+				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
+				Expect(err).NotTo(HaveOccurred())
+
+				// then
+				Expect(ww.Items).Should(HaveLen(1))
+				Expect(ww.Items[0].Name).Should(Equal("owner-ws"))
+				Expect(ww.Items[0].Namespace).Should(Equal("owner-user"))
+			})
 		})
 	})
 })
