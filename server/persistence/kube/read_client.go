@@ -60,6 +60,47 @@ func (c *ReadClient) ListUserWorkspaces(
 	objs *workspacesv1alpha1.WorkspaceList,
 	opts ...client.ListOption,
 ) error {
+	// retrieve workspaces visible to user
+	ww := workspacesv1alpha1.WorkspaceList{}
+	if err := c.fetchAllWorkspacesVisibileToUser(ctx, user, &ww); err != nil {
+		return err
+	}
+
+	rww := workspacesv1alpha1.WorkspaceList{}
+
+	// apply label selectors and transform workspaces
+	listOpts := client.ListOptions{}
+	listOpts.ApplyOptions(opts)
+	for _, w := range ww.Items {
+		// selection
+		if !matchesListOpts(&listOpts, w.GetLabels()) {
+			continue
+		}
+
+		// transform
+		// override workspaces namespace with owner
+		ow, err := workspacesutil.GetOwner(&w)
+		if err != nil {
+			continue
+		}
+		w.Namespace = *ow
+
+		rww.Items = append(rww.Items, w)
+	}
+
+	rww.DeepCopyInto(objs)
+	return nil
+}
+
+func matchesListOpts(
+	listOpts *client.ListOptions,
+	objLabels map[string]string,
+) bool {
+	return objLabels == nil || listOpts == nil || listOpts.LabelSelector == nil ||
+		listOpts.LabelSelector.Matches(labels.Set(objLabels))
+}
+
+func (c ReadClient) fetchAllWorkspacesVisibileToUser(ctx context.Context, user string, workspaces *workspacesv1alpha1.WorkspaceList) error {
 	// list community workspaces
 	ww := workspacesv1alpha1.WorkspaceList{}
 	if err := c.listCommunityWorkspaces(ctx, &ww); err != nil {
@@ -71,18 +112,7 @@ func (c *ReadClient) ListUserWorkspaces(
 		return err
 	}
 
-	// override workspaces namespace with owner
-	for _, w := range ww.Items {
-		ow, err := workspacesutil.GetOwner(&w)
-		if err != nil {
-			continue
-		}
-		w.Namespace = *ow
-		objs.Items = append(objs.Items, w)
-	}
-
-	// TODO: apply label selection
-
+	ww.DeepCopyInto(workspaces)
 	return nil
 }
 
