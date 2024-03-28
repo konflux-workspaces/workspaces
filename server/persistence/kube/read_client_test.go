@@ -9,7 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -125,6 +127,10 @@ var _ = Describe("ReadClient", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-sb",
 						Namespace: ksns,
+						Labels: map[string]string{
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            "owner-ws",
+						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
 						MasterUserRecord: "owner-user",
@@ -199,6 +205,10 @@ var _ = Describe("ReadClient", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      fmt.Sprintf("owner-sb-%d", i),
 					Namespace: ksns,
+					Labels: map[string]string{
+						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+						toolchainv1alpha1.SpaceBindingSpaceLabelKey:            wsName,
+					},
 				},
 				Spec: toolchainv1alpha1.SpaceBindingSpec{
 					MasterUserRecord: "owner-user",
@@ -275,7 +285,7 @@ var _ = Describe("ReadClient", func() {
 		})
 	})
 
-	When("workspace is created outside monitored namespaced", func() {
+	When("workspace is created outside monitored namespaces", func() {
 		BeforeEach(func() {
 			c = buildCache(ksns, wsns,
 				&workspacesv1alpha1.Workspace{
@@ -291,6 +301,10 @@ var _ = Describe("ReadClient", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-sb",
 						Namespace: ksns,
+						Labels: map[string]string{
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            "owner-ws",
+						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
 						MasterUserRecord: "owner-user",
@@ -318,6 +332,168 @@ var _ = Describe("ReadClient", func() {
 			// then
 			Expect(err).To(HaveOccurred())
 			Expect(kerrors.IsNotFound(err)).To(BeTrue())
+		})
+	})
+
+	// workspace shared with user
+	When("workspace is shared with other users", func() {
+		BeforeEach(func() {
+			c = buildCache(ksns, wsns,
+				&workspacesv1alpha1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-ws",
+						Namespace: wsns,
+						Labels: map[string]string{
+							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+						},
+					},
+				},
+				&toolchainv1alpha1.SpaceBinding{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-sb",
+						Namespace: ksns,
+					},
+					Spec: toolchainv1alpha1.SpaceBindingSpec{
+						MasterUserRecord: "owner-user",
+						SpaceRole:        "admin",
+						Space:            "owner-ws",
+					},
+				},
+				&toolchainv1alpha1.SpaceBinding{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "other-sb",
+						Namespace: ksns,
+						Labels: map[string]string{
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "other-user",
+							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            "owner-ws",
+						},
+					},
+					Spec: toolchainv1alpha1.SpaceBindingSpec{
+						MasterUserRecord: "other-user",
+						SpaceRole:        "viewer",
+						Space:            "owner-ws",
+					},
+				},
+			)
+		})
+
+		It("is returned in other-user's list", func() {
+			// when
+			var ww workspacesv1alpha1.WorkspaceList
+			err := c.ListUserWorkspaces(ctx, "other-user", &ww)
+			Expect(err).NotTo(HaveOccurred())
+
+			// then
+			Expect(ww.Items).Should(HaveLen(1))
+			Expect(ww.Items[0].Name).Should(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).Should(Equal("owner-user"))
+		})
+
+		It("is returned in read", func() {
+			// when
+			var w workspacesv1alpha1.Workspace
+			err := c.ReadUserWorkspace(ctx, "other-user", "owner-user", "owner-ws", &w)
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(w.Name).Should(Equal("owner-ws"))
+			Expect(w.Namespace).Should(Equal("owner-user"))
+		})
+	})
+
+	// community workspace
+	When("workspace is flagged as community", func() {
+		BeforeEach(func() {
+			c = buildCache(ksns, wsns,
+				&workspacesv1alpha1.Workspace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-ws",
+						Namespace: wsns,
+						Labels: map[string]string{
+							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+							kube.LabelWorkspaceVisibility:          string(workspacesv1alpha1.WorkspaceVisibilityCommunity),
+						},
+					},
+					Spec: workspacesv1alpha1.WorkspaceSpec{
+						Visibility: workspacesv1alpha1.WorkspaceVisibilityCommunity,
+					},
+				},
+				&toolchainv1alpha1.SpaceBinding{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "owner-sb",
+						Namespace: ksns,
+						Labels: map[string]string{
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            "owner-ws",
+						},
+					},
+					Spec: toolchainv1alpha1.SpaceBindingSpec{
+						MasterUserRecord: "owner-user",
+						SpaceRole:        "admin",
+						Space:            "owner-ws",
+					},
+				},
+			)
+		})
+
+		It("is returned in other-user's list", func() {
+			// when
+			var ww workspacesv1alpha1.WorkspaceList
+			err := c.ListUserWorkspaces(ctx, "other-user", &ww)
+			Expect(err).NotTo(HaveOccurred())
+
+			// then
+			Expect(ww.Items).Should(HaveLen(1))
+			Expect(ww.Items[0].Name).Should(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).Should(Equal("owner-user"))
+		})
+
+		It("is returned in other-user's read", func() {
+			// when
+			var w workspacesv1alpha1.Workspace
+			err := c.ReadUserWorkspace(ctx, "other-user", "owner-user", "owner-ws", &w)
+
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(w.Name).Should(Equal("owner-ws"))
+			Expect(w.Namespace).Should(Equal("owner-user"))
+		})
+
+		When("label selection is set to retrieve only private workspaces", func() {
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityPrivate)})
+			Expect(err).NotTo(HaveOccurred())
+			ls := labels.NewSelector().Add(*r)
+
+			It("is not returned in list", func() {
+				// when
+
+				var ww workspacesv1alpha1.WorkspaceList
+				opts := client.ListOptions{LabelSelector: ls}
+				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
+				Expect(err).NotTo(HaveOccurred())
+
+				// then
+				Expect(ww.Items).Should(BeEmpty())
+			})
+		})
+
+		When("label selection is set to retrieve only community workspaces", func() {
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
+			Expect(err).NotTo(HaveOccurred())
+			ls := labels.NewSelector().Add(*r)
+
+			It("is returned in list", func() {
+				// when
+
+				var ww workspacesv1alpha1.WorkspaceList
+				opts := client.ListOptions{LabelSelector: ls}
+				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
+				Expect(err).NotTo(HaveOccurred())
+
+				// then
+				Expect(ww.Items).Should(HaveLen(1))
+				Expect(ww.Items[0].Name).Should(Equal("owner-ws"))
+				Expect(ww.Items[0].Namespace).Should(Equal("owner-user"))
+			})
 		})
 	})
 })

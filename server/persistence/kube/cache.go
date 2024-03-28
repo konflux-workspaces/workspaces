@@ -15,6 +15,10 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
+const (
+	LabelWorkspaceVisibility string = "workspaces.io/visibility"
+)
+
 // NewCache creates a controller-runtime cache.Cache instance configured to monitor
 // spacebindings.toolchain.dev.openshift.com and workspaces.workspaces.io.
 // IMPORTANT: returned cache needs to be started and initialized.
@@ -51,7 +55,17 @@ func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesa
 			&toolchainv1alpha1.SpaceBinding{}: {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
 			&workspacesv1alpha1.Workspace{}:   {Namespaces: map[string]cache.Config{workspacesNamespace: {}}},
 		},
-		// look into DefaultTransform to add some labels and/or remove unwanted/internals properties
+		DefaultTransform: func(obj interface{}) (interface{}, error) {
+			if ws, ok := obj.(*workspacesv1alpha1.Workspace); ok {
+				if ws.Labels == nil {
+					ws.Labels = map[string]string{}
+				}
+				ws.Labels[LabelWorkspaceVisibility] = string(ws.Spec.Visibility)
+				return ws, nil
+			}
+
+			return obj, nil
+		},
 	})
 	if err != nil {
 		return nil, err
