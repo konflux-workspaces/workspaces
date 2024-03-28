@@ -9,11 +9,16 @@ KUBECLI=${KUBECLI:-kubectl}
 KUSTOMIZE=${KUSTOMIZE:-kustomize}
 YQ=${YQ:-yq}
 
-# retrieving toolchain-host namespace
+# retrieve toolchain-host namespace
+#
+# if the namespace doesn't exist, then head will return a failure (since it has
+# an empty input).  Since we manually check the error case, disable pipefail
+set +o pipefail
 toolchain_host=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
 if [[ -z "${toolchain_host}" ]]; then
     toolchain_host="toolchain-host_operator"
 fi
+set -o pipefail
 
 # prepare temporary folder
 f=$(mktemp --directory /tmp/workspaces-rest.XXXXX)

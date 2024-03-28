@@ -5,8 +5,8 @@ go 1.22
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
-	github.com/onsi/ginkgo/v2 v2.16.0
-	github.com/onsi/gomega v1.31.1
+	github.com/onsi/ginkgo/v2 v2.17.1
+	github.com/onsi/gomega v1.32.0
 	go.uber.org/mock v0.4.0
 	k8s.io/api v0.29.3
 	k8s.io/apimachinery v0.29.3

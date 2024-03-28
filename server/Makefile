@@ -12,7 +12,8 @@ NAMESPACE ?= workspaces-system
 KUBECLI ?= kubectl
 KUSTOMIZE ?= $(BIN_FOLDER)/kustomize
 MOCKGEN ?= $(BIN_FOLDER)/mockgen
-GOLANG_CI ?= go run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+YQ ?= $(BIN_FOLDER)/yq
+GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE)
@@ -27,6 +28,14 @@ $(KUSTOMIZE):
 mockgen: $(MOCKGEN)
 $(MOCKGEN): $(BIN_FOLDER)
 	@cp hack/tools/mockgen $(BIN_FOLDER)/
+
+.PHONY: yq
+yq: $(YQ)
+$(YQ): $(BIN_FOLDER)
+	$(GO) build \
+		-modfile $(shell dirname $(ROOT_DIR))/hack/tools/yq/go.mod \
+		-o $(BIN_FOLDER)/yq \
+		github.com/mikefarah/yq/v4
 
 .PHONY: all
 all: clean
@@ -78,5 +87,5 @@ docker-build:
 	docker build -t ${IMG} -f Dockerfile ..
 
 .PHONY: deploy
-deploy: kustomize
-	KUSTOMIZE=$(KUSTOMIZE) ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
+deploy: kustomize yq
+	YQ="$(YQ)" KUSTOMIZE="$(KUSTOMIZE)" ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
