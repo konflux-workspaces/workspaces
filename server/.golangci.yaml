@@ -21,7 +21,6 @@ linters:
   - gofmt
   - gosec
   fast: true
-  verbose: true
 
 # https://golangci-lint.run/usage/linters
 linters-settings:
@@ -33,6 +32,7 @@ linters-settings:
       - ifElseChain
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number   
   print-issued-lines: true
   print-linter-name: true
