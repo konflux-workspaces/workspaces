@@ -19,7 +19,7 @@ GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-c
 kustomize: $(KUSTOMIZE)
 $(KUSTOMIZE):
 	test -s $(BIN_FOLDER)/kustomize || \
-		go build \
+		$(GO) build \
 			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod \
 			-o $(BIN_FOLDER)/kustomize \
 			sigs.k8s.io/kustomize/kustomize/v4
@@ -32,10 +32,11 @@ $(MOCKGEN): $(BIN_FOLDER)
 .PHONY: yq
 yq: $(YQ)
 $(YQ): $(BIN_FOLDER)
-	$(GO) build \
-		-modfile $(shell dirname $(ROOT_DIR))/hack/tools/yq/go.mod \
-		-o $(BIN_FOLDER)/yq \
-		github.com/mikefarah/yq/v4
+	test -s $(BIN_FOLDER)/yq || \
+		$(GO) build \
+			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/yq/go.mod \
+			-o $(BIN_FOLDER)/yq \
+			github.com/mikefarah/yq/v4
 
 .PHONY: all
 all: clean
