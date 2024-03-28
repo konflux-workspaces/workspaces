@@ -32,11 +32,10 @@ $(MOCKGEN): $(BIN_FOLDER)
 .PHONY: yq
 yq: $(YQ)
 $(YQ): $(BIN_FOLDER)
-	test -s $(BIN_FOLDER)/yq || \
-		$(GO) build \
-			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/yq/go.mod \
-			-o $(BIN_FOLDER)/yq \
-			github.com/mikefarah/yq/v4
+	$(GO) build \
+		-modfile $(shell dirname $(ROOT_DIR))/hack/tools/yq/go.mod \
+		-o $(BIN_FOLDER)/yq \
+		github.com/mikefarah/yq/v4
 
 .PHONY: all
 all: clean
