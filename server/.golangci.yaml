@@ -30,6 +30,9 @@ linters-settings:
   gocritic:
     disabled-checks:
       - ifElseChain
+  gosec:
+    excludes:
+      - G601 # excluded as go 1.22 is used
 
 output:
   formats:
