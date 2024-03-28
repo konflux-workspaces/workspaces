@@ -21,7 +21,6 @@ linters:
   - gofmt
   - gosec
   fast: true
-  verbose: true
 
 # https://golangci-lint.run/usage/linters
 linters-settings:
@@ -31,8 +30,12 @@ linters-settings:
   gocritic:
     disabled-checks:
       - ifElseChain
+  gosec:
+    excludes:
+      - G601 # excluded as go 1.22 is used
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number   
   print-issued-lines: true
   print-linter-name: true
