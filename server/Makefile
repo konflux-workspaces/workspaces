@@ -19,7 +19,7 @@ GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-c
 kustomize: $(KUSTOMIZE)
 $(KUSTOMIZE):
 	test -s $(BIN_FOLDER)/kustomize || \
-		go build \
+		$(GO) build \
 			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod \
 			-o $(BIN_FOLDER)/kustomize \
 			sigs.k8s.io/kustomize/kustomize/v4
