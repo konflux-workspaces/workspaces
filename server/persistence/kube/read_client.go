@@ -188,7 +188,7 @@ func (c *ReadClient) ReadUserWorkspace(
 		return nil
 	}
 
-	// chek if user has direct visibility on the space
+	// check if user has direct visibility on the space
 	ok, err := c.existsSpaceBindingForUserAndSpace(ctx, user, space)
 	if err != nil {
 		return err
