@@ -5,6 +5,8 @@ import (
 	"slices"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -58,34 +60,110 @@ func (c *ReadClient) ListUserWorkspaces(
 	objs *workspacesv1alpha1.WorkspaceList,
 	opts ...client.ListOption,
 ) error {
-	sbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := c.backend.List(ctx, &sbb, &client.ListOptions{}); err != nil {
+	// retrieve workspaces visible to user
+	ww := workspacesv1alpha1.WorkspaceList{}
+	if err := c.fetchAllWorkspacesVisibileToUser(ctx, user, &ww); err != nil {
 		return err
 	}
 
-	if len(sbb.Items) == 0 {
-		return nil
-	}
+	rww := workspacesv1alpha1.WorkspaceList{}
 
-	for _, sb := range sbb.Items {
-		if sb.Spec.MasterUserRecord != user {
+	// apply label selectors and transform workspaces
+	listOpts := client.ListOptions{}
+	listOpts.ApplyOptions(opts)
+	for _, w := range ww.Items {
+		// selection
+		if !matchesListOpts(&listOpts, w.GetLabels()) {
 			continue
 		}
 
+		// transform
+		// override workspaces namespace with owner
+		ow, err := workspacesutil.GetOwner(&w)
+		if err != nil {
+			continue
+		}
+		w.Namespace = *ow
+
+		rww.Items = append(rww.Items, w)
+	}
+
+	rww.DeepCopyInto(objs)
+	return nil
+}
+
+func matchesListOpts(
+	listOpts *client.ListOptions,
+	objLabels map[string]string,
+) bool {
+	return objLabels == nil || listOpts == nil || listOpts.LabelSelector == nil ||
+		listOpts.LabelSelector.Matches(labels.Set(objLabels))
+}
+
+func (c ReadClient) fetchAllWorkspacesVisibileToUser(ctx context.Context, user string, workspaces *workspacesv1alpha1.WorkspaceList) error {
+	// list community workspaces
+	ww := workspacesv1alpha1.WorkspaceList{}
+	if err := c.listCommunityWorkspaces(ctx, &ww); err != nil {
+		return err
+	}
+
+	// fetch workspaces to which the user has direct access and that are visibile to the whole community
+	if err := c.fetchMissingWorkspaces(ctx, user, &ww); err != nil {
+		return err
+	}
+
+	ww.DeepCopyInto(workspaces)
+	return nil
+}
+
+func (c *ReadClient) fetchMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.WorkspaceList) error {
+	// list user's space bindings
+	sbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
+		return err
+	}
+
+	// filter already fetched Workspaces
+	fsbb := slices.DeleteFunc(sbb.Items, func(sb toolchainv1alpha1.SpaceBinding) bool {
+		return slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.Workspace) bool {
+			return w.Name == sb.Spec.Space
+		})
+	})
+
+	for _, sb := range fsbb {
 		k := c.workspaceNamespacedName(sb.Spec.Space)
 		w := workspacesv1alpha1.Workspace{}
 		if err := c.backend.Get(ctx, k, &w, &client.GetOptions{}); err != nil {
 			continue
 		}
 
-		ow, err := workspacesutil.GetOwner(&w)
-		if err != nil {
-			continue
-		}
-		w.Namespace = *ow
-		objs.Items = append(objs.Items, w)
+		workspaces.Items = append(workspaces.Items, w)
 	}
 	return nil
+}
+
+func (c *ReadClient) listUserSpaceBindings(
+	ctx context.Context,
+	user string,
+	spaceBindings *toolchainv1alpha1.SpaceBindingList,
+) error {
+	rmur, err := labels.NewRequirement(toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey, selection.Equals, []string{user})
+	if err != nil {
+		return err
+	}
+
+	opts := &client.ListOptions{LabelSelector: labels.NewSelector().Add(*rmur)}
+	return c.backend.List(ctx, spaceBindings, opts)
+}
+
+func (c *ReadClient) listCommunityWorkspaces(ctx context.Context, workspaces *workspacesv1alpha1.WorkspaceList) error {
+	r, err := labels.NewRequirement(LabelWorkspaceVisibility, selection.Equals, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
+	if err != nil {
+		return err
+	}
+
+	opts := &client.ListOptions{LabelSelector: labels.NewSelector().Add(*r)}
+	return c.backend.List(ctx, workspaces, opts)
 }
 
 // ReadUserWorkspace Returns the Workspace details only if the user has access to it
@@ -97,26 +175,29 @@ func (c *ReadClient) ReadUserWorkspace(
 	obj *workspacesv1alpha1.Workspace,
 	opts ...client.GetOption,
 ) error {
-	sbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := c.backend.List(ctx, &sbb, &client.ListOptions{}); err != nil {
-		return err
-	}
-	if len(sbb.Items) == 0 {
-		return nil
-	}
-
-	if !slices.ContainsFunc(sbb.Items, func(sb toolchainv1alpha1.SpaceBinding) bool {
-		return sb.Spec.MasterUserRecord == user
-	}) {
-		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
-	}
-
 	w := &workspacesv1alpha1.Workspace{}
 	err := c.backend.Get(ctx, c.workspaceNamespacedName(space), w, opts...)
 	if err != nil {
 		return err
 	}
+	w.SetNamespace(owner)
 
+	// if workspace visibility is community all users are allowed visibility
+	if w.Spec.Visibility == workspacesv1alpha1.WorkspaceVisibilityCommunity {
+		w.DeepCopyInto(obj)
+		return nil
+	}
+
+	// check if user has direct visibility on the space
+	ok, err := c.existsSpaceBindingForUserAndSpace(ctx, user, space)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
+	}
+
+	// overwrite namespace with owner's complaint username
 	ll := w.GetLabels()
 	if len(ll) == 0 {
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
@@ -125,10 +206,28 @@ func (c *ReadClient) ReadUserWorkspace(
 	if ow, ok := ll[workspacesv1alpha1.LabelWorkspaceOwner]; !ok || ow != owner {
 		return kerrors.NewNotFound(workspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
 	}
-	w.SetNamespace(owner)
 
+	// return workspace
 	w.DeepCopyInto(obj)
 	return nil
+}
+
+func (c *ReadClient) existsSpaceBindingForUserAndSpace(ctx context.Context, user, space string) (bool, error) {
+	rmur, err := labels.NewRequirement(toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey, selection.Equals, []string{user})
+	if err != nil {
+		return false, err
+	}
+	rspc, err := labels.NewRequirement(toolchainv1alpha1.SpaceBindingSpaceLabelKey, selection.Equals, []string{space})
+	if err != nil {
+		return false, err
+	}
+	ls := labels.NewSelector().Add(*rmur, *rspc)
+	sbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := c.backend.List(ctx, &sbb, &client.ListOptions{LabelSelector: ls}); err != nil {
+		return false, err
+	}
+
+	return len(sbb.Items) > 0, nil
 }
 
 func (c *ReadClient) workspaceNamespacedName(space string) client.ObjectKey {
