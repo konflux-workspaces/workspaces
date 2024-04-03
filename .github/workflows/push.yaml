@@ -35,11 +35,14 @@ jobs:
 
       - name: Determine image tag
         id: tag
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" -eq "pull_request_target" ]]; then
-            echo "tag=${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-$(git describe --always)" >> ${GITHUB_OUTPUT}
+            echo "tag=${{ matrix.image_base }}:pr-${PR_NUMBER}-${PR_SHA:0:8}" >> ${GITHUB_OUTPUT}
           else
-            echo "tag=${{ matrix.image_base }}:$(git describe --always)" >> ${GITHUB_OUTPUT}
+            echo "tag=${{ matrix.image_base }}:${PR_SHA:0:8}" >> ${GITHUB_OUTPUT}
           fi
 
       - name: Build image
