@@ -35,14 +35,11 @@ jobs:
 
       - name: Determine image tag
         id: tag
-        env:
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" -eq "pull_request_target" ]]; then
-            echo "tag=${{ matrix.image_base }}:pr-${PR_NUMBER}-${PR_SHA:0:8}" >> ${GITHUB_OUTPUT}
+            echo "tag=${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}" >> ${GITHUB_OUTPUT}
           else
-            echo "tag=${{ matrix.image_base }}:${PR_SHA:0:8}" >> ${GITHUB_OUTPUT}
+            echo "tag=${{ matrix.image_base }}:${GITHUB_SHA:0:8}" >> ${GITHUB_OUTPUT}
           fi
 
       - name: Build image
@@ -55,8 +52,6 @@ jobs:
             docker tag "${IMG}" "${LATEST}"
           fi
 
-      # we use quay for release artifacts (on push events) and ghcr.io for
-        # testing (on pull_request_target events)
       - name: Login to Quay
         uses: docker/login-action@v3
         with:
@@ -66,4 +61,4 @@ jobs:
 
       - name: Push images
         run: |
-          docker push -a ${{ steps.tag.outputs.tag }}
+          docker push -a ${{ matrix.image_base }}
