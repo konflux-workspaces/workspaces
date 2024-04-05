@@ -3,7 +3,7 @@ name: Build container images
 on: # yamllint disable-line rule:truthy
   push:
     branches: [main]
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
 env:
@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
-        if: ${{ github.event_name == 'pull_request_target' }}
+        if: ${{ github.event_name == 'pull_request' }}
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
