@@ -26,7 +26,7 @@ cp -r "${ROOT_DIR}/server/manifests" "${f}/manifests"
 cd "${f}/manifests/default"
 
 # updating JWT configuration
-if [ -n "${JWKS_URL}" ]; then 
+if [[ -n "${JWKS_URL}" ]]; then
   ${YQ} eval \
     '.authSources.jwtSource.jwt.jwksUrl = "'"${JWKS_URL}"'"' \
     --inplace "${f}/manifests/server/proxy-config/traefik.yaml"
@@ -37,8 +37,8 @@ else
 
   ${KUSTOMIZE} edit add secret traefik-jwt-keys \
     --disableNameSuffixHash \
-    --from-literal=public="$public_key" \
-    --from-literal=private="$private_key"
+    --from-literal=public="${public_key}" \
+    --from-literal=private="${private_key}"
 
   # update traefik config
   ${YQ} eval \

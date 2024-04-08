@@ -1,10 +1,11 @@
 #!/bin/bash
 
-set -e 
+set -e -o pipefail
 
 export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
 
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+CURRENT_DIR="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "${CURRENT_DIR}")"
 
-( "$SCRIPT_DIR/install_toolchain.sh" )
-( "$SCRIPT_DIR/install_workspaces.sh" && make -C e2e test )
+( "${SCRIPT_DIR}/install_toolchain.sh" )
+( "${SCRIPT_DIR}/install_workspaces.sh" && make -C e2e test )

@@ -6,7 +6,7 @@ export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
 
 f=$(mktemp --directory /tmp/toolchain.XXXX)
 
-cd "$f"
+cd "${f}"
 
 git clone --depth 2 https://github.com/codeready-toolchain/member-operator.git
 git clone --depth 2 --branch public-viewer https://github.com/filariow/toolchain-e2e.git

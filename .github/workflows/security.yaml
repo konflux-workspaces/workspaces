@@ -71,19 +71,23 @@ jobs:
     steps: 
       - name: Checkout Git Repository
         uses: actions/checkout@v4
-        with:
-          # we need a full history for differential shellcheck
-          fetch-depth: 0
 
-      - name: Differential ShellCheck
-        id: ShellCheck
-        uses: redhat-plumbers-in-action/differential-shellcheck@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: cargo install shellcheck-sarif sarif-fmt
+
+      - name: Lint shell scripts
+        run: |
+          find . -executable -type f -regex ".*hack.*" -print0 | \
+            xargs -0 shellcheck -s bash -o all -f json | \
+            shellcheck-sarif > results.sarif
+          sarif-fmt -c always < results.sarif
+
+          if [[ $(jq '.runs[].results | length' results.sarif) -ne "0" ]]; then
+            exit 1
+          fi
 
       - if: ${{ always() }}
         name: Upload ShellCheck defects
         uses: actions/upload-artifact@v4
         with:
-          name: Differential ShellCheck SARIF
-          path: ${{ steps.ShellCheck.outputs.sarif }}
+          name: ShellCheck SARIF
+          path: results.sarif
