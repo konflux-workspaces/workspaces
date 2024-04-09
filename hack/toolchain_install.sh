@@ -9,7 +9,7 @@ TAG=${1:-e2etest}
 
 # create a temporary direction
 f=$(mktemp --directory /tmp/toolchain.XXXX)
-cd "$f"
+cd "${f}"
 
 # checkout
 git clone --depth 2 https://github.com/codeready-toolchain/member-operator.git
@@ -26,9 +26,9 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registratio
   kubectl create namespace toolchain-member-operator --dry-run=client --output=yaml | \
     kubectl apply -f -
 
-  cd "$f/toolchain-e2e"
+  cd "${f}/toolchain-e2e"
 
-  make dev-deploy-e2e-local PUBLISH_OPERATOR=false DATE_SUFFIX="$TAG" DEPLOY_LATEST=false
+  make dev-deploy-e2e-local PUBLISH_OPERATOR=false DATE_SUFFIX="${TAG}" DEPLOY_LATEST=false
 )
 
 # patch configuration
