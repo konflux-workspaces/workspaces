@@ -21,7 +21,9 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/toolchain-a
 git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registration-service
 
 # deploy
-( 
+(
+  set -e -o pipefail
+
   ${KUBECLI} create namespace toolchain-host-operator --dry-run=client --output=yaml | \
     ${KUBECLI} apply -f -
   ${KUBECLI} create namespace toolchain-member-operator --dry-run=client --output=yaml | \
