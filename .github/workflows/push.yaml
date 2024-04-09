@@ -45,7 +45,7 @@ jobs:
       - name: Build image
         id: tag
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" -eq "pull_request_target" ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" = "pull_request_target" ]]; then
             export IMG="${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}"
           else
             export IMG="${{ matrix.image_base }}:${GITHUB_SHA:0:8}"
