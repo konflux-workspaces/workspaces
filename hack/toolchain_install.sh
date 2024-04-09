@@ -6,6 +6,7 @@ set -e
 BRANCH=${BRANCH:-pubviewer-mvp}
 export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
 TAG=${1:-e2etest}
+KUBECLI=${KUBECLI:-kubectl}
 
 # create a temporary direction
 f=$(mktemp --directory /tmp/toolchain.XXXX)
@@ -21,10 +22,10 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registratio
 
 # deploy
 ( 
-  kubectl create namespace toolchain-host-operator --dry-run=client --output=yaml | \
-    kubectl apply -f -
-  kubectl create namespace toolchain-member-operator --dry-run=client --output=yaml | \
-    kubectl apply -f -
+  ${KUBECLI} create namespace toolchain-host-operator --dry-run=client --output=yaml | \
+    ${KUBECLI} apply -f -
+  ${KUBECLI} create namespace toolchain-member-operator --dry-run=client --output=yaml | \
+    ${KUBECLI} apply -f -
 
   cd "${f}/toolchain-e2e"
 
@@ -32,11 +33,11 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registratio
 )
 
 # patch configuration
-oc patch \
+${KUBECLI} patch \
   toolchainconfigs.toolchain.dev.openshift.com config \
   -n toolchain-host-operator \
   --patch='{"spec":{"global":{"publicViewer":{"enabled":true,"username":"public-viewer"}}}}' \
   --type=merge
 
 # restart operator
-oc delete pods --all -n toolchain-host-operator
+${KUBECLI} delete pods --all -n toolchain-host-operator
