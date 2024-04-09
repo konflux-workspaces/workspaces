@@ -1,0 +1,10 @@
+source-path=.
+
+enable=check-unassigned-uppercase
+enable=require-variable-braces
+enable=require-double-brackets
+enable=deprecate-which
+enable=check-set-e-suppressed
+enable=check-extra-masked-returns
+enable=avoid-nullary-conditions
+enable=add-default-case
