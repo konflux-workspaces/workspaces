@@ -4,7 +4,7 @@ set -e
 
 # parse input
 BRANCH=${BRANCH:-pubviewer-mvp}
-export QUAY_NAMESPACE=${QUAY_NAMESPACE:-workspaces}
+export QUAY_NAMESPACE=${QUAY_NAMESPACE:-konflux-workspaces}
 TAG=${1:-e2etest}
 KUBECLI=${KUBECLI:-kubectl}
 
