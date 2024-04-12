@@ -5,12 +5,17 @@ sequenceDiagram
   participant MC as Member Cluster
 
   U->>P: Request on workspace's resources
+
+  alt workspace doesn't exist
+  P->>U: Not Found
+  else user has direct access
   P->>MC: Forward request to Member Cluster impersonating User
-
-  alt user is not authorized
-    MC->>P: Unauthorized
-    P->>MC: Forward request to Member Cluster impersonating public-viewer
-  end
-
   MC->>P: Reply
   P->>U: Reply
+  else no access and workspace visibility is Community
+  P->>MC: Forward request to Member Cluster impersonating Public-Viewer
+  MC->>P: Reply
+  P->>U: Reply
+  else no access and workspace visibility is Private
+  P->>U: Not Found
+  end
