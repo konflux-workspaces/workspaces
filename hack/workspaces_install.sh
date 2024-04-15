@@ -2,7 +2,7 @@
 
 set -e
 
-export QUAY_NAMESPACE=${QUAY_NAMESPACE:-filario}
+export QUAY_NAMESPACE=${QUAY_NAMESPACE:-konflux-workspaces}
 
 f=$(mktemp --directory /tmp/workspaces-demo.XXXX)
 

@@ -3,7 +3,7 @@ name: Build container images
 on: # yamllint disable-line rule:truthy
   push:
     branches: [main]
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 env:
@@ -21,14 +21,14 @@ jobs:
       matrix:
         include:
           - directory: server
-            image_base: quay.io/filario/workspaces-server
+            image_base: quay.io/konflux-workspaces/workspaces-server
           - directory: operator
-            image_base: quay.io/filario/workspaces-operator
+            image_base: quay.io/konflux-workspaces/workspaces-operator
 
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request_target' }}
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -49,7 +49,7 @@ jobs:
       - name: Build image
         id: tag
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" = "pull_request" ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" = "pull_request_target" ]]; then
             export IMG="${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}"
           else
             export IMG="${{ matrix.image_base }}:${GITHUB_SHA:0:8}"
