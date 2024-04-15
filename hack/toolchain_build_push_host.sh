@@ -21,4 +21,8 @@ git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 # build and publish images
 make -C registration-service docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
 make -C host-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
-make -C host-operator bundle push-bundle-and-index-image "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+make -C host-operator bundle "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+
+make -C host-operator run-cicd-script \
+  SCRIPT_PATH=scripts/cd/push-bundle-and-index-image.sh \
+  SCRIPT_PARAMS="-pr ../host-operator/ -qn ${QUAY_NAMESPACE} -ch alpha -td /tmp -ib docker -iin host-operator-index -iit ${TAG} -ip linux/amd64 -bt ${TAG}"
