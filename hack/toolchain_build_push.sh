@@ -24,7 +24,8 @@ git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/toolchain-e
 
 # build and publish images
 make -C member-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" IMAGE_TAG="${TAG}"
+make -C member-operator bundle push-bundle-and-index-image "BUNDLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
 
-make -C host-operator run-cicd-script \
-  SCRIPT_PATH=scripts/ci/manage-host-operator.sh \
-  SCRIPT_PARAMS="-po true -io false -hn toolchain-host-operator -qn ${QUAY_NAMESPACE} -ds ${TAG} -dl false -hr ./ -rr ../registration-service"
+make -C registration-service docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
+make -C host-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
+make -C host-operator bundle push-bundle-and-index-image "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
