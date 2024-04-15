@@ -29,3 +29,4 @@ make -C member-operator bundle push-bundle-and-index-image "BUNDLE_TAG=${TAG}" C
 make -C registration-service docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
 make -C host-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
 make -C host-operator bundle push-bundle-and-index-image "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+
