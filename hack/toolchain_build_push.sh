@@ -15,6 +15,7 @@ cd "${f}"
 
 # checkout
 git clone --depth 2 https://github.com/codeready-toolchain/member-operator.git
+git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/host-operator.git
 git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/toolchain-common.git
 git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/toolchain-api.git api
