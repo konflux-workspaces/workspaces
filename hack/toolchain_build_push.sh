@@ -7,7 +7,7 @@ BRANCH=${BRANCH:-pubviewer-mvp}
 BUILDER=${BUILDER:-docker}
 TAG=${1:-e2etest}
 
-export QUAY_NAMESPACE=${QUAY_NAMESPACE:-filariow}
+export QUAY_NAMESPACE=${QUAY_NAMESPACE:-filario}
 
 # create a temporary direction
 f=$(mktemp --directory /tmp/toolchain.XXXX)
