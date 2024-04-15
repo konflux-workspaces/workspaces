@@ -21,9 +21,9 @@ jobs:
       matrix:
         include:
           - directory: server
-            image_base: quay.io/konflux-workspaces/workspaces-server
+            image_base: quay.io/filario/workspaces-server
           - directory: operator
-            image_base: quay.io/konflux-workspaces/workspaces-operator
+            image_base: quay.io/filario/workspaces-operator
 
     steps:
       - name: Checkout Git Repository
