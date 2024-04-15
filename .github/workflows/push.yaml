@@ -77,7 +77,7 @@ jobs:
   build-kubesaw:
     name: Build kubesaw components
     runs-on: ubuntu-22.04
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request_target' }}
     strategy:
       matrix:
         include:
