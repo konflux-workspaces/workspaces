@@ -23,9 +23,7 @@ git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/registratio
 git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/toolchain-e2e
 
 # build and publish images
-make -C member-operator run-cicd-script \
-  SCRIPT_PATH=scripts/ci/manage-member-operator.sh \
-  SCRIPT_PARAMS="-po true -io false -mn toolchain-member-operator -qn ${QUAY_NAMESPACE} -ds ${TAG} -dl false -mr ./"
+make -C member-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" IMAGE_TAG="${TAG}"
 
 make -C host-operator run-cicd-script \
   SCRIPT_PATH=scripts/ci/manage-host-operator.sh \
