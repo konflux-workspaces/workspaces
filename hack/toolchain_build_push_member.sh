@@ -19,4 +19,4 @@ git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 
 # build and publish images
 make -C member-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" IMAGE_TAG="${TAG}"
-make -C member-operator bundle push-bundle-and-index-image "BUNDLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+make -C member-operator bundle push-bundle-and-index-image "BUNDLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2 "INDEX_IMAGE_TAG=${TAG}"
