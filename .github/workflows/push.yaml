@@ -78,6 +78,12 @@ jobs:
     name: Build kubesaw components
     runs-on: ubuntu-22.04
     if: ${{ github.event_name == 'pull_request_target' }}
+    strategy:
+      matrix:
+        include:
+          - scope: host
+          - scope: member
+
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
@@ -88,8 +94,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: 1.20.8
           cache: false
+
+      - name: Prepare tools
+        uses: codeready-toolchain/toolchain-cicd/prepare-tools-action@master
 
       - name: Login to Quay
         uses: docker/login-action@v3
@@ -98,7 +107,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      - name: Build and push images
+      - name: Build and push images for ${{ matrix.scope }}
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}
-          IMAGE_BUILDER=docker hack/toolchain_build_push.sh "${TAG}"
+          IMAGE_BUILDER=docker hack/toolchain_build_push_${{ matrix.scope }}.sh "${TAG}"
