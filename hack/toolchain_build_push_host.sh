@@ -16,6 +16,7 @@ cd "${f}"
 # checkout
 git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/host-operator.git
 git clone --depth 1 --branch "${BRANCH}" https://github.com/filariow/registration-service
+git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 
 # build and publish images
 make -C registration-service docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"

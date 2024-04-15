@@ -15,6 +15,7 @@ cd "${f}"
 
 # checkout
 git clone --depth 2 https://github.com/codeready-toolchain/member-operator.git
+git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 
 # build and publish images
 make -C member-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" IMAGE_TAG="${TAG}"
