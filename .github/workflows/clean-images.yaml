@@ -1,0 +1,38 @@
+name: "PR checks - Clean operator images"
+
+on:
+  pull_request_target:
+    types: [closed]
+
+jobs:
+  clean-operator-images:
+    name: "Clean operator images (PR)"
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - image_base: host-operator
+          - image_base: host-operator-bundle
+          - image_base: host-operator-index
+          - image_base: member-operator
+          - image_base: member-operator-bundle
+          - image_base: member-operator-console-plugin
+          - image_base: member-operator-index
+          - image_base: member-operator-webhook
+          - image_base: registration-service
+          - image_base: workspace-operator
+          - image_base: workspace-server
+
+    steps:
+      - name: Checkout Git Repository
+        uses: actions/checkout@v4
+
+      - name: Delete stale images
+        env:
+          REPO: quay.io/konflux-workspaces/${{ matrix.image_base }}
+          TAGS: "pr-${{ github.event.pull_request.number }}-.*"
+        run: |
+          for tag in $(skopeo list-tags --tls-verify=false docker://${REPO} | jq -r ".Tags[] | select(.? | match(\"${TAGS}\"))"); do
+            echo "Deleting docker://${REPO}:${tag}"
+            skopeo delete --creds "${{ secrets.QUAY_USERNAME }}:${{ secrets.QUAY_TOKEN }}" docker://${REPO}:${tag}
+          done
