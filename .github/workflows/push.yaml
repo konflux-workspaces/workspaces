@@ -50,7 +50,8 @@ jobs:
         id: tag
         run: |
           if [[ "${GITHUB_EVENT_NAME}" = "pull_request_target" ]]; then
-            export IMG="${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}"
+            export PR_SHA=${{ github.event.pull_request.head.sha }}
+            export IMG="${{ matrix.image_base }}:pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}"
           else
             export IMG="${{ matrix.image_base }}:${GITHUB_SHA:0:8}"
           fi
@@ -78,6 +79,12 @@ jobs:
     name: Build kubesaw components
     runs-on: ubuntu-22.04
     if: ${{ github.event_name == 'pull_request_target' }}
+    strategy:
+      matrix:
+        include:
+          - scope: host
+          - scope: member
+
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
@@ -88,8 +95,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: 1.20.8
           cache: false
+
+      - name: Prepare tools
+        uses: codeready-toolchain/toolchain-cicd/prepare-tools-action@master
 
       - name: Login to Quay
         uses: docker/login-action@v3
@@ -98,7 +108,9 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      - name: Build and push images
+      - name: Build and push images for ${{ matrix.scope }}
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          export TAG=pr-${{ github.event.pull_request.number }}-${GITHUB_SHA:0:8}
-          IMAGE_BUILDER=docker hack/toolchain_build_push.sh "${TAG}"
+          export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
+          IMAGE_BUILDER=docker hack/toolchain_build_push_${{ matrix.scope }}.sh "${TAG}"
