@@ -111,26 +111,31 @@ jobs:
       - name: Prepare build folder
         run: mkdir toolchain-build
       
-      - name: Checkout toolchain-repos for ${{ matrix.scope }}
+      - name: Compute Pull Request short SHA
+        id: prsha
         env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
-        working-directory: toolchain-build
         run: |
-          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${TAG}"
+          SHORT_SHA=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
+          echo "sha=${SHORT_SHA}" >> ${GITHUB_OUTPUT}
+      
+      - name: Checkout toolchain-repos for ${{ matrix.scope }}
+        env:
+          TAG: ${{ steps.prsha.outputs.sha }}
+          IMAGE_BUILDER: docker
+        working-directory: toolchain-build
+        run: ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${TAG}"
 
       - name: Build images for ${{ matrix.scope }}
         env:
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          TAG: ${{ steps.prsha.outputs.sha }}
+          IMAGE_BUILDER: docker
         working-directory: toolchain-build
-        run: |
-          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_build.sh "${TAG}"
+        run: ../hack/toolchain_${{ matrix.scope }}_build.sh "${TAG}"
       
       - name: Push images for ${{ matrix.scope }}
         env:
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          TAG: ${{ steps.prsha.outputs.sha }}
+          IMAGE_BUILDER: docker
         working-directory: toolchain-build
-        run: |
-          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_push.sh "${TAG}"
+        run: ../hack/toolchain_${{ matrix.scope }}_push.sh "${TAG}"
