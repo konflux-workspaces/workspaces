@@ -7,7 +7,7 @@ on: # yamllint disable-line rule:truthy
     types: [opened, synchronize, reopened, ready_for_review]
 
 env:
-  GO_VERSION: 1.22
+  QUAY_NAMESPACE: ${{ vars.QUAY_NAMESPACE }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -21,9 +21,12 @@ jobs:
       matrix:
         include:
           - directory: server
-            image_base: quay.io/konflux-workspaces/workspaces-server
+            image_base: quay.io/${{ vars.QUAY_NAMESPACE }}/workspaces-server
           - directory: operator
-            image_base: quay.io/konflux-workspaces/workspaces-operator
+            image_base: quay.io/${{ vars.QUAY_NAMESPACE }}/workspaces-operator
+
+    env:
+      GO_VERSION: 1.22
 
     steps:
       - name: Checkout Git Repository
@@ -86,6 +89,7 @@ jobs:
           - scope: member
     env:
       IMAGE_BUILDER: docker
+      GO_VERSION: 1.20.8
 
     steps:
       - name: Checkout Git Repository
@@ -97,7 +101,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.20.8
+          go-version: ${{ env.GO_VERSION }}
           cache: false
 
       - name: Prepare tools
