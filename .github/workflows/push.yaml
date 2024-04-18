@@ -108,9 +108,29 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      - name: Build and push images for ${{ matrix.scope }}
+      - name: Prepare build folder
+        run: mkdir toolchain-build
+      
+      - name: Checkout toolchain-repos for ${{ matrix.scope }}
         env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
+        working-directory: toolchain-build
         run: |
-          export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker hack/toolchain_build_push_${{ matrix.scope }}.sh "${TAG}"
+          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
+          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${TAG}"
+
+      - name: Build images for ${{ matrix.scope }}
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        working-directory: toolchain-build
+        run: |
+          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
+          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_build.sh "${TAG}"
+      
+      - name: Push images for ${{ matrix.scope }}
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        working-directory: toolchain-build
+        run: |
+          TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
+          IMAGE_BUILDER=docker ../hack/toolchain_${{ matrix.scope }}_push.sh "${TAG}"
