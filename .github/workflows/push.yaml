@@ -21,9 +21,9 @@ jobs:
       matrix:
         include:
           - directory: server
-            image_base: quay.io/${{ vars.QUAY_NAMESPACE }}/workspaces-server
+            image_base: quay.io/${{ vars.QUAY_NAMESPACE || 'konflux-workspaces' }}/workspaces-server
           - directory: operator
-            image_base: quay.io/${{ vars.QUAY_NAMESPACE }}/workspaces-operator
+            image_base: quay.io/${{ vars.QUAY_NAMESPACE || 'konflux-workspaces' }}/workspaces-operator
 
     env:
       GO_VERSION: 1.22
