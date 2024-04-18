@@ -84,6 +84,8 @@ jobs:
         include:
           - scope: host
           - scope: member
+    env:
+      IMAGE_BUILDER: docker
 
     steps:
       - name: Checkout Git Repository
@@ -122,20 +124,17 @@ jobs:
       - name: Checkout toolchain-repos for ${{ matrix.scope }}
         env:
           TAG: ${{ steps.prsha.outputs.sha }}
-          IMAGE_BUILDER: docker
         working-directory: toolchain-build
         run: ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${TAG}"
 
       - name: Build images for ${{ matrix.scope }}
         env:
           TAG: ${{ steps.prsha.outputs.sha }}
-          IMAGE_BUILDER: docker
         working-directory: toolchain-build
         run: ../hack/toolchain_${{ matrix.scope }}_build.sh "${TAG}"
       
       - name: Push images for ${{ matrix.scope }}
         env:
           TAG: ${{ steps.prsha.outputs.sha }}
-          IMAGE_BUILDER: docker
         working-directory: toolchain-build
         run: ../hack/toolchain_${{ matrix.scope }}_push.sh "${TAG}"
