@@ -10,8 +10,8 @@ BUNDLE_IMAGE="quay.io/${QUAY_NAMESPACE}/host-operator-bundle:${TAG}"
 INDEX_IMAGE="quay.io/${QUAY_NAMESPACE}/host-operator-index:${TAG}"
 
 # build and publish images
-make -C registration-service ${BUILDER}-image "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
-make -C host-operator ${BUILDER}-image "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
+make -C registration-service "${BUILDER}-image" "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
+make -C host-operator "${BUILDER}-image" "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
 
 # generate OLM bundle manifests
 make -C host-operator bundle "BUNDLE_TAG=${TAG}" CHANNEL=alpha
