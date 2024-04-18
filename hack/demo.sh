@@ -12,7 +12,7 @@ SUFFIX="e2e$(date +'%d%H%M%S')"
 echo "using suffix: ${SUFFIX}"
 
 ( 
-  # create a temporary direction
+  # create a temporary directory
   f=$(mktemp --directory /tmp/toolchain.XXXX)
   cd "${f}"
   
