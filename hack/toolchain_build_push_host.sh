@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 # parse input
 BRANCH=${BRANCH:-pubviewer-mvp}
@@ -9,9 +9,8 @@ TAG=${1:-e2etest}
 
 export QUAY_NAMESPACE=${QUAY_NAMESPACE:-konflux-workspaces}
 
-# create a temporary direction
-f=$(mktemp --directory /tmp/toolchain.XXXX)
-cd "${f}"
+BUNDLE_IMAGE="quay.io/${QUAY_NAMESPACE}/host-operator-bundle:${TAG}"
+INDEX_IMAGE="quay.io/${QUAY_NAMESPACE}/host-operator-index:${TAG}"
 
 # checkout
 git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/host-operator.git
@@ -20,9 +19,34 @@ git clone --depth 2 https://github.com/codeready-toolchain/toolchain-cicd.git
 
 # build and publish images
 make -C registration-service docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
-make -C host-operator docker-push "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
-make -C host-operator bundle "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+make -C host-operator docker-image "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
 
-make -C host-operator run-cicd-script \
-  SCRIPT_PATH=scripts/cd/push-bundle-and-index-image.sh \
-  SCRIPT_PARAMS="-pr ../host-operator/ -qn ${QUAY_NAMESPACE} -ch alpha -td /tmp -ib docker -iin host-operator-index -iit ${TAG} -ip linux/amd64 -bt ${TAG}"
+# generate OLM bundle manifests
+make -C host-operator bundle "BUNGLE_TAG=${TAG}" CHANNEL=alpha NEXT_VERSION=0.0.2
+(
+  # replacing REPLACE_* strings in bundle
+  cd host-operator/bundle
+  host_image="quay.io/${QUAY_NAMESPACE}/host-operator:${TAG}"
+  regsvc_image="quay.io/${QUAY_NAMESPACE}/registration-service:${TAG}"
+
+  sed -i \
+    's|REPLACE_IMAGE|'"${host_image}"'|;s|REPLACE_REGISTRATION_SERVICE_IMAGE|'"${regsvc_image}"'|' \
+    manifests/toolchain-host-operator.clusterserviceversion.yaml
+)
+
+# build OLM images
+(
+  cd host-operator
+
+  # build bundle
+  ${BUILDER} build -f bundle.Dockerfile -t "${BUNDLE_IMAGE}" .
+
+  # build index
+  opm index add --permissive --generate --out-dockerfile index.Dockerfile --bundles "${BUNDLE_IMAGE}"
+  ${BUILDER} build -f index.Dockerfile -t "${INDEX_IMAGE}" .
+)
+
+# push images
+make -C host-operator docker-push -o docker-image "QUAY_NAMESPACE=${QUAY_NAMESPACE}" "IMAGE_TAG=${TAG}"
+${BUILDER} push "${BUNDLE_IMAGE}"
+${BUILDER} push "${INDEX_IMAGE}"
