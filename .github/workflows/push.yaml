@@ -122,19 +122,13 @@ jobs:
           echo "sha=${SHORT_SHA}" >> ${GITHUB_OUTPUT}
       
       - name: Checkout toolchain-repos for ${{ matrix.scope }}
-        env:
-          TAG: ${{ steps.prsha.outputs.sha }}
         working-directory: toolchain-build
-        run: ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${TAG}"
+        run: ../hack/toolchain_${{ matrix.scope }}_checkout.sh "${{ steps.prsha.outputs.sha }}"
 
       - name: Build images for ${{ matrix.scope }}
-        env:
-          TAG: ${{ steps.prsha.outputs.sha }}
         working-directory: toolchain-build
-        run: ../hack/toolchain_${{ matrix.scope }}_build.sh "${TAG}"
+        run: ../hack/toolchain_${{ matrix.scope }}_build.sh "${{ steps.prsha.outputs.sha }}"
       
       - name: Push images for ${{ matrix.scope }}
-        env:
-          TAG: ${{ steps.prsha.outputs.sha }}
         working-directory: toolchain-build
-        run: ../hack/toolchain_${{ matrix.scope }}_push.sh "${TAG}"
+        run: ../hack/toolchain_${{ matrix.scope }}_push.sh "${{ steps.prsha.outputs.sha }}"
