@@ -1,22 +1,22 @@
 sequenceDiagram
   actor U as User
 
-  participant P as Proxy
+  participant WA as Workspaces API
   participant KA as K8s ApiServer
   participant WO as Workspace Operator
   participant HO as Host Operator
   participant KAMC as Member Clusters
 
-  U->>P: Change Workspace Visibility to public
-  P->>KA: Proxy request
+  U->>WA: Create Workspace with Visibility set to community
+  WA->>KA: Update Workspace
   KA-->>WO: Notify Workspace Event
   WO->>KA: Create Space Binding for public-viewer
   
   KA-->>HO: Notify Space Binding Event
   HO->>KAMC: Create RoleBindings for public-viewer
   
-  U->>P: Change Workspace Visibility to private
-  P->>KA: Proxy request
+  U->>WA: Update Workspace Visibility to private
+  WA->>KA: Update Workspace
   KA-->>WO: Notify Workspace Event
   WO->>KA: Delete Space Binding for public-viewer
   
