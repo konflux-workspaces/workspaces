@@ -53,9 +53,9 @@ var (
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=spaces,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=spacebindings,verbs=get;list;watch;create;update;patch;delete
 
-//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces/finalizers,verbs=update
+//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -105,7 +105,7 @@ func (r *WorkspaceReconciler) ensureOwnerAccessToWorkspace(ctx context.Context, 
 				{
 					Verbs:         []string{"get", "update", "delete"},
 					APIGroups:     []string{workspacesv1alpha1.GroupVersion.Group},
-					Resources:     []string{"workspaces"},
+					Resources:     []string{"internalworkspaces"},
 					ResourceNames: []string{w.Name},
 				},
 			}

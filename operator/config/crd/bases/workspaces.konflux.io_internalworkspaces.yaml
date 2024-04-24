@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: internalworkspaces.workspaces.io
+  name: internalworkspaces.workspaces.konflux.io
 spec:
-  group: workspaces.io
+  group: workspaces.konflux.io
   names:
     kind: InternalWorkspace
     listKind: InternalWorkspaceList
