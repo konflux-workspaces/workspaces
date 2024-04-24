@@ -31,14 +31,14 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registratio
 
   cd "${f}/toolchain-e2e"
 
-  make dev-deploy-e2e-local PUBLISH_OPERATOR=false DATE_SUFFIX="${TAG}" DEPLOY_LATEST=false
+  make dev-deploy-e2e-local PUBLISH_OPERATOR=true DATE_SUFFIX="${TAG}" DEPLOY_LATEST=false
 )
 
 # patch configuration
 ${KUBECLI} patch \
   toolchainconfigs.toolchain.dev.openshift.com config \
   -n toolchain-host-operator \
-  --patch='{"spec":{"global":{"publicViewer":{"enabled":true,"username":"public-viewer"}}}}' \
+  --patch='{"spec":{"publicViewer":{"username":"public-viewer"}}}' \
   --type=merge
 
 # restart operator

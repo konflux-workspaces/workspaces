@@ -12,8 +12,6 @@ SUFFIX="e2e$(date +'%d%H%M%S')"
 echo "using suffix: ${SUFFIX}"
 
 # build and install toolchain
-( "${SCRIPT_DIR}/toolchain_build_push_member.sh" "${SUFFIX}" )
-( "${SCRIPT_DIR}/toolchain_build_push_host.sh" "${SUFFIX}" )
 ( "${SCRIPT_DIR}/toolchain_install.sh" "${SUFFIX}" )
 
 # build and install workspaces
