@@ -22,16 +22,16 @@ set -o pipefail
 
 # prepare temporary folder
 f=$(mktemp --directory /tmp/workspaces-rest.XXXXX)
-cp -r "${ROOT_DIR}/server/manifests" "${f}/manifests"
-cd "${f}/manifests/default"
+cp -r "${ROOT_DIR}/server/config" "${f}/config"
+cd "${f}/config/default"
 
 # updating JWT configuration
 if [[ -n "${JWKS_URL}" ]]; then
   ${YQ} eval \
     '.authSources.jwtSource.jwt.jwksUrl = "'"${JWKS_URL}"'"' \
-    --inplace "${f}/manifests/server/proxy-config/traefik.yaml"
+    --inplace "${f}/config/server/proxy-config/traefik.yaml"
 else
-  # add secret to manifests
+  # add secret to config
   private_key=$(openssl genrsa 2048)
   public_key=$(echo "${private_key}" | openssl rsa -pubout 2>/dev/null )
 
@@ -43,18 +43,18 @@ else
   # update traefik config
   ${YQ} eval \
     '.http.middlewares.jwt-authorizer.plugin.jwt.keys[0]="'"${public_key}"'"' \
-    --inplace "${f}/manifests/server/proxy-config/dynamic/config.yaml"
+    --inplace "${f}/config/server/proxy-config/dynamic/config.yaml"
 fi
 
-# updating manifests locally
-cd "${f}/manifests/default"
+# updating config locally
+cd "${f}/config/default"
 ${KUSTOMIZE} edit set namespace "$1"
 ${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 ${KUSTOMIZE} edit add configmap rest-api-server-config \
         --behavior=replace \
         --from-literal=kubesaw.namespace="${toolchain_host}"
 
-# apply manifests
+# apply config
 ${KUSTOMIZE} build . | ${KUBECLI} apply -f -
 
 # cleanup
