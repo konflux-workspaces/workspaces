@@ -5,7 +5,7 @@ import (
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
-	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 func givenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
@@ -35,7 +35,7 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 		return ctx, err
 	}
 
-	w, err := createWorkspace(ctx, cli, ns, "new-community", u.Status.CompliantUsername, workspacesiov1alpha1.WorkspaceVisibilityCommunity)
+	w, err := createWorkspace(ctx, cli, ns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 	if err != nil {
 		return ctx, err
 	}

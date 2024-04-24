@@ -22,7 +22,7 @@ import (
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
-	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 func whenAnUserOnboards(ctx context.Context) (context.Context, error) {
@@ -38,7 +38,7 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 	if err != nil {
 		return ctx, err
 	}
-	ww := workspacesiov1alpha1.WorkspaceList{}
+	ww := workspacesv1alpha1.InternalWorkspaceList{}
 	if err := c.List(ctx, &ww, &client.ListOptions{}); err != nil {
 		u := tcontext.RetrieveUser(ctx)
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
@@ -55,7 +55,7 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 	}
 
 	u := tcontext.RetrieveUser(ctx)
-	w := workspacesiov1alpha1.Workspace{}
+	w := workspacesv1alpha1.InternalWorkspace{}
 	wk := types.NamespacedName{Namespace: u.Name, Name: u.Name}
 	if err := c.Get(ctx, wk, &w, &client.GetOptions{}); err != nil {
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
@@ -68,7 +68,7 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 func buildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(workspacesv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(toolchainv1alpha1.AddToScheme(scheme))
 
 	u := tcontext.RetrieveUser(ctx)
@@ -129,7 +129,7 @@ func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility str
 		return ctx, err
 	}
 
-	w.Spec.Visibility = workspacesiov1alpha1.WorkspaceVisibility(visibility)
+	w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibility(visibility)
 	if err := cli.Update(ctx, &w, &client.UpdateOptions{}); err != nil {
 		return ctx, err
 	}

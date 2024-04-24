@@ -61,12 +61,12 @@ func thenTheWorkspaceIsReadableForEveryone(ctx context.Context) error {
 
 func thenACommunityWorkspaceIsCreated(ctx context.Context) error {
 	w := tcontext.RetrieveWorkspace(ctx)
-	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.WorkspaceVisibilityCommunity)
+	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 }
 
 func thenAPrivateWorkspaceIsCreated(ctx context.Context) error {
 	w := tcontext.RetrieveWorkspace(ctx)
-	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.WorkspaceVisibilityPrivate)
+	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
 }
 
 func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
@@ -103,7 +103,7 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 func thenTheWorkspaceVisibilityIsSetTo(ctx context.Context, visibility string) error {
 	w := tcontext.RetrieveWorkspace(ctx)
 
-	if w.Spec.Visibility != workspacesv1alpha1.WorkspaceVisibility(visibility) {
+	if w.Spec.Visibility != workspacesv1alpha1.InternalWorkspaceVisibility(visibility) {
 		return fmt.Errorf(`expected visibility "%s", found "%s"`, visibility, w.Spec.Visibility)
 	}
 	return nil
@@ -147,7 +147,7 @@ func thenTheWorkspaceVisibilityIsUpdatedTo(ctx context.Context, visibility strin
 			return false, err
 		}
 
-		if w.Spec.Visibility != workspacesv1alpha1.WorkspaceVisibility(visibility) {
+		if w.Spec.Visibility != workspacesv1alpha1.InternalWorkspaceVisibility(visibility) {
 			return false, nil
 		}
 

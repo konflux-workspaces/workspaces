@@ -107,7 +107,7 @@ func MapPostWorkspaceHttp(r *http.Request, unmarshaler marshal.UnmarshalerProvid
 	}
 
 	// unmarshal body to Workspace
-	w := workspacesv1alpha1.Workspace{}
+	w := workspacesv1alpha1.InternalWorkspace{}
 	if err := u.Unmarshal(d, &w); err != nil {
 		return nil, fmt.Errorf("error unmarshaling request body: %w", err)
 	}

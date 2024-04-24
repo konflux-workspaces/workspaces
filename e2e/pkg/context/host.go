@@ -72,12 +72,12 @@ func RetrieveTestNamespace(ctx context.Context) string {
 }
 
 // Default Workspace
-func InjectWorkspace(ctx context.Context, w workspacesv1alpha1.Workspace) context.Context {
+func InjectWorkspace(ctx context.Context, w workspacesv1alpha1.InternalWorkspace) context.Context {
 	return context.WithValue(ctx, keyWorkspace, w)
 }
 
-func RetrieveWorkspace(ctx context.Context) workspacesv1alpha1.Workspace {
-	return get[workspacesv1alpha1.Workspace](ctx, keyWorkspace)
+func RetrieveWorkspace(ctx context.Context) workspacesv1alpha1.InternalWorkspace {
+	return get[workspacesv1alpha1.InternalWorkspace](ctx, keyWorkspace)
 }
 
 // Default User
@@ -90,12 +90,12 @@ func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
 }
 
 // Workspaces
-func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.WorkspaceList) context.Context {
+func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.InternalWorkspaceList) context.Context {
 	return context.WithValue(ctx, keyUserWorkspaces, ww)
 }
 
-func RetrieveUserWorkspaces(ctx context.Context) workspacesv1alpha1.WorkspaceList {
-	return get[workspacesv1alpha1.WorkspaceList](ctx, keyUserWorkspaces)
+func RetrieveUserWorkspaces(ctx context.Context) workspacesv1alpha1.InternalWorkspaceList {
+	return get[workspacesv1alpha1.InternalWorkspaceList](ctx, keyUserWorkspaces)
 }
 
 // Scenario Id

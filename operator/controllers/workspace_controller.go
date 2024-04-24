@@ -64,7 +64,7 @@ var (
 func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
 
-	w := workspacescomv1alpha1.Workspace{}
+	w := workspacescomv1alpha1.InternalWorkspace{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &w); err != nil {
 		if kerrors.IsNotFound(err) {
 			return ctrl.Result{}, r.ensureSpaceIsDeleted(ctx, req.Name)
@@ -90,7 +90,7 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	return ctrl.Result{}, nil
 }
 
-func (r *WorkspaceReconciler) ensureOwnerAccessToWorkspace(ctx context.Context, w *workspacescomv1alpha1.Workspace) error {
+func (r *WorkspaceReconciler) ensureOwnerAccessToWorkspace(ctx context.Context, w *workspacescomv1alpha1.InternalWorkspace) error {
 	// create role
 	rn := fmt.Sprintf("%s:owner", w.Name)
 	{
@@ -147,7 +147,7 @@ func (r *WorkspaceReconciler) ensureOwnerAccessToWorkspace(ctx context.Context, 
 	return nil
 }
 
-func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
+func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacescomv1alpha1.InternalWorkspace) error {
 	s := toolchainv1alpha1.SpaceBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", w.Name),
@@ -162,7 +162,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 	)
 
 	switch w.Spec.Visibility {
-	case workspacescomv1alpha1.WorkspaceVisibilityCommunity:
+	case workspacescomv1alpha1.InternalWorkspaceVisibilityCommunity:
 		l.Info("ensuring spacebinding exists")
 		_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 			s.Spec.Space = w.Name
@@ -171,7 +171,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 			return nil
 		})
 		return err
-	case workspacescomv1alpha1.WorkspaceVisibilityPrivate:
+	case workspacescomv1alpha1.InternalWorkspaceVisibilityPrivate:
 		l.Info("ensuring spacebinding doesn't exist")
 		return client.IgnoreNotFound(r.Client.Delete(ctx, &s))
 	default:
@@ -179,7 +179,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 	}
 }
 
-func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.Workspace) error {
+func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.InternalWorkspace) error {
 	// skip if home workspace
 	if ll := w.GetLabels(); ll != nil && ll[workspacesv1alpha1.LabelHomeWorkspace] != "" {
 		return nil
@@ -226,6 +226,6 @@ func (r *WorkspaceReconciler) ensureSpaceIsDeleted(ctx context.Context, name str
 // SetupWithManager sets up the controller with the Manager.
 func (r *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&workspacescomv1alpha1.Workspace{}).
+		For(&workspacescomv1alpha1.InternalWorkspace{}).
 		Complete(r)
 }

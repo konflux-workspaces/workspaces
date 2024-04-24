@@ -13,16 +13,16 @@ import (
 
 // CreateWorkspaceCommand contains the information needed to create a new workspace
 type CreateWorkspaceCommand struct {
-	Workspace workspacesv1alpha1.Workspace
+	Workspace workspacesv1alpha1.InternalWorkspace
 }
 
 // CreateWorkspaceResponse contains the newly-created workspace
 type CreateWorkspaceResponse struct {
-	Workspace *workspacesv1alpha1.Workspace
+	Workspace *workspacesv1alpha1.InternalWorkspace
 }
 
 type WorkspaceCreator interface {
-	CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.CreateOption) error
+	CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.InternalWorkspace, opts ...client.CreateOption) error
 }
 
 type CreateWorkspaceHandler struct {

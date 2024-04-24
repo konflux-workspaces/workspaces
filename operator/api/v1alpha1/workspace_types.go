@@ -20,11 +20,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type WorkspaceVisibility string
+type InternalWorkspaceVisibility string
 
 const (
-	WorkspaceVisibilityCommunity WorkspaceVisibility = "community"
-	WorkspaceVisibilityPrivate   WorkspaceVisibility = "private"
+	InternalWorkspaceVisibilityCommunity InternalWorkspaceVisibility = "community"
+	InternalWorkspaceVisibilityPrivate   InternalWorkspaceVisibility = "private"
 )
 
 const (
@@ -43,10 +43,10 @@ type Owner struct {
 	Id string `json:"id"`
 }
 
-// WorkspaceSpec defines the desired state of Workspace
-type WorkspaceSpec struct {
+// InternalWorkspaceSpec defines the desired state of Workspace
+type InternalWorkspaceSpec struct {
 	// +required
-	Visibility WorkspaceVisibility `json:"visibility"`
+	Visibility InternalWorkspaceVisibility `json:"visibility"`
 	// +required
 	Owner Owner `json:"owner"`
 }
@@ -60,24 +60,24 @@ type WorkspaceStatus struct {
 //+kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
 
-// Workspace is the Schema for the workspaces API
-type Workspace struct {
+// InternalWorkspace is the Schema for the workspaces API
+type InternalWorkspace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   WorkspaceSpec   `json:"spec,omitempty"`
-	Status WorkspaceStatus `json:"status,omitempty"`
+	Spec   InternalWorkspaceSpec `json:"spec,omitempty"`
+	Status WorkspaceStatus       `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// WorkspaceList contains a list of Workspace
-type WorkspaceList struct {
+// InternalWorkspaceList contains a list of Workspace
+type InternalWorkspaceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Workspace `json:"items"`
+	Items           []InternalWorkspace `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Workspace{}, &WorkspaceList{})
+	SchemeBuilder.Register(&InternalWorkspace{}, &InternalWorkspaceList{})
 }

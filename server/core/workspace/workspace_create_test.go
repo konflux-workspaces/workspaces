@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
@@ -27,7 +27,7 @@ var _ = Describe("", func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
 		creator = mocks.NewMockWorkspaceCreator(ctrl)
-		request = workspace.CreateWorkspaceCommand{Workspace: v1alpha1.Workspace{}}
+		request = workspace.CreateWorkspaceCommand{Workspace: workspacesv1alpha1.InternalWorkspace{}}
 		handler = *workspace.NewCreateWorkspaceHandler(creator)
 	})
 
