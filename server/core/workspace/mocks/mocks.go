@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	v1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	v1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	gomock "go.uber.org/mock/gomock"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -42,7 +42,7 @@ func (m *MockWorkspaceCreator) EXPECT() *MockWorkspaceCreatorMockRecorder {
 }
 
 // CreateUserWorkspace mocks base method.
-func (m *MockWorkspaceCreator) CreateUserWorkspace(arg0 context.Context, arg1 string, arg2 *v1alpha1.InternalWorkspace, arg3 ...client.CreateOption) error {
+func (m *MockWorkspaceCreator) CreateUserWorkspace(arg0 context.Context, arg1 string, arg2 *v1alpha1.Workspace, arg3 ...client.CreateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2}
 	for _, a := range arg3 {

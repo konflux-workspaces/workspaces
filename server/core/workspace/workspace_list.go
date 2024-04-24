@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
@@ -18,12 +17,12 @@ type ListWorkspaceQuery struct {
 
 // ListWorkspaceResponse contains all the workspaces the user can access
 type ListWorkspaceResponse struct {
-	Workspaces workspacesv1alpha1.InternalWorkspaceList
+	Workspaces restworkspacesv1alpha1.WorkspaceList
 }
 
 // WorkspaceLister is the interface the data source needs to implement to allow the ListWorkspaceHandler to fetch data from it
 type WorkspaceLister interface {
-	ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.InternalWorkspaceList, opts ...client.ListOption) error
+	ListUserWorkspaces(ctx context.Context, user string, objs *restworkspacesv1alpha1.WorkspaceList, opts ...client.ListOption) error
 }
 
 // ListWorkspaceHandler process ListWorkspaceQuery and returns a ListWorkspaceResponse fetching data from a WorkspaceLister
@@ -49,29 +48,10 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 	// TODO: sanitize input, block reserved labels, etc
 
 	// data access
-	ww := workspacesv1alpha1.InternalWorkspaceList{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "WorkspaceList",
-			APIVersion: "workspaces.io/v1alpha1",
-		},
-		Items: []workspacesv1alpha1.InternalWorkspace{},
-	}
-	opts := &client.ListOptions{
-		Namespace: query.Namespace,
-	}
+	ww := restworkspacesv1alpha1.WorkspaceList{}
+	opts := &client.ListOptions{Namespace: query.Namespace}
 	if err := h.lister.ListUserWorkspaces(ctx, u, &ww, opts); err != nil {
 		return nil, err
-	}
-
-	for _, w := range ww.Items {
-		switch query.Namespace {
-		case "":
-			w.SetNamespace(query.Namespace)
-		default:
-			ll := w.GetLabels()
-			ow := ll[workspacesv1alpha1.LabelWorkspaceOwner]
-			w.SetNamespace(ow)
-		}
 	}
 
 	// reply

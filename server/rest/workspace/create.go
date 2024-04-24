@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/rest/header"
@@ -107,7 +107,7 @@ func MapPostWorkspaceHttp(r *http.Request, unmarshaler marshal.UnmarshalerProvid
 	}
 
 	// unmarshal body to Workspace
-	w := workspacesv1alpha1.InternalWorkspace{}
+	w := restworkspacesv1alpha1.Workspace{}
 	if err := u.Unmarshal(d, &w); err != nil {
 		return nil, fmt.Errorf("error unmarshaling request body: %w", err)
 	}

@@ -10,7 +10,9 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
-	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
+	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/readclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/writeclient"
 	"github.com/konflux-workspaces/workspaces/server/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -54,13 +56,14 @@ func run(l *slog.Logger) error {
 
 	// setup read model
 	l.Info("setting up cache")
-	c, crc, err := kube.NewReadClientWithCache(ctx, cfg, wns, kns)
+	c, crc, err := readclient.NewDefaultWithCache(ctx, cfg, wns, kns)
 	if err != nil {
 		return err
 	}
 
 	// setup write model
-	writer := kube.NewWriteClient(kube.BuildClient(cfg), wns)
+	iwcli := iwclient.New(crc, wns, kns)
+	writer := writeclient.NewWithConfig(cfg, wns, iwcli)
 
 	// setup REST over HTTP server
 	l.Info("setting up REST over HTTP server")

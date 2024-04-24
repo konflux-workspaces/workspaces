@@ -6,24 +6,25 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
+	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
 // UpdateWorkspaceCommand contains the information needed to retrieve a Workspace the user has access to from the data source
 type UpdateWorkspaceCommand struct {
 	Owner     string
-	Workspace workspacesv1alpha1.InternalWorkspace
+	Workspace restworkspacesv1alpha1.Workspace
 }
 
 // UpdateWorkspaceResponse contains the workspace the user requested
 type UpdateWorkspaceResponse struct {
-	Workspace *workspacesv1alpha1.InternalWorkspace
+	Workspace *restworkspacesv1alpha1.Workspace
 }
 
 // WorkspaceUpdater is the interface the data source needs to implement to allow the UpdateWorkspaceHandler to fetch data from it
 type WorkspaceUpdater interface {
-	UpdateUserWorkspace(ctx context.Context, user string, obj *workspacesv1alpha1.InternalWorkspace, opts ...client.UpdateOption) error
+	UpdateUserWorkspace(ctx context.Context, user string, obj *restworkspacesv1alpha1.Workspace, opts ...client.UpdateOption) error
 }
 
 // UpdateWorkspaceHandler processes UpdateWorkspaceCommand and returns UpdateWorkspaceResponse fetching data from a WorkspaceUpdater
@@ -50,6 +51,7 @@ func (h *UpdateWorkspaceHandler) Handle(ctx context.Context, query UpdateWorkspa
 
 	// data access
 	w := query.Workspace.DeepCopy()
+	log.FromContext(ctx).Info("updating workspace", "workspace", w)
 	opts := &client.UpdateOptions{}
 	if err := h.updater.UpdateUserWorkspace(ctx, u, w, opts); err != nil {
 		return nil, err

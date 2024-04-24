@@ -28,19 +28,20 @@ func givenAPrivateWorkspaceExists(ctx context.Context) (context.Context, error) 
 
 func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
-	ns := tcontext.RetrieveKubespaceNamespace(ctx)
+	kns := tcontext.RetrieveKubespaceNamespace(ctx)
 
-	u, err := user.OnboardUser(ctx, cli, ns, user.DefaultUserName)
+	u, err := user.OnboardUser(ctx, cli, kns, user.DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}
 
-	w, err := createWorkspace(ctx, cli, ns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
+	wns := tcontext.RetrieveWorkspacesNamespace(ctx)
+	w, err := createWorkspace(ctx, cli, wns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 	if err != nil {
 		return ctx, err
 	}
 
-	if err := workspaceIsReadableForEveryone(ctx, cli, ns, w.Name); err != nil {
+	if err := workspaceIsReadableForEveryone(ctx, cli, kns, w.Name); err != nil {
 		return ctx, err
 	}
 
