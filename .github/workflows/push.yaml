@@ -79,15 +79,13 @@ jobs:
     name: Build kubesaw components
     runs-on: ubuntu-22.04
     if: ${{ github.event_name == 'pull_request_target' }}
-    strategy:
-      matrix:
-        include:
-          - scope: host
-          - scope: member
 
     steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -108,9 +106,9 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      - name: Build and push images for ${{ matrix.scope }}
+      - name: Build and push images
         env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker hack/toolchain_build_push_${{ matrix.scope }}.sh "${TAG}"
+          IMAGE_BUILDER=docker ci/toolchain_build_push.sh "${TAG}"
