@@ -111,4 +111,4 @@ jobs:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker ci/toolchain_build_push.sh "${TAG}"
+          IMAGE_BUILDER=docker ci/toolchain_manager.sh "${TAG}"
