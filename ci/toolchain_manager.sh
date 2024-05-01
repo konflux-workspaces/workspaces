@@ -6,7 +6,6 @@
 set -e
 
 # parse input
-BRANCH=${BRANCH:-pubviewer-mvp}
 QUAY_NAMESPACE=${QUAY_NAMESPACE:-konflux-workspaces}
 TAG=${2:-e2etest}
 KUBECLI=${KUBECLI:-kubectl}
@@ -16,16 +15,21 @@ MEMBER_OPERATOR_REPO=${MEMBER_OPERATOR_REPO:-https://github.com/codeready-toolch
 TOOLCHAIN_E2E_REPO=${TOOLCHAIN_E2E_REPO:-https://github.com/sadlerap/toolchain-e2e.git}
 REGISTRATION_SERVICE_REPO=${REGISTRATION_SERVICE_REPO:-https://github.com/filariow/registration-service}
 
+HOST_OPERATOR_BRANCH=${HOST_OPERATOR_BRANCH:-${BRANCH:-pubviewer-mvp}}
+MEMBER_OPERATOR_BRANCH=${MEMBER_OPERATOR_BRANCH:-${BRANCH:-master}}
+TOOLCHAIN_E2E_BRANCH=${TOOLCHAIN_E2E_BRANCH:-${BRANCH:-pubviewer-mvp}}
+REGISTRATION_SERVICE_BRANCH=${REGISTRATION_SERVICE_BRANCH:-${BRANCH:-pubviewer-mvp}}
+
 function clone {
     git clone --depth 2 --branch "${2}" "${1}"
 }
 
 # build & publish toolchain components
 function publish {
-    clone "${MEMBER_OPERATOR_REPO}"      "master"
-    clone "${HOST_OPERATOR_REPO}"        "${BRANCH}"
-    clone "${TOOLCHAIN_E2E_REPO}"        "${BRANCH}"
-    clone "${REGISTRATION_SERVICE_REPO}" "${BRANCH}"
+    clone "${HOST_OPERATOR_REPO}"        "${HOST_OPERATOR_BRANCH}"
+    clone "${MEMBER_OPERATOR_REPO}"      "${MEMBER_OPERATOR_BRANCH}"
+    clone "${TOOLCHAIN_E2E_REPO}"        "${TOOLCHAIN_E2E_BRANCH}"
+    clone "${REGISTRATION_SERVICE_REPO}" "${REGISTRATION_SERVICE_BRANCH}"
 
     make -C toolchain-e2e publish-current-bundles-for-e2e \
         FORCED_TAG="${TAG}" \
@@ -57,8 +61,10 @@ function deploy {
 }
 
 function usage {
+    set -o pipefail
     echo "${0} usage:"
     grep -G "\s\+[a-z]\+)\s\+#" "$0" | sed -e 's/^\s\+\([a-z]\+\))\s\+#\s\+\(\(.*\)\s\+##\s\+\)\?\(.*\)$/\t\1\t\3\n\t\t\4/g'
+    exit 0
 }
 
 function use_tmp_dir {
