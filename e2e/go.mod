@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
-	github.com/cucumber/godog v0.14.0
+	github.com/cucumber/godog v0.14.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
