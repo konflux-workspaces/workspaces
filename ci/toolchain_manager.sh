@@ -41,7 +41,7 @@ function publish {
 }
 
 function deploy {
-    clone "${TOOLCHAIN_E2E_REPO}" "${BRANCH}"
+    clone "${TOOLCHAIN_E2E_REPO}" "${TOOLCHAIN_E2E_BRANCH}"
 
     make -C toolchain-e2e deploy-published-operators-e2e \
         FORCED_TAG="${TAG}" \
