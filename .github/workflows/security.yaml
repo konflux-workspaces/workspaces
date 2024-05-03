@@ -76,7 +76,7 @@ jobs:
 
       - name: Lint shell scripts
         run: |
-          find . -executable -type f -regex ".*hack.*" -print0 | \
+          find . -executable -type f -regex ".*\(hack\|ci\).*" -print0 | \
             xargs -0 shellcheck -f json | \
             shellcheck-sarif > results.sarif
           sarif-fmt -c always < results.sarif
