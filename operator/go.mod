@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
 	github.com/onsi/ginkgo/v2 v2.17.2
-	github.com/onsi/gomega v1.33.0
+	github.com/onsi/gomega v1.33.1
 	k8s.io/api v0.29.4
 	k8s.io/apimachinery v0.29.4
 	k8s.io/client-go v0.29.4
