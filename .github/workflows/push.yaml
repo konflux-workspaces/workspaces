@@ -90,7 +90,6 @@ jobs:
     if: ${{ github.event_name == 'pull_request_target' }}
 
     env:
-      IMAGE_BUILDER: docker
       GO_VERSION: 1.20.8
 
     steps:
@@ -122,6 +121,7 @@ jobs:
       - name: Build and push images
         env:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
+          IMAGE_BUILDER: docker
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          IMAGE_BUILDER=docker ci/toolchain_manager.sh "${TAG}"
+          ci/toolchain_manager.sh "${TAG}"
