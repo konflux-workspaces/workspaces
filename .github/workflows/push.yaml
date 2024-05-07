@@ -124,4 +124,4 @@ jobs:
           IMAGE_BUILDER: docker
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
-          ci/toolchain_manager.sh "${TAG}"
+          ci/toolchain_manager.sh publish "${TAG}"
