@@ -1,6 +1,6 @@
 module github.com/konflux-workspaces/workspaces/operator
 
-go 1.22
+go 1.22.2
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
