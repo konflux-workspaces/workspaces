@@ -4,6 +4,8 @@ on: # yamllint disable-line rule:truthy
   pull_request:
     paths:
       - "server/**"
+      - "hack/tools/**"
+      - ".github/**"
   push:
     branches: [main]
 
