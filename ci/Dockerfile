@@ -12,6 +12,7 @@ RUN yum install -y --nodocs \
     jq \
     make \
     tar \
+    skopeo \
     && yum clean all
 RUN ln -s /cli/oc /usr/bin/kubectl
 
