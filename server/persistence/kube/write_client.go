@@ -31,7 +31,7 @@ func NewWriteClient(buildClient BuildClientFunc, workspacesNamespace string) *Wr
 	}
 }
 
-func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.CreateOption) error {
+func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.InternalWorkspace, opts ...client.CreateOption) error {
 	cli, err := c.buildClient(user)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, work
 	return cli.Create(ctx, workspace, opts...)
 }
 
-func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.Workspace, opts ...client.UpdateOption) error {
+func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.InternalWorkspace, opts ...client.UpdateOption) error {
 	cli, err := c.buildClient(user)
 	if err != nil {
 		return err

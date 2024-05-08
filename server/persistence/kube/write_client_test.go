@@ -19,7 +19,7 @@ var _ = Describe("WriteClient", func() {
 	var ctx context.Context
 	user := "foo"
 	namespace := "bar"
-	workspace := workspacesv1alpha1.Workspace{
+	workspace := workspacesv1alpha1.InternalWorkspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      "workspace-foo",
@@ -47,7 +47,7 @@ var _ = Describe("WriteClient", func() {
 		// then
 		Expect(err).NotTo(HaveOccurred())
 
-		w := workspacesv1alpha1.Workspace{}
+		w := workspacesv1alpha1.InternalWorkspace{}
 		err = fakeClient.Get(ctx, types.NamespacedName{Namespace: namespace, Name: workspace.Name}, &w)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(w).To(Equal(workspace))

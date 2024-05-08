@@ -44,7 +44,7 @@ type UserSignupReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=usersignups,verbs=get;list;watch
-//+kubebuilder:rbac:groups=workspaces.io,resources=workspaces,verbs=get;list;watch;create;update;patch;delete;deletecollection
+//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -73,7 +73,7 @@ func (r *UserSignupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.Context, u toolchainv1alpha1.UserSignup) error {
-	w := &workspacesv1alpha1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: u.Status.HomeSpace, Namespace: r.WorkspacesNamespace}}
+	w := &workspacesv1alpha1.InternalWorkspace{ObjectMeta: metav1.ObjectMeta{Name: u.Status.HomeSpace, Namespace: r.WorkspacesNamespace}}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, w, func() error {
 		log.FromContext(ctx).Info("creating/updating workspace", "workspace", w)
 		ll := w.GetLabels()
@@ -84,7 +84,7 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		ll[workspacesv1alpha1.LabelWorkspaceOwner] = u.Name
 		w.Labels = ll
 
-		w.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityPrivate
+		w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
 		w.Spec.Owner = workspacesv1alpha1.Owner{
 			Id: u.Name,
 		}
@@ -105,7 +105,7 @@ func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, nam
 	ls := labels.NewSelector()
 	ls.Add(*lr)
 
-	w := workspacesv1alpha1.Workspace{}
+	w := workspacesv1alpha1.InternalWorkspace{}
 	if err := r.DeleteAllOf(ctx, &w, &client.DeleteAllOfOptions{
 		ListOptions: client.ListOptions{
 			LabelSelector: ls,

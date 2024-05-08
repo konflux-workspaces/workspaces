@@ -4,9 +4,9 @@ metadata:
   name: workspace-reader
 rules:
 - apiGroups:
-  - workspaces.io
+  - workspaces.konflux.io
   resources:
-  - workspaces
+  - internalworkspaces
   verbs:
   - list
   - get

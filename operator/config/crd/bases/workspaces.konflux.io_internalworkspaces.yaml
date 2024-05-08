@@ -4,14 +4,14 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: workspaces.workspaces.io
+  name: internalworkspaces.workspaces.konflux.io
 spec:
-  group: workspaces.io
+  group: workspaces.konflux.io
   names:
-    kind: Workspace
-    listKind: WorkspaceList
-    plural: workspaces
-    singular: workspace
+    kind: InternalWorkspace
+    listKind: InternalWorkspaceList
+    plural: internalworkspaces
+    singular: internalworkspace
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -21,7 +21,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Workspace is the Schema for the workspaces API
+        description: InternalWorkspace is the Schema for the workspaces API
         properties:
           apiVersion:
             description: |-
@@ -41,7 +41,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: WorkspaceSpec defines the desired state of Workspace
+            description: InternalWorkspaceSpec defines the desired state of Workspace
             properties:
               owner:
                 properties:

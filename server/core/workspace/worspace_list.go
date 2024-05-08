@@ -18,12 +18,12 @@ type ListWorkspaceQuery struct {
 
 // ListWorkspaceResponse contains all the workspaces the user can access
 type ListWorkspaceResponse struct {
-	Workspaces workspacesv1alpha1.WorkspaceList
+	Workspaces workspacesv1alpha1.InternalWorkspaceList
 }
 
 // WorkspaceLister is the interface the data source needs to implement to allow the ListWorkspaceHandler to fetch data from it
 type WorkspaceLister interface {
-	ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.WorkspaceList, opts ...client.ListOption) error
+	ListUserWorkspaces(ctx context.Context, user string, objs *workspacesv1alpha1.InternalWorkspaceList, opts ...client.ListOption) error
 }
 
 // ListWorkspaceHandler process ListWorkspaceQuery and returns a ListWorkspaceResponse fetching data from a WorkspaceLister
@@ -49,12 +49,12 @@ func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQu
 	// TODO: sanitize input, block reserved labels, etc
 
 	// data access
-	ww := workspacesv1alpha1.WorkspaceList{
+	ww := workspacesv1alpha1.InternalWorkspaceList{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "WorkspaceList",
 			APIVersion: "workspaces.io/v1alpha1",
 		},
-		Items: []workspacesv1alpha1.Workspace{},
+		Items: []workspacesv1alpha1.InternalWorkspace{},
 	}
 	opts := &client.ListOptions{
 		Namespace: query.Namespace,

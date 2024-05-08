@@ -42,7 +42,7 @@ func (m *MockWorkspaceCreator) EXPECT() *MockWorkspaceCreatorMockRecorder {
 }
 
 // CreateUserWorkspace mocks base method.
-func (m *MockWorkspaceCreator) CreateUserWorkspace(arg0 context.Context, arg1 string, arg2 *v1alpha1.Workspace, arg3 ...client.CreateOption) error {
+func (m *MockWorkspaceCreator) CreateUserWorkspace(arg0 context.Context, arg1 string, arg2 *v1alpha1.InternalWorkspace, arg3 ...client.CreateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2}
 	for _, a := range arg3 {

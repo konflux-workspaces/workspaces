@@ -12,7 +12,7 @@ import (
 var ErrWorkspaceWithoutOwner = fmt.Errorf("error workspace has no owner")
 
 // GetOwner returns the value of owner label if present, otherwise an error ErrWorkspaceWithoutOwner
-func GetOwner(w *workspacesv1alpha1.Workspace) (*string, error) {
+func GetOwner(w *workspacesv1alpha1.InternalWorkspace) (*string, error) {
 	ll := w.GetLabels()
 	if len(ll) == 0 {
 		return nil, fmt.Errorf("%w: %v", ErrWorkspaceWithoutOwner, client.ObjectKeyFromObject(w))

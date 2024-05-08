@@ -35,7 +35,7 @@ var _ = Describe("ReadClient", func() {
 	When("no SpaceBinding exists for a workspace", func() {
 		// given
 		c = buildCache(ksns, wsns,
-			&workspacesv1alpha1.Workspace{
+			&workspacesv1alpha1.InternalWorkspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "no-space-binding",
 					Namespace: wsns,
@@ -47,7 +47,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should not return the workspace in list", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "owner", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -57,7 +57,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should not return the workspace in read", func() {
 			// when
-			var ww workspacesv1alpha1.Workspace
+			var ww workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "owner", "owner", "no-space-binding", &ww)
 
 			// then
@@ -69,7 +69,7 @@ var _ = Describe("ReadClient", func() {
 	When("owner label is not set on workspace", func() {
 		// given
 		c = buildCache(ksns, wsns,
-			&workspacesv1alpha1.Workspace{
+			&workspacesv1alpha1.InternalWorkspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "no-label",
 					Namespace: wsns,
@@ -90,7 +90,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should not return the workspace in list", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "owner", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -100,7 +100,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should not return the workspace in read", func() {
 			// when
-			var ww workspacesv1alpha1.Workspace
+			var ww workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "owner", "owner", "no-label", &ww)
 
 			// then
@@ -110,7 +110,7 @@ var _ = Describe("ReadClient", func() {
 	})
 
 	When("one valid workspace exists", func() {
-		w := &workspacesv1alpha1.Workspace{
+		w := &workspacesv1alpha1.InternalWorkspace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "owner-ws",
 				Namespace: wsns,
@@ -143,7 +143,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should be returned in list of owner's workspaces", func() {
 			// when the list of workspaces owned by 'owner-user' is requested
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "owner-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -155,7 +155,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should be returned in read", func() {
 			// when
-			var rw workspacesv1alpha1.Workspace
+			var rw workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "owner-user", "owner-user", w.Name, &rw)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -166,7 +166,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should NOT be returned in list of not-owner's workspaces", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "not-owner-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -176,7 +176,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should NOT be returned in read of not-owner-user workspace", func() {
 			// when
-			var rw *workspacesv1alpha1.Workspace
+			var rw *workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "not-owner-user", "owner-user", w.Name, rw)
 
 			// then
@@ -187,11 +187,11 @@ var _ = Describe("ReadClient", func() {
 	})
 
 	When("more than one valid workspace exist", func() {
-		ww := make([]*workspacesv1alpha1.Workspace, 10)
+		ww := make([]*workspacesv1alpha1.InternalWorkspace, 10)
 		sbs := make([]*toolchainv1alpha1.SpaceBinding, len(ww))
 		for i := 0; i < len(ww); i++ {
 			wsName := fmt.Sprintf("owner-ws-%d", i)
-			ww[i] = &workspacesv1alpha1.Workspace{
+			ww[i] = &workspacesv1alpha1.InternalWorkspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      wsName,
 					Namespace: wsns,
@@ -232,7 +232,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should be returned in list of owner's workspaces", func() {
 			// when the list of workspaces owned by 'owner-user' is requested
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "owner-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -241,7 +241,7 @@ var _ = Describe("ReadClient", func() {
 			Expect(wwi).Should(HaveLen(len(wwi)))
 
 			for _, w := range wwi {
-				sw := slices.ContainsFunc(wwi, func(z workspacesv1alpha1.Workspace) bool {
+				sw := slices.ContainsFunc(wwi, func(z workspacesv1alpha1.InternalWorkspace) bool {
 					return w.Name == z.Name && w.Namespace == "owner-user"
 				})
 				Expect(sw).Should(BeTrue())
@@ -251,7 +251,7 @@ var _ = Describe("ReadClient", func() {
 		It("should be returned in read", func() {
 			for _, w := range ww {
 				// when
-				var rw workspacesv1alpha1.Workspace
+				var rw workspacesv1alpha1.InternalWorkspace
 				err := c.ReadUserWorkspace(ctx, "owner-user", "owner-user", w.Name, &rw)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -263,7 +263,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("should NOT be returned in list of not-owner's workspaces", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "not-owner-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -274,7 +274,7 @@ var _ = Describe("ReadClient", func() {
 		It("should NOT be returned in read of not-owner-user workspace", func() {
 			for _, w := range ww {
 				// when
-				var rw *workspacesv1alpha1.Workspace
+				var rw *workspacesv1alpha1.InternalWorkspace
 				err := c.ReadUserWorkspace(ctx, "not-owner-user", "owner-user", w.Name, rw)
 
 				// then
@@ -288,7 +288,7 @@ var _ = Describe("ReadClient", func() {
 	When("workspace is created outside monitored namespaces", func() {
 		BeforeEach(func() {
 			c = buildCache(ksns, wsns,
-				&workspacesv1alpha1.Workspace{
+				&workspacesv1alpha1.InternalWorkspace{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-ws",
 						Namespace: "not-monitored",
@@ -317,7 +317,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is not returned in list", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "owner-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -327,7 +327,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is not returned in read", func() {
 			// when
-			var w workspacesv1alpha1.Workspace
+			var w workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "owner-user", "owner-user", "owner-ws", &w)
 			// then
 			Expect(err).To(HaveOccurred())
@@ -339,7 +339,7 @@ var _ = Describe("ReadClient", func() {
 	When("workspace is shared with other users", func() {
 		BeforeEach(func() {
 			c = buildCache(ksns, wsns,
-				&workspacesv1alpha1.Workspace{
+				&workspacesv1alpha1.InternalWorkspace{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-ws",
 						Namespace: wsns,
@@ -379,7 +379,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is returned in other-user's list", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "other-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -391,7 +391,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is returned in read", func() {
 			// when
-			var w workspacesv1alpha1.Workspace
+			var w workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "other-user", "owner-user", "owner-ws", &w)
 			// then
 			Expect(err).NotTo(HaveOccurred())
@@ -404,17 +404,17 @@ var _ = Describe("ReadClient", func() {
 	When("workspace is flagged as community", func() {
 		BeforeEach(func() {
 			c = buildCache(ksns, wsns,
-				&workspacesv1alpha1.Workspace{
+				&workspacesv1alpha1.InternalWorkspace{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-ws",
 						Namespace: wsns,
 						Labels: map[string]string{
 							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-							kube.LabelWorkspaceVisibility:          string(workspacesv1alpha1.WorkspaceVisibilityCommunity),
+							kube.LabelWorkspaceVisibility:          string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
 						},
 					},
-					Spec: workspacesv1alpha1.WorkspaceSpec{
-						Visibility: workspacesv1alpha1.WorkspaceVisibilityCommunity,
+					Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+						Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
 					},
 				},
 				&toolchainv1alpha1.SpaceBinding{
@@ -437,7 +437,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is returned in other-user's list", func() {
 			// when
-			var ww workspacesv1alpha1.WorkspaceList
+			var ww workspacesv1alpha1.InternalWorkspaceList
 			err := c.ListUserWorkspaces(ctx, "other-user", &ww)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -449,7 +449,7 @@ var _ = Describe("ReadClient", func() {
 
 		It("is returned in other-user's read", func() {
 			// when
-			var w workspacesv1alpha1.Workspace
+			var w workspacesv1alpha1.InternalWorkspace
 			err := c.ReadUserWorkspace(ctx, "other-user", "owner-user", "owner-ws", &w)
 
 			// then
@@ -459,14 +459,14 @@ var _ = Describe("ReadClient", func() {
 		})
 
 		When("label selection is set to retrieve only private workspaces", func() {
-			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityPrivate)})
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)})
 			Expect(err).NotTo(HaveOccurred())
 			ls := labels.NewSelector().Add(*r)
 
 			It("is not returned in list", func() {
 				// when
 
-				var ww workspacesv1alpha1.WorkspaceList
+				var ww workspacesv1alpha1.InternalWorkspaceList
 				opts := client.ListOptions{LabelSelector: ls}
 				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
 				Expect(err).NotTo(HaveOccurred())
@@ -477,14 +477,14 @@ var _ = Describe("ReadClient", func() {
 		})
 
 		When("label selection is set to retrieve only community workspaces", func() {
-			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
+			r, err := labels.NewRequirement(kube.LabelWorkspaceVisibility, selection.In, []string{string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)})
 			Expect(err).NotTo(HaveOccurred())
 			ls := labels.NewSelector().Add(*r)
 
 			It("is returned in list", func() {
 				// when
 
-				var ww workspacesv1alpha1.WorkspaceList
+				var ww workspacesv1alpha1.InternalWorkspaceList
 				opts := client.ListOptions{LabelSelector: ls}
 				err := c.ListUserWorkspaces(ctx, "other-user", &ww, &opts)
 				Expect(err).NotTo(HaveOccurred())

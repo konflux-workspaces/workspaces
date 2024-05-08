@@ -16,7 +16,7 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
-	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
@@ -125,7 +125,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 		}
 	}
 	{
-		wl := &workspacesiov1alpha1.WorkspaceList{}
+		wl := &workspacesv1alpha1.InternalWorkspaceList{}
 		if err := cli.Client.List(ctx, wl, client.InNamespace(metav1.NamespaceAll)); err != nil {
 			errs = append(errs, err)
 		} else {

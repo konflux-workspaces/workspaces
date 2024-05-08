@@ -20,11 +20,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type InternalWorkspaceVisibility string
+type WorkspaceVisibility string
 
 const (
-	InternalWorkspaceVisibilityCommunity InternalWorkspaceVisibility = "community"
-	InternalWorkspaceVisibilityPrivate   InternalWorkspaceVisibility = "private"
+	WorkspaceVisibilityCommunity WorkspaceVisibility = "community"
+	WorkspaceVisibilityPrivate   WorkspaceVisibility = "private"
 )
 
 const (
@@ -43,10 +43,10 @@ type Owner struct {
 	Id string `json:"id"`
 }
 
-// InternalWorkspaceSpec defines the desired state of Workspace
-type InternalWorkspaceSpec struct {
+// WorkspaceSpec defines the desired state of Workspace
+type WorkspaceSpec struct {
 	// +required
-	Visibility InternalWorkspaceVisibility `json:"visibility"`
+	Visibility WorkspaceVisibility `json:"visibility"`
 	// +required
 	Owner Owner `json:"owner"`
 }
@@ -60,24 +60,24 @@ type WorkspaceStatus struct {
 //+kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
 
-// InternalWorkspace is the Schema for the workspaces API
-type InternalWorkspace struct {
+// Workspace is the Schema for the workspaces API
+type Workspace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   InternalWorkspaceSpec `json:"spec,omitempty"`
-	Status WorkspaceStatus       `json:"status,omitempty"`
+	Spec   WorkspaceSpec   `json:"spec,omitempty"`
+	Status WorkspaceStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// InternalWorkspaceList contains a list of Workspace
-type InternalWorkspaceList struct {
+// WorkspaceList contains a list of Workspace
+type WorkspaceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []InternalWorkspace `json:"items"`
+	Items           []Workspace `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&InternalWorkspace{}, &InternalWorkspaceList{})
+	SchemeBuilder.Register(&Workspace{}, &WorkspaceList{})
 }

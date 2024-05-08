@@ -57,16 +57,16 @@ func NewReadClientWithReader(backend client.Reader, workspacesNamespace, kubesaw
 func (c *ReadClient) ListUserWorkspaces(
 	ctx context.Context,
 	user string,
-	objs *workspacesv1alpha1.WorkspaceList,
+	objs *workspacesv1alpha1.InternalWorkspaceList,
 	opts ...client.ListOption,
 ) error {
 	// retrieve workspaces visible to user
-	ww := workspacesv1alpha1.WorkspaceList{}
+	ww := workspacesv1alpha1.InternalWorkspaceList{}
 	if err := c.fetchAllWorkspacesVisibileToUser(ctx, user, &ww); err != nil {
 		return err
 	}
 
-	rww := workspacesv1alpha1.WorkspaceList{}
+	rww := workspacesv1alpha1.InternalWorkspaceList{}
 
 	// apply label selectors and transform workspaces
 	listOpts := client.ListOptions{}
@@ -100,9 +100,9 @@ func matchesListOpts(
 		listOpts.LabelSelector.Matches(labels.Set(objLabels))
 }
 
-func (c ReadClient) fetchAllWorkspacesVisibileToUser(ctx context.Context, user string, workspaces *workspacesv1alpha1.WorkspaceList) error {
+func (c ReadClient) fetchAllWorkspacesVisibileToUser(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
 	// list community workspaces
-	ww := workspacesv1alpha1.WorkspaceList{}
+	ww := workspacesv1alpha1.InternalWorkspaceList{}
 	if err := c.listCommunityWorkspaces(ctx, &ww); err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (c ReadClient) fetchAllWorkspacesVisibileToUser(ctx context.Context, user s
 	return nil
 }
 
-func (c *ReadClient) fetchMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.WorkspaceList) error {
+func (c *ReadClient) fetchMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
 	// list user's space bindings
 	sbb := toolchainv1alpha1.SpaceBindingList{}
 	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
@@ -125,14 +125,14 @@ func (c *ReadClient) fetchMissingWorkspaces(ctx context.Context, user string, wo
 
 	// filter already fetched Workspaces
 	fsbb := slices.DeleteFunc(sbb.Items, func(sb toolchainv1alpha1.SpaceBinding) bool {
-		return slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.Workspace) bool {
+		return slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
 			return w.Name == sb.Spec.Space
 		})
 	})
 
 	for _, sb := range fsbb {
 		k := c.workspaceNamespacedName(sb.Spec.Space)
-		w := workspacesv1alpha1.Workspace{}
+		w := workspacesv1alpha1.InternalWorkspace{}
 		if err := c.backend.Get(ctx, k, &w, &client.GetOptions{}); err != nil {
 			continue
 		}
@@ -156,8 +156,8 @@ func (c *ReadClient) listUserSpaceBindings(
 	return c.backend.List(ctx, spaceBindings, opts)
 }
 
-func (c *ReadClient) listCommunityWorkspaces(ctx context.Context, workspaces *workspacesv1alpha1.WorkspaceList) error {
-	r, err := labels.NewRequirement(LabelWorkspaceVisibility, selection.Equals, []string{string(workspacesv1alpha1.WorkspaceVisibilityCommunity)})
+func (c *ReadClient) listCommunityWorkspaces(ctx context.Context, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
+	r, err := labels.NewRequirement(LabelWorkspaceVisibility, selection.Equals, []string{string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)})
 	if err != nil {
 		return err
 	}
@@ -172,10 +172,10 @@ func (c *ReadClient) ReadUserWorkspace(
 	user string,
 	owner string,
 	space string,
-	obj *workspacesv1alpha1.Workspace,
+	obj *workspacesv1alpha1.InternalWorkspace,
 	opts ...client.GetOption,
 ) error {
-	w := &workspacesv1alpha1.Workspace{}
+	w := &workspacesv1alpha1.InternalWorkspace{}
 	err := c.backend.Get(ctx, c.workspaceNamespacedName(space), w, opts...)
 	if err != nil {
 		return err
@@ -183,7 +183,7 @@ func (c *ReadClient) ReadUserWorkspace(
 	w.SetNamespace(owner)
 
 	// if workspace visibility is community all users are allowed visibility
-	if w.Spec.Visibility == workspacesv1alpha1.WorkspaceVisibilityCommunity {
+	if w.Spec.Visibility == workspacesv1alpha1.InternalWorkspaceVisibilityCommunity {
 		w.DeepCopyInto(obj)
 		return nil
 	}

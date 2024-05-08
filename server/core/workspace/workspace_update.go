@@ -13,17 +13,17 @@ import (
 // UpdateWorkspaceCommand contains the information needed to retrieve a Workspace the user has access to from the data source
 type UpdateWorkspaceCommand struct {
 	Owner     string
-	Workspace workspacesv1alpha1.Workspace
+	Workspace workspacesv1alpha1.InternalWorkspace
 }
 
 // UpdateWorkspaceResponse contains the workspace the user requested
 type UpdateWorkspaceResponse struct {
-	Workspace *workspacesv1alpha1.Workspace
+	Workspace *workspacesv1alpha1.InternalWorkspace
 }
 
 // WorkspaceUpdater is the interface the data source needs to implement to allow the UpdateWorkspaceHandler to fetch data from it
 type WorkspaceUpdater interface {
-	UpdateUserWorkspace(ctx context.Context, user string, obj *workspacesv1alpha1.Workspace, opts ...client.UpdateOption) error
+	UpdateUserWorkspace(ctx context.Context, user string, obj *workspacesv1alpha1.InternalWorkspace, opts ...client.UpdateOption) error
 }
 
 // UpdateWorkspaceHandler processes UpdateWorkspaceCommand and returns UpdateWorkspaceResponse fetching data from a WorkspaceUpdater

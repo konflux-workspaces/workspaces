@@ -133,7 +133,7 @@ func MapUpdateWorkspaceHttp(r *http.Request, provider marshal.UnmarshalerProvide
 	}
 
 	// unmarshal body to Workspace
-	w := workspacesv1alpha1.Workspace{}
+	w := workspacesv1alpha1.InternalWorkspace{}
 	if err := u.Unmarshal(d, &w); err != nil {
 		return nil, fmt.Errorf("error unmarshaling request body: %w", err)
 	}

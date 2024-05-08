@@ -15,14 +15,14 @@ import (
 )
 
 func whenUserRequestsANewPrivateWorkspace(ctx context.Context) (context.Context, error) {
-	return createNewWorkspace(ctx, "new-private", workspacesv1alpha1.WorkspaceVisibilityPrivate)
+	return createNewWorkspace(ctx, "new-private", workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
 }
 
 func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Context, error) {
-	return createNewWorkspace(ctx, "new-community", workspacesv1alpha1.WorkspaceVisibilityCommunity)
+	return createNewWorkspace(ctx, "new-community", workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 }
 
-func createNewWorkspace(ctx context.Context, name string, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+func createNewWorkspace(ctx context.Context, name string, visibility workspacesv1alpha1.InternalWorkspaceVisibility) (context.Context, error) {
 	u := tcontext.RetrieveUser(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
@@ -54,14 +54,14 @@ func whenAWorkspaceIsCreatedForUser(ctx context.Context) (context.Context, error
 }
 
 func whenOwnerChangesVisibilityToCommunity(ctx context.Context) (context.Context, error) {
-	return ownerChangesVisibilityTo(ctx, workspacesv1alpha1.WorkspaceVisibilityCommunity)
+	return ownerChangesVisibilityTo(ctx, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 }
 
 func whenOwnerChangesVisibilityToPrivate(ctx context.Context) (context.Context, error) {
-	return ownerChangesVisibilityTo(ctx, workspacesv1alpha1.WorkspaceVisibilityPrivate)
+	return ownerChangesVisibilityTo(ctx, workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
 }
 
-func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1.InternalWorkspaceVisibility) (context.Context, error) {
 	w := tcontext.RetrieveWorkspace(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 
@@ -79,13 +79,13 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 	return tcontext.InjectWorkspace(ctx, w), nil
 }
 
-func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name, user string, visibility workspacesv1alpha1.WorkspaceVisibility) (*workspacesv1alpha1.Workspace, error) {
-	w := workspacesv1alpha1.Workspace{
+func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name, user string, visibility workspacesv1alpha1.InternalWorkspaceVisibility) (*workspacesv1alpha1.InternalWorkspace, error) {
+	w := workspacesv1alpha1.InternalWorkspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: workspacesv1alpha1.WorkspaceSpec{
+		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 			Visibility: visibility,
 			Owner:      workspacesv1alpha1.Owner{Id: user},
 		},
