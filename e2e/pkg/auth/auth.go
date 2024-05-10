@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
 	corev1 "k8s.io/api/core/v1"
@@ -24,8 +25,14 @@ func BuildJwtForUser(ctx context.Context, user string) (string, error) {
 	}
 
 	block, _ := pem.Decode(s.Data["private"])
-	parseResult, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
-	key := parseResult.(*rsa.PrivateKey)
+	parseResult, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+	key, ok := parseResult.(*rsa.PrivateKey)
+	if !ok {
+		return "", fmt.Errorf("Failed to retrieve RSA private key")
+	}
 
 	return jwt.NewWithClaims(jwt.SigningMethodRS512,
 		jwt.MapClaims{
