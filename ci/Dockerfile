@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:latest
+FROM registry.access.redhat.com/ubi9/ubi:latest
 ENV LANG=en_US.utf8 \
     GOPATH=/tmp/go \
     GOCACHE=/tmp/.cache \
