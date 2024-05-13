@@ -31,7 +31,7 @@ func BuildJwtForUser(ctx context.Context, user string) (string, error) {
 	}
 	key, ok := parseResult.(*rsa.PrivateKey)
 	if !ok {
-		return "", fmt.Errorf("Failed to retrieve RSA private key")
+		return "", fmt.Errorf("failed to retrieve RSA private key")
 	}
 
 	return jwt.NewWithClaims(jwt.SigningMethodRS512,
