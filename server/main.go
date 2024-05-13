@@ -7,10 +7,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/persistence/kube"
 	"github.com/konflux-workspaces/workspaces/server/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const DefaultAddr string = ":8080"
@@ -26,6 +28,7 @@ func main() {
 
 func run() error {
 	l := slog.Default()
+	log.SetLogger(logr.FromSlogHandler(l.Handler()))
 
 	// fetch configuration
 	wns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
