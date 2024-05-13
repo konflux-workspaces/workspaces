@@ -50,7 +50,7 @@ jobs:
           echo "version=$(go mod edit -json | jq '.Require | map(select(.Path == "github.com/golangci/golangci-lint"))[].Version')" >> $GITHUB_OUTPUT
 
       - name: Lint with golang-ci
-        uses: golangci/golangci-lint-action@v5
+        uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ steps.golangci_version.version }}
           working-directory: server
