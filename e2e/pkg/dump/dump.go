@@ -2,6 +2,7 @@ package dump
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -27,10 +28,14 @@ var resourcesToDump = func() []client.ObjectList {
 
 func DumpAll(ctx context.Context) error {
 	rr := resourcesToDump()
+
+	errs := []error{}
 	for _, r := range rr {
-		dumpResourceInAllNamespaces(ctx, r)
+		err := dumpResourceInAllNamespaces(ctx, r)
+		errs = append(errs, err)
 	}
-	return nil
+
+	return errors.Join(errs...)
 }
 
 func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList) error {
