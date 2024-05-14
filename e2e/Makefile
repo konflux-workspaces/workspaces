@@ -10,6 +10,8 @@ OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
 
+USE_INSECURE_TLS ?= false
+
 .PHONY: vet
 vet:
 	$(GO) vet ./...
@@ -55,6 +57,7 @@ test: vet clean
 	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
 	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
+		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
 		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
