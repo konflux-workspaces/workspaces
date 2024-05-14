@@ -9,6 +9,7 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 )
 
+// SpaceKey comprises a Space name, with a mandatory owner.
 type SpaceKey struct {
 	Owner string
 	Name  string
@@ -21,6 +22,7 @@ type Client struct {
 	workspacesNamespace string
 }
 
+// New creates a client that uses the provided backend as source
 func New(backend client.Reader, workspacesNamespace, kubesawNamespace string) *Client {
 	return &Client{
 		backend:             backend,

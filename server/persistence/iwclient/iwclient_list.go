@@ -11,6 +11,7 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 )
 
+// ListAsUser lists all the community workspaces together with the ones the user is allowed access to
 func (c *Client) ListAsUser(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
 	// list community workspaces
 	ww := workspacesv1alpha1.InternalWorkspaceList{}

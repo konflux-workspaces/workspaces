@@ -16,6 +16,7 @@ var (
 	ErrMoreThanOneFound  error = fmt.Errorf("more than one workspace found")
 )
 
+// GetAsUser retrieves the requested workspace if and only if it is community or `user` is allowed access to
 func (c *Client) GetAsUser(
 	ctx context.Context,
 	user string,
