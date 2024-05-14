@@ -28,8 +28,6 @@ var _ = Describe("Read", func() {
 		ctx = context.Background()
 	})
 
-	// TODO: add workspace with invalid labels
-
 	When("no SpaceBinding exists for a workspace", func() {
 		// given
 		c = buildCache(wsns, ksns,
@@ -225,55 +223,6 @@ var _ = Describe("Read", func() {
 			}
 		})
 	})
-
-	// TODO: disabled because we are not caching namespaces in internal/cache
-	//
-	// When("workspace is created outside monitored namespaces", func() {
-	// 	BeforeEach(func() {
-	// 		wName := "owner-ws"
-	// 		fakeGenWName := wName + "-jjdjk"
-	// 		c = buildCache(wsns, ksns,
-	// 			&workspacesv1alpha1.InternalWorkspace{
-	// 				ObjectMeta: metav1.ObjectMeta{
-	// 					Name:      fakeGenWName,
-	// 					Namespace: "not-monitored",
-	// 					Labels: map[string]string{
-	// 						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-	// 						workspacesv1alpha1.LabelDisplayName:    wName,
-	// 					},
-	// 				},
-	// 			},
-	// 			&toolchainv1alpha1.SpaceBinding{
-	// 				ObjectMeta: metav1.ObjectMeta{
-	// 					Name:      "owner-sb",
-	// 					Namespace: ksns,
-	// 					Labels: map[string]string{
-	// 						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
-	// 						toolchainv1alpha1.SpaceBindingSpaceLabelKey:            fakeGenWName,
-	// 					},
-	// 				},
-	// 				Spec: toolchainv1alpha1.SpaceBindingSpec{
-	// 					MasterUserRecord: "owner-user",
-	// 					SpaceRole:        "admin",
-	// 					Space:            fakeGenWName,
-	// 				},
-	// 			},
-	// 		)
-	// 	})
-
-	// 	It("is not returned in read", func() {
-	// 		// when
-	// 		var w workspacesv1alpha1.InternalWorkspace
-	// 		key := iwclient.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
-	// 		err := c.GetAsUser(ctx, "owner-user", key, &w)
-
-	// 		// then
-	// 		Expect(err).To(HaveOccurred())
-	// 		Expect(errors.Is(err, iwclient.ErrUnauthorized)).To(BeTrue())
-	// 	})
-
-	// 	// TODO: iwclient.ErrMoreThanOneFound
-	// })
 
 	// workspace shared with user
 	When("workspace is shared with other users", func() {
