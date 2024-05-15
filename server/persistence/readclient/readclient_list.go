@@ -11,10 +11,10 @@ import (
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace/v2"
 )
 
-// TODO(filariow): enable this after merging changes to `core/workspace`
-// var _ workspace.WorkspaceLister = &ReadClient{}
+var _ workspace.WorkspaceLister = &ReadClient{}
 
 // ListUserWorkspaces Returns all the workspaces the user has access to
 func (c *ReadClient) ListUserWorkspaces(

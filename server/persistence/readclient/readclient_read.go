@@ -8,12 +8,12 @@ import (
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace/v2"
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 )
 
-// TODO(filariow): enable this after merging changes to `core/workspace`
-// var _ workspace.WorkspaceReader = &ReadClient{}
+var _ workspace.WorkspaceReader = &ReadClient{}
 
 // ReadUserWorkspace returns the Workspace details only if the user has access to it
 func (c *ReadClient) ReadUserWorkspace(
