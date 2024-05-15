@@ -4,9 +4,10 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/konflux-workspaces/workspaces/server/log"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
 func TestWriteclient(t *testing.T) {

@@ -5,11 +5,11 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
-	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
-
 	"github.com/konflux-workspaces/workspaces/server/core/workspace/v2"
 	"github.com/konflux-workspaces/workspaces/server/log"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
+
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 var _ workspace.WorkspaceCreator = &WriteClient{}
