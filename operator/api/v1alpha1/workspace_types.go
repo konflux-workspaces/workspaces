@@ -28,8 +28,10 @@ const (
 )
 
 const (
-	LabelHomeWorkspace  string = "workspaces.io/home-workspace"
-	LabelWorkspaceOwner string = "workspaces.io/owner"
+	LabelInternalDomain string = "internal.workspaces.konflux.io/"
+	LabelHomeWorkspace  string = LabelInternalDomain + "home-workspace"
+	LabelWorkspaceOwner string = LabelInternalDomain + "owner"
+	LabelDisplayName    string = LabelInternalDomain + "display-name"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
