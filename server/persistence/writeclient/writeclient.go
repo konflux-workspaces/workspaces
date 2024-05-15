@@ -11,14 +11,19 @@ import (
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
-type BuildClientFunc func(string) (client.Client, error)
+// BuildClientFunc defines a function that builds a controller-runtime client
+// that impersonates the given user
+type BuildClientFunc func(user string) (client.Client, error)
 
+// WriteClient implements Write primitives on Workspaces.
+// Creates or updates InternalWorkspaces starting from a request on Workspaces.
 type WriteClient struct {
 	buildClient         BuildClientFunc
 	workspacesNamespace string
 	workspacesReader    *iwclient.Client
 }
 
+// New creates a new WriteClient
 func New(buildClient BuildClientFunc, workspacesNamespace string, workspacesReader *iwclient.Client) *WriteClient {
 	return &WriteClient{
 		buildClient:         buildClient,
@@ -27,8 +32,11 @@ func New(buildClient BuildClientFunc, workspacesNamespace string, workspacesRead
 	}
 }
 
-func BuildClient(config *rest.Config) BuildClientFunc {
+// BuildBuildClientFuncForConfig provides a configured BuildClientFunc for building a controller-runtime client
+// for a given cluster and impersonating an user
+func BuildBuildClientFuncForConfig(config *rest.Config) BuildClientFunc {
 	newConfig := rest.CopyConfig(config)
+
 	return func(user string) (client.Client, error) {
 		newConfig.Impersonate.UserName = user
 
@@ -40,8 +48,6 @@ func BuildClient(config *rest.Config) BuildClientFunc {
 			return nil, err
 		}
 
-		return client.New(newConfig, client.Options{
-			Scheme: s,
-		})
+		return client.New(newConfig, client.Options{Scheme: s})
 	}
 }

@@ -14,6 +14,7 @@ import (
 
 var _ workspace.WorkspaceCreator = &WriteClient{}
 
+// CreateUserWorkspace creates as `user` the InternalWorkspace representing the provided Workspace
 func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, workspace *restworkspacesv1alpha1.Workspace, opts ...client.CreateOption) error {
 	cli, err := c.buildClient(user)
 	if err != nil {

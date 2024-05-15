@@ -17,6 +17,7 @@ import (
 
 var _ workspace.WorkspaceUpdater = &WriteClient{}
 
+// UpdateUserWorkspace updates as `user` the InternalWorkspace representing the provided Workspace
 func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, workspace *restworkspacesv1alpha1.Workspace, opts ...client.UpdateOption) error {
 	// build client impersonating the user
 	cli, err := c.buildClient(user)

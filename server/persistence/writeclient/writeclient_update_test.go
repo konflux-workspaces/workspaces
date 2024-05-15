@@ -106,6 +106,7 @@ var _ = Describe("WriteclientUpdate", func() {
 			Expect(kerrors.IsNotFound(err)).To(BeTrue())
 		})
 	})
+
 	When("updating a owned workspace", func() {
 		BeforeEach(func() {
 			internalWorkspace := workspacesv1alpha1.InternalWorkspace{
