@@ -6,6 +6,8 @@ $(LOCALBIN):
 GO ?= go
 LD_FLAGS ?= -s -w
 
+IMAGE_BUILDER ?= docker
+
 IMG ?= workspaces/rest-api:latest
 NAMESPACE ?= workspaces-system
 
@@ -119,7 +121,7 @@ test-with-coverage: generate-code
 
 .PHONY: docker-build
 docker-build:
-	docker build -t ${IMG} -f Dockerfile ..
+	$(IMAGE_BUILDER) build -t ${IMG} -f Dockerfile ..
 
 .PHONY: deploy
 deploy: kustomize yq
