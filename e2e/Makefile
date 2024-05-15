@@ -9,6 +9,8 @@ QUAY_NAMESPACE ?= workspaces
 OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
+IMAGE_BUILDER ?= docker
+export IMAGE_BUILDER
 
 .PHONY: vet
 vet:
@@ -16,13 +18,13 @@ vet:
 
 .PHONY: build-images
 build-images:
-	IMG=$(OPERATOR_IMG) make -C ../operator/ docker-build
-	IMG=$(SERVER_IMG) make -C ../server/ docker-build
+	IMG=$(OPERATOR_IMG) $(MAKE) -C ../operator/ docker-build
+	IMG=$(SERVER_IMG) $(MAKE) -C ../server/ docker-build
 
 .PHONY: push-images
 push-images:
-	docker push $(OPERATOR_IMG) 
-	docker push $(SERVER_IMG)
+	$(IMAGE_BUILDER) push $(OPERATOR_IMG)
+	$(IMAGE_BUILDER) push $(SERVER_IMG)
 
 .PHONY: deploy-operator
 deploy-operator:
