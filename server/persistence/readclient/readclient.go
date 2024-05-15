@@ -40,6 +40,7 @@ type ReadClient struct {
 }
 
 // NewDefaultWithCache creates a controller-runtime cache and use it as KubeReadClient's backend.
+// It also uses the default InternalWorkspaces/Workspaces mapper.
 func NewDefaultWithCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesawNamespace string) (*ReadClient, cache.Cache, error) {
 	c, err := icache.NewCache(ctx, cfg, workspacesNamespace, kubesawNamespace)
 	if err != nil {
@@ -50,11 +51,12 @@ func NewDefaultWithCache(ctx context.Context, cfg *rest.Config, workspacesNamesp
 	return NewDefaultWithInternalClient(internalClient), c, nil
 }
 
-// NewDefaultWithInternalClient creates a new KubeReadClient with the provided backend
+// NewDefaultWithInternalClient creates a new KubeReadClient with the provided backend and default InternalWorkspaces/Workspaces mapper
 func NewDefaultWithInternalClient(internalClient InternalWorkspacesReadClient) *ReadClient {
 	return New(internalClient, mapper.Default)
 }
 
+// New creates a new KubeReadClient with the provided backend and a custom InternalWorkspaces/Workspaces mapper
 func New(internalClient InternalWorkspacesReadClient, mapper InternalWorkspacesMapper) *ReadClient {
 	return &ReadClient{
 		internalClient: internalClient,
