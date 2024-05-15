@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,18 +17,16 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-var resourcesToDump = func() []client.ObjectList {
-	return []client.ObjectList{
-		&workspacesv1alpha1.InternalWorkspaceList{},
-		&toolchainv1alpha1.UserSignupList{},
-		&toolchainv1alpha1.MasterUserRecordList{},
-		&toolchainv1alpha1.SpaceList{},
-		&toolchainv1alpha1.SpaceBindingList{},
-	}
+var resourcesToDump = []client.ObjectList{
+	&workspacesv1alpha1.InternalWorkspaceList{},
+	&toolchainv1alpha1.UserSignupList{},
+	&toolchainv1alpha1.MasterUserRecordList{},
+	&toolchainv1alpha1.SpaceList{},
+	&toolchainv1alpha1.SpaceBindingList{},
 }
 
 func DumpAll(ctx context.Context) error {
-	rr := resourcesToDump()
+	rr := slices.Clone(resourcesToDump)
 
 	errs := []error{}
 	for _, r := range rr {
