@@ -41,13 +41,19 @@ function publish {
 }
 
 function deploy {
-    clone "${TOOLCHAIN_E2E_REPO}" "${TOOLCHAIN_E2E_BRANCH}"
+    clone "${HOST_OPERATOR_REPO}"        "${HOST_OPERATOR_BRANCH}"
+    clone "${MEMBER_OPERATOR_REPO}"      "${MEMBER_OPERATOR_BRANCH}"
+    clone "${TOOLCHAIN_E2E_REPO}"        "${TOOLCHAIN_E2E_BRANCH}"
+    clone "${REGISTRATION_SERVICE_REPO}" "${REGISTRATION_SERVICE_BRANCH}"
 
     make -C toolchain-e2e deploy-published-operators-e2e \
         FORCED_TAG="${TAG}" \
         QUAY_NAMESPACE="${QUAY_NAMESPACE}" \
         SECOND_MEMBER_MODE=false \
         CI=true \
+        REG_REPO_PATH=../registration-service \
+        HOST_REPO_PATH=../host-operator \
+        MEMBER_REPO_PATH=../member-operator \
         HOST_NS=toolchain-host-operator \
         MEMBER_NS=toolchain-member-operator
 
