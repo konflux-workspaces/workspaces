@@ -3,8 +3,9 @@ package workspace
 import (
 	"context"
 
-	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 // WorkspaceCreator is the interface the data source needs to implement to allow the CreateWorkspaceHandler to properly create the workspace
