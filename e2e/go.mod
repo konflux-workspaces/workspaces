@@ -7,6 +7,7 @@ require (
 	github.com/cucumber/godog v0.14.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
+	github.com/konflux-workspaces/workspaces/server v0.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
@@ -77,3 +78,5 @@ require (
 )
 
 replace github.com/konflux-workspaces/workspaces/operator => ../operator
+
+replace github.com/konflux-workspaces/workspaces/server => ../server
