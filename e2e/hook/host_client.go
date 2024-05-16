@@ -19,6 +19,7 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
@@ -38,6 +39,7 @@ func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context,
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(restworkspacesiov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(toolchainv1alpha1.AddToScheme(scheme))
 
 	c, err := client.New(cfg, client.Options{Scheme: scheme})
