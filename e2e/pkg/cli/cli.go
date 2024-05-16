@@ -49,7 +49,9 @@ func (c *Cli) List(ctx context.Context, list client.ObjectList, opts ...client.L
 // Create saves the object obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
 func (c *Cli) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
-	obj.SetName(c.EnsurePrefix(obj.GetName()))
+	if obj.GetName() != "" {
+		obj.SetName(c.EnsurePrefix(obj.GetName()))
+	}
 	return c.Client.Create(ctx, obj, opts...)
 }
 
