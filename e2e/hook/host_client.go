@@ -38,7 +38,7 @@ func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context,
 
 	c, err := client.New(cfg, client.Options{Scheme: scheme})
 	if err != nil {
-		return nil, fmt.Errorf("error building config: %v", err)
+		return nil, fmt.Errorf("error building client: %v", err)
 	}
 
 	tc := cli.New(c, sc.Id)
