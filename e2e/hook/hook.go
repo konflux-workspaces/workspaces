@@ -19,6 +19,7 @@ func injectHookSetup(ctx *godog.ScenarioContext) {
 }
 
 func injectHookCleanup(ctx *godog.ScenarioContext) {
+	ctx.After(dumpResources)
 	ctx.After(deleteTestNamespace)
 	ctx.After(deleteResources)
 }
