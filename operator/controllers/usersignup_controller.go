@@ -82,6 +82,7 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		}
 		ll[workspacesv1alpha1.LabelHomeWorkspace] = u.Name
 		ll[workspacesv1alpha1.LabelWorkspaceOwner] = u.Name
+		ll[workspacesv1alpha1.LabelDisplayName] = "default"
 		w.Labels = ll
 
 		w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
