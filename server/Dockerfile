@@ -15,6 +15,7 @@ RUN go -C server mod download
 
 # Copy the go source
 COPY server/main.go server/main.go
+COPY server/api server/api
 COPY server/core/ server/core/
 COPY server/rest/ server/rest/
 COPY server/log/ server/log/
