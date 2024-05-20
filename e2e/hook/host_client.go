@@ -30,6 +30,8 @@ func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context,
 		return nil, fmt.Errorf("error building config: %v", err)
 	}
 
+	ProcessConfig(cfg)
+
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))

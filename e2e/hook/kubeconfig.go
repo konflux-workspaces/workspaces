@@ -6,7 +6,6 @@ import (
 
 	"github.com/cucumber/godog"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -21,18 +20,6 @@ func injectUnauthKubeconfig(ctx context.Context, sc *godog.Scenario) (context.Co
 		return nil, fmt.Errorf("error building config: %v", err)
 	}
 
-	c := &rest.Config{
-		ContentConfig: cfg.ContentConfig,
-		Host:          cfg.Host,
-		APIPath:       cfg.APIPath,
-		TLSClientConfig: rest.TLSClientConfig{
-			CAFile:     cfg.CAFile,
-			CAData:     cfg.CAData,
-			ServerName: cfg.ServerName,
-			Insecure:   cfg.Insecure,
-		},
-		Timeout: cfg.Timeout,
-	}
-
-	return tcontext.InjectUnauthKubeconfig(ctx, c), nil
+	ProcessConfig(cfg)
+	return tcontext.InjectUnauthKubeconfig(ctx, cfg), nil
 }
