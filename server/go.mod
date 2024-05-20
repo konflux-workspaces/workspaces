@@ -4,6 +4,7 @@ go 1.22.2
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
+	github.com/go-logr/logr v1.4.1
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.17.3
 	github.com/onsi/gomega v1.33.1
@@ -19,7 +20,6 @@ require (
 	github.com/emicklei/go-restful/v3 v3.11.2 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/jsonreference v0.20.4 // indirect
 	github.com/go-openapi/swag v0.22.9 // indirect
