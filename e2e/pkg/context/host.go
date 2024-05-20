@@ -19,7 +19,7 @@ const (
 	keyScenarioId                ContextKey = "scenario-id"
 	keyKubespaceNamespace        ContextKey = "kubespace-namespace"
 	keyWorkspacesNamespace       ContextKey = "workspaces-namespace"
-	keyWorkspace                 ContextKey = "default-workspace"
+	keyInternalWorkspace         ContextKey = "default-internal-workspace"
 	keyUser                      ContextKey = "default-user"
 	keyUserWorkspaces            ContextKey = "workspaces"
 
@@ -72,12 +72,16 @@ func RetrieveTestNamespace(ctx context.Context) string {
 }
 
 // Default Workspace
-func InjectWorkspace(ctx context.Context, w workspacesv1alpha1.InternalWorkspace) context.Context {
-	return context.WithValue(ctx, keyWorkspace, w)
+func InjectInternalWorkspace(ctx context.Context, w workspacesv1alpha1.InternalWorkspace) context.Context {
+	return context.WithValue(ctx, keyInternalWorkspace, w)
 }
 
-func RetrieveWorkspace(ctx context.Context) workspacesv1alpha1.InternalWorkspace {
-	return get[workspacesv1alpha1.InternalWorkspace](ctx, keyWorkspace)
+func RetrieveInternalWorkspace(ctx context.Context) workspacesv1alpha1.InternalWorkspace {
+	return get[workspacesv1alpha1.InternalWorkspace](ctx, keyInternalWorkspace)
+}
+
+func LookupInternalWorkspace(ctx context.Context) (workspacesv1alpha1.InternalWorkspace, bool) {
+	return lookup[workspacesv1alpha1.InternalWorkspace](ctx, keyInternalWorkspace)
 }
 
 // Default User
@@ -109,10 +113,15 @@ func RetrieveScenarioId(ctx context.Context) string {
 
 // auxiliary
 func get[T any](ctx context.Context, key ContextKey) T {
-	v, ok := ctx.Value(key).(T)
+	v, ok := lookup[T](ctx, key)
 	if !ok {
 		panic(fmt.Sprintf("%s: %s", msgNotFound, key))
 	}
 
 	return v
+}
+
+func lookup[T any](ctx context.Context, key ContextKey) (T, bool) {
+	v, ok := ctx.Value(key).(T)
+	return v, ok
 }
