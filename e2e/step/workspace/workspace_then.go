@@ -54,24 +54,24 @@ func thenTheWorkspaceIsReadableOnlyForGranted(ctx context.Context) error {
 func thenTheWorkspaceIsReadableForEveryone(ctx context.Context) error {
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 
 	return workspaceIsReadableForEveryone(ctx, cli, ns, w.Name)
 }
 
 func thenACommunityWorkspaceIsCreated(ctx context.Context) error {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 }
 
 func thenAPrivateWorkspaceIsCreated(ctx context.Context) error {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
 }
 
 func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 	cli := tcontext.RetrieveHostClient(ctx)
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	u := tcontext.RetrieveUser(ctx)
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
@@ -101,7 +101,7 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 }
 
 func thenTheWorkspaceVisibilityIsSetTo(ctx context.Context, visibility string) error {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 
 	if w.Spec.Visibility != workspacesv1alpha1.InternalWorkspaceVisibility(visibility) {
 		return fmt.Errorf(`expected visibility "%s", found "%s"`, visibility, w.Spec.Visibility)
@@ -138,10 +138,9 @@ func workspaceIsReadableForEveryone(ctx context.Context, cli cli.Cli, namespace,
 }
 
 func thenTheWorkspaceVisibilityIsUpdatedTo(ctx context.Context, visibility string) error {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 	wk := client.ObjectKeyFromObject(&w)
-
 	return wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true, func(ctx context.Context) (done bool, err error) {
 		if err := cli.Get(ctx, wk, &w); err != nil {
 			return false, err

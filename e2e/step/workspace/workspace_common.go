@@ -22,7 +22,7 @@ func defaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, err
 		return ctx, err
 	}
 
-	return tcontext.InjectWorkspace(ctx, *w), nil
+	return tcontext.InjectInternalWorkspace(ctx, *w), nil
 }
 
 func createUserSignupAndWaitForWorkspace(
