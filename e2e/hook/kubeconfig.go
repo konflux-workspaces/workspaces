@@ -16,5 +16,10 @@ func injectUnauthKubeconfig(ctx context.Context, sc *godog.Scenario) (context.Co
 		return nil, fmt.Errorf("error building unauthenticated config: %v", err)
 	}
 
+	cfg.KeyData = nil
+	cfg.KeyFile = ""
+	cfg.BearerToken = ""
+	cfg.BearerTokenFile = ""
+
 	return tcontext.InjectUnauthKubeconfig(ctx, cfg), nil
 }
