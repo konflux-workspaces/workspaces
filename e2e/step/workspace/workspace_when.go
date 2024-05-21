@@ -31,7 +31,7 @@ func createNewWorkspace(ctx context.Context, name string, visibility workspacesv
 	if err != nil {
 		return ctx, err
 	}
-	return tcontext.InjectWorkspace(ctx, *w), nil
+	return tcontext.InjectInternalWorkspace(ctx, *w), nil
 }
 
 func whenAWorkspaceIsCreatedForUser(ctx context.Context) (context.Context, error) {
@@ -49,7 +49,7 @@ func whenAWorkspaceIsCreatedForUser(ctx context.Context) (context.Context, error
 	}
 
 	ctx = tcontext.InjectUser(ctx, *u)
-	ctx = tcontext.InjectWorkspace(ctx, *w)
+	ctx = tcontext.InjectInternalWorkspace(ctx, *w)
 	return ctx, nil
 }
 
@@ -62,7 +62,7 @@ func whenOwnerChangesVisibilityToPrivate(ctx context.Context) (context.Context, 
 }
 
 func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1.InternalWorkspaceVisibility) (context.Context, error) {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	cli := tcontext.RetrieveHostClient(ctx)
 
 	_, err := controllerutil.CreateOrUpdate(ctx, &cli, &w, func() error {
@@ -76,7 +76,7 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 		return nil, err
 	}
 
-	return tcontext.InjectWorkspace(ctx, w), nil
+	return tcontext.InjectInternalWorkspace(ctx, w), nil
 }
 
 func createWorkspace(ctx context.Context, cli cli.Cli, namespace, name, user string, visibility workspacesv1alpha1.InternalWorkspaceVisibility) (*workspacesv1alpha1.InternalWorkspace, error) {

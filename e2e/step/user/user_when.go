@@ -62,7 +62,7 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, u.Status.CompliantUsername, err)
 	}
 	log.Printf("retrieved workspace: %v", w)
-	return tcontext.InjectWorkspace(ctx, w), nil
+	return tcontext.InjectInternalWorkspace(ctx, w), nil
 }
 
 func buildWorkspacesClient(ctx context.Context) (client.Client, error) {
@@ -122,7 +122,7 @@ func buildRESTMapper() (meta.RESTMapper, error) {
 }
 
 func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 
 	cli, err := buildWorkspacesClient(ctx)
 	if err != nil {
@@ -133,5 +133,5 @@ func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility str
 	if err := cli.Update(ctx, &w, &client.UpdateOptions{}); err != nil {
 		return ctx, err
 	}
-	return tcontext.InjectWorkspace(ctx, w), nil
+	return tcontext.InjectInternalWorkspace(ctx, w), nil
 }

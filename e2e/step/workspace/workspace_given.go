@@ -22,7 +22,7 @@ func givenAPrivateWorkspaceExists(ctx context.Context) (context.Context, error) 
 	}
 
 	ctx = tcontext.InjectUser(ctx, *u)
-	ctx = tcontext.InjectWorkspace(ctx, *w)
+	ctx = tcontext.InjectInternalWorkspace(ctx, *w)
 	return ctx, nil
 }
 
@@ -45,6 +45,6 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 	}
 
 	ctx = tcontext.InjectUser(ctx, *u)
-	ctx = tcontext.InjectWorkspace(ctx, *w)
+	ctx = tcontext.InjectInternalWorkspace(ctx, *w)
 	return ctx, nil
 }

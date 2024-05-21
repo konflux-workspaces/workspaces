@@ -9,7 +9,7 @@ import (
 )
 
 func thenTheUserRetrievesTheirDefaultWorkspace(ctx context.Context) (context.Context, error) {
-	w := tcontext.RetrieveWorkspace(ctx)
+	w := tcontext.RetrieveInternalWorkspace(ctx)
 	u := tcontext.RetrieveUser(ctx)
 
 	errs := []error{}
