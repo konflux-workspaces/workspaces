@@ -13,7 +13,7 @@ import (
 func injectUnauthKubeconfig(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	cfg, err := wrest.NewDefaultClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error building config: %v", err)
+		return nil, fmt.Errorf("error building unauthenticated config: %v", err)
 	}
 
 	return tcontext.InjectUnauthKubeconfig(ctx, cfg), nil
