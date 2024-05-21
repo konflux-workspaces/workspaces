@@ -9,7 +9,11 @@ import (
 const envVarUseInsecure string = "E2E_USE_INSECURE_TLS"
 
 func setTLSFromEnv(cfg *rest.Config) {
-	cfg.Insecure = os.Getenv(envVarUseInsecure) != "false"
+	if os.Getenv(envVarUseInsecure) != "false" {
+		cfg.Insecure = true
+		cfg.CAData = nil
+		cfg.CAFile = ""
+	}
 }
 
 type configMutationFunc func(*rest.Config)
