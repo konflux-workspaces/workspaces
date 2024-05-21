@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/konflux-workspaces/workspaces/e2e/hook/internal"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 
@@ -30,7 +31,7 @@ func injectHostClient(ctx context.Context, sc *godog.Scenario) (context.Context,
 		return nil, fmt.Errorf("error building config: %v", err)
 	}
 
-	ProcessConfig(cfg)
+	internal.MutateConfig(cfg)
 
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))

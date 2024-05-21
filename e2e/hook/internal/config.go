@@ -1,4 +1,4 @@
-package hook
+package internal
 
 import (
 	"os"
@@ -18,7 +18,11 @@ var mutationFuncs = []configMutationFunc{
 	setTLSFromEnv,
 }
 
-func ProcessConfig(cfg *rest.Config) {
+// MutateConfig adjusts a pre-populated rest.Config to adapt to the
+// configuration we've been given from the environment.  For now, this only
+// disables TLS validation if the environment variable `E2E_USE_INSECURE_TLS`
+// is set.
+func MutateConfig(cfg *rest.Config) {
 	for _, f := range mutationFuncs {
 		f(cfg)
 	}
