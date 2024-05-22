@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"os"
@@ -49,22 +50,18 @@ func deleteTestNamespace(ctx context.Context, sc *godog.Scenario, err error) (co
 
 // Workspace Namespace
 func injectWorkspacesNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-	ns, ok := os.LookupEnv("WORKSPACES_NAMESPACE")
-	if !ok {
-		ns := tcontext.RetrieveTestNamespace(ctx)
-		return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
-	}
-
+	ns := cmp.Or(
+		os.Getenv("WORKSPACES_NAMESPACE"),
+		tcontext.RetrieveTestNamespace(ctx),
+	)
 	return tcontext.InjectWorkspacesNamespace(ctx, ns), nil
 }
 
 // Kubespace Namespace
 func injectKubespaceNamespace(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-	ns, ok := os.LookupEnv("KUBESPACE_NAMESPACE")
-	if !ok {
-		ns := tcontext.RetrieveTestNamespace(ctx)
-		return tcontext.InjectKubespaceNamespace(ctx, ns), nil
-	}
-
+	ns := cmp.Or(
+		os.Getenv("KUBESPACE_NAMESPACE"),
+		tcontext.RetrieveTestNamespace(ctx),
+	)
 	return tcontext.InjectKubespaceNamespace(ctx, ns), nil
 }
