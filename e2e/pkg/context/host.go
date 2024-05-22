@@ -109,7 +109,7 @@ func LookupUserWorkspace(ctx context.Context) (restworkspacesv1alpha1.Workspace,
 	return lookup[restworkspacesv1alpha1.Workspace](ctx, keyUserWorkspace)
 }
 
-func InjectUserWorkspaces(ctx context.Context, ww restworkspacesv1alpha1.WorkspaceList) context.Context {
+func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.InternalWorkspaceList) context.Context {
 	return context.WithValue(ctx, keyUserWorkspaces, ww)
 }
 
