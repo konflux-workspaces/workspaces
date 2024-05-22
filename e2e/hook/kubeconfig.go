@@ -5,22 +5,21 @@ import (
 	"fmt"
 
 	"github.com/cucumber/godog"
-	"github.com/konflux-workspaces/workspaces/e2e/hook/internal"
+
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
-	"k8s.io/client-go/tools/clientcmd"
+	wrest "github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 )
 
 func injectUnauthKubeconfig(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-	apiConfig, err := clientcmd.NewDefaultClientConfigLoadingRules().Load()
+	cfg, err := wrest.NewDefaultClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error building config: %v", err)
+		return nil, fmt.Errorf("error building unauthenticated config: %v", err)
 	}
 
-	cfg, err := clientcmd.NewDefaultClientConfig(*apiConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, fmt.Errorf("error building config: %v", err)
-	}
+	cfg.KeyData = nil
+	cfg.KeyFile = ""
+	cfg.BearerToken = ""
+	cfg.BearerTokenFile = ""
 
-	internal.MutateConfig(cfg)
 	return tcontext.InjectUnauthKubeconfig(ctx, cfg), nil
 }
