@@ -3,7 +3,10 @@
 set -e
 
 # parse input
-BRANCH=${BRANCH:-pubviewer-mvp}
+HOST_BRANCH=${HOST_BRANCH:-pv-531-sbcleanup}
+E2E_BRANCH=${E2E_BRANCH:-pv-532-proxy}
+REGSVC_BRANCH=${REGSVC_BRANCH:-pv-532-proxy}
+
 export QUAY_NAMESPACE=${QUAY_NAMESPACE:-konflux-workspaces}
 TAG=${1:-e2etest}
 KUBECLI=${KUBECLI:-kubectl}
@@ -14,11 +17,9 @@ cd "${f}"
 
 # checkout
 git clone --depth 2 https://github.com/codeready-toolchain/member-operator.git
-git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/toolchain-e2e.git
-git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/host-operator.git
-git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/toolchain-common.git
-git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/toolchain-api.git api
-git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registration-service
+git clone --depth 2 --branch "${E2E_BRANCH}" https://github.com/filariow/toolchain-e2e.git
+git clone --depth 2 --branch "${HOST_BRANCH}" https://github.com/filariow/host-operator.git
+git clone --depth 2 --branch "${REGSVC_BRANCH}" https://github.com/filariow/registration-service
 
 # deploy
 (
@@ -38,7 +39,7 @@ git clone --depth 2 --branch "${BRANCH}" https://github.com/filariow/registratio
 ${KUBECLI} patch \
   toolchainconfigs.toolchain.dev.openshift.com config \
   -n toolchain-host-operator \
-  --patch='{"spec":{"publicViewer":{"username":"public-viewer"}}}' \
+  --patch='{"spec":{"publicViewerConfig":{"enabled":true}}}' \
   --type=merge
 
 # restart operator
