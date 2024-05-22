@@ -42,6 +42,11 @@ spec:
             configMapKeyRef:
               name: rest-api-server-config
               key: kubesaw.namespace
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: rest-api-server-config
+              key: log.level
         - name: WORKSPACES_NAMESPACE
           valueFrom:
             fieldRef:
