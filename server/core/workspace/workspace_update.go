@@ -28,12 +28,12 @@ type WorkspaceUpdater interface {
 
 // UpdateWorkspaceHandler processes UpdateWorkspaceCommand and returns UpdateWorkspaceResponse fetching data from a WorkspaceUpdater
 type UpdateWorkspaceHandler struct {
-	reader WorkspaceUpdater
+	updater WorkspaceUpdater
 }
 
 // NewUpdateWorkspaceHandler creates a new UpdateWorkspaceHandler that uses a specified WorkspaceUpdater
-func NewUpdateWorkspaceHandler(reader WorkspaceUpdater) *UpdateWorkspaceHandler {
-	return &UpdateWorkspaceHandler{reader: reader}
+func NewUpdateWorkspaceHandler(updater WorkspaceUpdater) *UpdateWorkspaceHandler {
+	return &UpdateWorkspaceHandler{updater: updater}
 }
 
 // Handle handles a UpdateWorkspaceCommand and returns a UpdateWorkspaceResponse or an error
@@ -51,7 +51,7 @@ func (h *UpdateWorkspaceHandler) Handle(ctx context.Context, query UpdateWorkspa
 	// data access
 	w := query.Workspace.DeepCopy()
 	opts := &client.UpdateOptions{}
-	if err := h.reader.UpdateUserWorkspace(ctx, u, w, opts); err != nil {
+	if err := h.updater.UpdateUserWorkspace(ctx, u, w, opts); err != nil {
 		return nil, err
 	}
 
