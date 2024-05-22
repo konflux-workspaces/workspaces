@@ -5,14 +5,13 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 )
@@ -56,7 +55,7 @@ func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*too
 	}
 
 	lu := toolchainv1alpha1.UserSignup{}
-	if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+	if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 		if err := cli.Get(ctx, client.ObjectKeyFromObject(&u), &lu); err != nil {
 			return false, client.IgnoreNotFound(err)
 		}
