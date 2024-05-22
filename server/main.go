@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -16,18 +17,17 @@ import (
 )
 
 const DefaultAddr string = ":8080"
+const EnvLogLevel = "LOG_LEVEL"
 
 func main() {
-	l := slog.Default()
-
-	if err := run(); err != nil {
+	l := constructLog()
+	if err := run(l); err != nil {
 		l.Error("error configuring and running the server", "error", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	l := slog.Default()
+func run(l *slog.Logger) error {
 	log.SetLogger(logr.FromSlogHandler(l.Handler()))
 
 	// fetch configuration
@@ -109,4 +109,24 @@ func run() error {
 	}
 
 	return nil
+}
+
+// constructLog constructs a new instance of the logger
+func constructLog() *slog.Logger {
+	logLevel := getLogLevel()
+
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	})
+	return slog.New(handler)
+}
+
+// getLogLevel fetches the log level from the appropriate environment variable
+func getLogLevel() slog.Level {
+	env := os.Getenv(EnvLogLevel)
+	level, err := strconv.Atoi(env)
+	if err != nil {
+		return slog.LevelError
+	}
+	return slog.Level(level)
 }

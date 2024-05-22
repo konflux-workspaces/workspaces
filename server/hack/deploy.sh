@@ -8,6 +8,7 @@ ROOT_DIR="$(realpath "${DIR}"/../..)"
 KUBECLI=${KUBECLI:-kubectl}
 KUSTOMIZE=${KUSTOMIZE:-kustomize}
 YQ=${YQ:-yq}
+SERVER_LOG_LEVEL=${SERVER_LOG_LEVEL:-0}
 
 # retrieve toolchain-host namespace
 #
@@ -52,6 +53,7 @@ ${KUSTOMIZE} edit set namespace "$1"
 ${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 ${KUSTOMIZE} edit add configmap rest-api-server-config \
         --behavior=replace \
+        --from-literal=log.level="${SERVER_LOG_LEVEL}" \
         --from-literal=kubesaw.namespace="${toolchain_host}"
 
 # apply config
