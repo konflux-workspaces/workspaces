@@ -113,8 +113,8 @@ func InjectUserWorkspaces(ctx context.Context, ww restworkspacesv1alpha1.Workspa
 	return context.WithValue(ctx, keyUserWorkspaces, ww)
 }
 
-func RetrieveUserWorkspaces(ctx context.Context) restworkspacesv1alpha1.WorkspaceList {
-	return get[restworkspacesv1alpha1.WorkspaceList](ctx, keyUserWorkspaces)
+func RetrieveUserWorkspaces(ctx context.Context) workspacesv1alpha1.InternalWorkspaceList {
+	return get[workspacesv1alpha1.InternalWorkspaceList](ctx, keyUserWorkspaces)
 }
 
 // Scenario Id
