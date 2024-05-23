@@ -169,7 +169,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 		l.Info("ensuring spacebinding exists")
 		_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 			s.Spec.Space = w.Name
-			s.Spec.MasterUserRecord = "public-viewer"
+			s.Spec.MasterUserRecord = workspacescomv1alpha1.PublicViewerName
 			s.Spec.SpaceRole = "viewer"
 			return nil
 		})
