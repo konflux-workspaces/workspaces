@@ -6,8 +6,10 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"k8s.io/client-go/rest"
+
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 type ContextKey string
@@ -20,6 +22,7 @@ const (
 	keyKubespaceNamespace        ContextKey = "kubespace-namespace"
 	keyWorkspacesNamespace       ContextKey = "workspaces-namespace"
 	keyInternalWorkspace         ContextKey = "default-internal-workspace"
+	keyUserWorkspace             ContextKey = "user-workspace"
 	keyUser                      ContextKey = "default-user"
 	keyUserWorkspaces            ContextKey = "workspaces"
 
@@ -94,6 +97,18 @@ func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
 }
 
 // Workspaces
+func InjectUserWorkspace(ctx context.Context, w restworkspacesv1alpha1.Workspace) context.Context {
+	return context.WithValue(ctx, keyUserWorkspace, w)
+}
+
+func RetrieveUserWorkspace(ctx context.Context) restworkspacesv1alpha1.Workspace {
+	return get[restworkspacesv1alpha1.Workspace](ctx, keyUserWorkspace)
+}
+
+func LookupUserWorkspace(ctx context.Context) (restworkspacesv1alpha1.Workspace, bool) {
+	return lookup[restworkspacesv1alpha1.Workspace](ctx, keyUserWorkspace)
+}
+
 func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.InternalWorkspaceList) context.Context {
 	return context.WithValue(ctx, keyUserWorkspaces, ww)
 }
