@@ -32,6 +32,11 @@ func New(buildClient BuildClientFunc, workspacesNamespace string, workspacesRead
 	}
 }
 
+// NewWithConfig creates a new WriteClient initialized with the given configuration
+func NewWithConfig(config *rest.Config, workspacesNamespace string, workspacesReader *iwclient.Client) *WriteClient {
+	return New(BuildBuildClientFuncForConfig(config), workspacesNamespace, workspacesReader)
+}
+
 // BuildBuildClientFuncForConfig provides a configured BuildClientFunc for building a controller-runtime client
 // for a given cluster and impersonating an user
 func BuildBuildClientFuncForConfig(config *rest.Config) BuildClientFunc {
