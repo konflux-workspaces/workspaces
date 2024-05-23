@@ -51,7 +51,7 @@ func (h *UpdateWorkspaceHandler) Handle(ctx context.Context, query UpdateWorkspa
 
 	// data access
 	w := query.Workspace.DeepCopy()
-	log.FromContext(ctx).Info("updating workspace", "workspace", w)
+	log.FromContext(ctx).Debug("updating workspace", "workspace", w)
 	opts := &client.UpdateOptions{}
 	if err := h.updater.UpdateUserWorkspace(ctx, u, w, opts); err != nil {
 		return nil, err
