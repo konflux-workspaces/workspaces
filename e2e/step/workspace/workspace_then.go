@@ -129,8 +129,8 @@ func workspaceIsReadableForEveryone(ctx context.Context, cli cli.Cli, namespace,
 		return fmt.Errorf("expected SpaceBinding %s to have SpaceRole %s, found %s", sb.Name, "viewer", sb.Spec.SpaceRole)
 	case name != sb.Spec.Space:
 		return fmt.Errorf("expected referenced space to be %v, found %v", name, sb.Spec.Space)
-	case "public-viewer" != sb.Spec.MasterUserRecord:
-		return fmt.Errorf("expected referenced MUR to be %v, found %v", "public-viewer", sb.Spec.MasterUserRecord)
+	case workspacesv1alpha1.PublicViewerName != sb.Spec.MasterUserRecord:
+		return fmt.Errorf("expected referenced MUR to be %v, found %v", workspacesv1alpha1.PublicViewerName, sb.Spec.MasterUserRecord)
 	default:
 		return nil
 	}
