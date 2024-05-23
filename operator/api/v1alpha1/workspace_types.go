@@ -32,6 +32,8 @@ const (
 	LabelHomeWorkspace  string = LabelInternalDomain + "home-workspace"
 	LabelWorkspaceOwner string = LabelInternalDomain + "owner"
 	LabelDisplayName    string = LabelInternalDomain + "display-name"
+
+	PublicViewerName string = "public-viewer"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
