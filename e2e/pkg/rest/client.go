@@ -62,7 +62,6 @@ func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(restworkspacesv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(toolchainv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
 
 	u := tcontext.RetrieveUser(ctx)
 	k := tcontext.RetrieveUnauthKubeconfig(ctx)
