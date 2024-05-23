@@ -110,9 +110,10 @@ func main() {
 	}
 
 	if err = (&controllers.WorkspaceReconciler{
-		Client:             mgr.GetClient(),
-		Scheme:             mgr.GetScheme(),
-		KubespaceNamespace: kns,
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
+		KubespaceNamespace:  kns,
+		WorkspacesNamespace: wns,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Workspace")
 		os.Exit(1)

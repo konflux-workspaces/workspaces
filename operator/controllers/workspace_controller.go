@@ -29,7 +29,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacescomv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -39,8 +41,9 @@ import (
 // WorkspaceReconciler reconciles a Workspace object
 type WorkspaceReconciler struct {
 	client.Client
-	Scheme             *runtime.Scheme
-	KubespaceNamespace string
+	Scheme              *runtime.Scheme
+	KubespaceNamespace  string
+	WorkspacesNamespace string
 }
 
 var (
@@ -227,5 +230,27 @@ func (r *WorkspaceReconciler) ensureSpaceIsDeleted(ctx context.Context, name str
 func (r *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&workspacescomv1alpha1.InternalWorkspace{}).
+		Watches(&toolchainv1alpha1.SpaceBinding{}, handler.EnqueueRequestsFromMapFunc(r.mapSpaceBindingToWorkspace)).
 		Complete(r)
+}
+
+func (r *WorkspaceReconciler) mapSpaceBindingToWorkspace(ctx context.Context, o client.Object) []reconcile.Request {
+	sb, ok := o.(*toolchainv1alpha1.SpaceBinding)
+	if !ok {
+		return nil
+	}
+
+	sn, ok := sb.GetLabels()[toolchainv1alpha1.SpaceBindingSpaceLabelKey]
+	if !ok {
+		return nil
+	}
+
+	return []reconcile.Request{
+		{
+			NamespacedName: types.NamespacedName{
+				Name:      sn,
+				Namespace: r.WorkspacesNamespace,
+			},
+		},
+	}
 }
