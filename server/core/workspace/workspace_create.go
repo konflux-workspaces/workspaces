@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -13,16 +13,16 @@ import (
 
 // CreateWorkspaceCommand contains the information needed to create a new workspace
 type CreateWorkspaceCommand struct {
-	Workspace workspacesv1alpha1.InternalWorkspace
+	Workspace restworkspacesv1alpha1.Workspace
 }
 
 // CreateWorkspaceResponse contains the newly-created workspace
 type CreateWorkspaceResponse struct {
-	Workspace *workspacesv1alpha1.InternalWorkspace
+	Workspace *restworkspacesv1alpha1.Workspace
 }
 
 type WorkspaceCreator interface {
-	CreateUserWorkspace(ctx context.Context, user string, workspace *workspacesv1alpha1.InternalWorkspace, opts ...client.CreateOption) error
+	CreateUserWorkspace(ctx context.Context, user string, workspace *restworkspacesv1alpha1.Workspace, opts ...client.CreateOption) error
 }
 
 type CreateWorkspaceHandler struct {

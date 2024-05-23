@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
+
+	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func defaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {

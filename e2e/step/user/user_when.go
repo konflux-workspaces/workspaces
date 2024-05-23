@@ -8,10 +8,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
+
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	wrest "github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 func whenAnUserOnboards(ctx context.Context) (context.Context, error) {
@@ -27,7 +30,8 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 	if err != nil {
 		return ctx, err
 	}
-	ww := workspacesv1alpha1.InternalWorkspaceList{}
+
+	ww := restworkspacesv1alpha1.WorkspaceList{}
 	if err := c.List(ctx, &ww, &client.ListOptions{}); err != nil {
 		u := tcontext.RetrieveUser(ctx)
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
@@ -44,27 +48,36 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 	}
 
 	u := tcontext.RetrieveUser(ctx)
-	w := workspacesv1alpha1.InternalWorkspace{}
-	wk := types.NamespacedName{Namespace: u.Name, Name: u.Name}
+	w := restworkspacesv1alpha1.Workspace{}
+	wk := types.NamespacedName{Namespace: u.Name, Name: workspacesv1alpha1.DisplayNameDefaultWorkspace}
 	if err := c.Get(ctx, wk, &w, &client.GetOptions{}); err != nil {
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
 		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, u.Status.CompliantUsername, err)
 	}
 	log.Printf("retrieved workspace: %v", w)
-	return tcontext.InjectInternalWorkspace(ctx, w), nil
+	return tcontext.InjectUserWorkspace(ctx, w), nil
 }
 
 func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
-	w := tcontext.RetrieveInternalWorkspace(ctx)
-
 	cli, err := wrest.BuildWorkspacesClient(ctx)
 	if err != nil {
 		return ctx, err
 	}
 
-	w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibility(visibility)
-	if err := cli.Update(ctx, &w, &client.UpdateOptions{}); err != nil {
+	// retrieve user's Workspace from context
+	w, err := func() (*restworkspacesv1alpha1.Workspace, error) {
+		w, ok := tcontext.LookupUserWorkspace(ctx)
+		if !ok {
+			// fallback to InternalWorkspace
+			iw := tcontext.RetrieveInternalWorkspace(ctx)
+			return mapper.Default.InternalWorkspaceToWorkspace(&iw)
+		}
+		return &w, nil
+	}()
+
+	w.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
+	if err := cli.Update(ctx, w, &client.UpdateOptions{}); err != nil {
 		return ctx, err
 	}
-	return tcontext.InjectInternalWorkspace(ctx, w), nil
+	return tcontext.InjectUserWorkspace(ctx, *w), nil
 }

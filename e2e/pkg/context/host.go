@@ -109,12 +109,12 @@ func LookupUserWorkspace(ctx context.Context) (restworkspacesv1alpha1.Workspace,
 	return lookup[restworkspacesv1alpha1.Workspace](ctx, keyUserWorkspace)
 }
 
-func InjectUserWorkspaces(ctx context.Context, ww workspacesv1alpha1.InternalWorkspaceList) context.Context {
+func InjectUserWorkspaces(ctx context.Context, ww restworkspacesv1alpha1.WorkspaceList) context.Context {
 	return context.WithValue(ctx, keyUserWorkspaces, ww)
 }
 
-func RetrieveUserWorkspaces(ctx context.Context) workspacesv1alpha1.InternalWorkspaceList {
-	return get[workspacesv1alpha1.InternalWorkspaceList](ctx, keyUserWorkspaces)
+func RetrieveUserWorkspaces(ctx context.Context) restworkspacesv1alpha1.WorkspaceList {
+	return get[restworkspacesv1alpha1.WorkspaceList](ctx, keyUserWorkspaces)
 }
 
 // Scenario Id
