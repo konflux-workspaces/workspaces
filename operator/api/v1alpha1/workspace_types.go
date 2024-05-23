@@ -23,11 +23,11 @@ import (
 type InternalWorkspaceVisibility string
 
 const (
+	DisplayNameDefaultWorkspace string = "default"
+
 	InternalWorkspaceVisibilityCommunity InternalWorkspaceVisibility = "community"
 	InternalWorkspaceVisibilityPrivate   InternalWorkspaceVisibility = "private"
-)
 
-const (
 	LabelInternalDomain string = "internal.workspaces.konflux.io/"
 	LabelHomeWorkspace  string = LabelInternalDomain + "home-workspace"
 	LabelWorkspaceOwner string = LabelInternalDomain + "owner"

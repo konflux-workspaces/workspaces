@@ -3,19 +3,15 @@ package hook
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/cucumber/godog"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	// tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
-	// corev1 "k8s.io/api/core/v1"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
@@ -38,7 +34,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 					continue
 				}
 
-				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+				if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
 							return true, nil
@@ -62,7 +58,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 					continue
 				}
 
-				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+				if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
 							return true, nil
@@ -86,7 +82,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 					continue
 				}
 
-				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+				if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
 							return true, nil
@@ -110,7 +106,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 					continue
 				}
 
-				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+				if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
 							return true, nil
@@ -134,7 +130,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 					continue
 				}
 
-				if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+				if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 					if err := cli.Delete(ctx, &r); err != nil {
 						if kerrors.IsNotFound(err) {
 							return true, nil

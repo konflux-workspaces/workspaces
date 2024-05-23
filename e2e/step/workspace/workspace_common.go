@@ -3,15 +3,14 @@ package workspace
 import (
 	"context"
 	"fmt"
-	"time"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -57,7 +56,7 @@ func getWorkspace(ctx context.Context, cli cli.Cli, ns, name string) (*workspace
 			Namespace: ns,
 		},
 	}
-	if err := wait.PollUntilContextTimeout(ctx, time.Second*5, time.Minute, true, func(ctx context.Context) (done bool, err error) {
+	if err := poll.WaitForConditionImmediately(ctx, func(ctx context.Context) (done bool, err error) {
 		if err := cli.Get(ctx, client.ObjectKeyFromObject(&w), &w); err != nil {
 			return false, client.IgnoreNotFound(err)
 		}
