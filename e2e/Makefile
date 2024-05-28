@@ -60,7 +60,7 @@ env:
 
 .PHONY: test
 test: vet clean
-	PROXY_URL="$${PROXY_URL:-$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
 		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
@@ -68,7 +68,7 @@ test: vet clean
 
 .PHONY: wip
 wip: vet clean
-	PROXY_URL="$${PROXY_URL:-$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
 		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
