@@ -54,18 +54,22 @@ prepare: build-images push-images deploy-operator deploy-server
 deploy-server:
 	IMG=$(SERVER_IMG) $(MAKE) -C ../server deploy
 
+.PHONY: env
+env:
+	env | sort | uniq
+
 .PHONY: test
 test: vet clean
-	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
-	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
+	PROXY_URL="$${PROXY_URL:-$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
 		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
 wip: vet clean
-	PROXY_URL=$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}') \
-	KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
+	PROXY_URL="$${PROXY_URL:-$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
 		WORKSPACES_NAMESPACE="workspaces-system" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
