@@ -12,13 +12,13 @@ KUBECLI=${KUBECLI:-kubectl}
 
 HOST_OPERATOR_REPO=${HOST_OPERATOR_REPO:-https://github.com/filariow/host-operator.git}
 MEMBER_OPERATOR_REPO=${MEMBER_OPERATOR_REPO:-https://github.com/codeready-toolchain/member-operator.git}
-TOOLCHAIN_E2E_REPO=${TOOLCHAIN_E2E_REPO:-https://github.com/sadlerap/toolchain-e2e.git}
+TOOLCHAIN_E2E_REPO=${TOOLCHAIN_E2E_REPO:-https://github.com/filariow/toolchain-e2e.git}
 REGISTRATION_SERVICE_REPO=${REGISTRATION_SERVICE_REPO:-https://github.com/filariow/registration-service}
 
-HOST_OPERATOR_BRANCH=${HOST_OPERATOR_BRANCH:-${BRANCH:-pubviewer-mvp}}
+HOST_OPERATOR_BRANCH=${HOST_OPERATOR_BRANCH:-${BRANCH:-pv-531-sbcleanup}}
 MEMBER_OPERATOR_BRANCH=${MEMBER_OPERATOR_BRANCH:-${BRANCH:-master}}
-TOOLCHAIN_E2E_BRANCH=${TOOLCHAIN_E2E_BRANCH:-${BRANCH:-pubviewer-mvp}}
-REGISTRATION_SERVICE_BRANCH=${REGISTRATION_SERVICE_BRANCH:-${BRANCH:-pubviewer-mvp}}
+TOOLCHAIN_E2E_BRANCH=${TOOLCHAIN_E2E_BRANCH:-${BRANCH:-pv-532-proxy}}
+REGISTRATION_SERVICE_BRANCH=${REGISTRATION_SERVICE_BRANCH:-${BRANCH:-pv-532-proxy}}
 
 function clone {
     git clone --depth 2 --branch "${2}" "${1}"
@@ -57,12 +57,14 @@ function deploy {
         HOST_NS=toolchain-host-operator \
         MEMBER_NS=toolchain-member-operator
 
+    # patch configuration
     ${KUBECLI} patch \
         toolchainconfigs.toolchain.dev.openshift.com config \
         -n toolchain-host-operator \
-        --patch='{"spec":{"publicViewer":{"username":"public-viewer"}}}' \
+        --patch='{"spec":{"publicViewerConfig":{"enabled":true}}}' \
         --type=merge
 
+    # restart toolchain's pods
     ${KUBECLI} delete pods --all --namespace toolchain-host-operator
 }
 

@@ -33,7 +33,7 @@ const (
 	LabelWorkspaceOwner string = LabelInternalDomain + "owner"
 	LabelDisplayName    string = LabelInternalDomain + "display-name"
 
-	PublicViewerName string = "public-viewer"
+	PublicViewerName string = "kubesaw-authenticated"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
