@@ -10,6 +10,8 @@ spec:
   host: ''
   port:
     targetPort: 8000
+  tls:
+    termination: edge
   to:
     kind: Service
     name: workspaces-rest-api-server
