@@ -19,8 +19,8 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              workspaces.io/is-creator-serviceaccount: "{{ starts_with(request.userInfo.username, 'system:serviceaccount:' ) | to_string(@) }}"
-              workspaces.io/owner: "{{ request.object.spec.owner.id }}"
+              internal.workspaces.konflux.io/is-creator-serviceaccount: "{{ starts_with(request.userInfo.username, 'system:serviceaccount:' ) | to_string(@) }}"
+              internal.workspaces.konflux.io/owner: "{{ request.object.spec.owner.id }}"
     - name: set-owner-workspace-serviceaccount-namespace
       match:
         any:
@@ -35,9 +35,9 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              (workspaces.io/is-creator-serviceaccount): "true"
-              workspaces.io/creator-serviceaccount: "{{ serviceAccountName }}"
-              workspaces.io/creator-namespace: "{{ serviceAccountNamespace }}"
+              (internal.workspaces.konflux.io/is-creator-serviceaccount): "true"
+              internal.workspaces.konflux.io/creator-serviceaccount: "{{ serviceAccountName }}"
+              internal.workspaces.konflux.io/creator-namespace: "{{ serviceAccountNamespace }}"
     - name: set-owner-workspace-user
       match:
         any:
@@ -52,5 +52,5 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              (workspaces.io/is-creator-serviceaccount): "false"
-              workspaces.io/creator: "{{ request.userInfo.username }}"
+              (internal.workspaces.konflux.io/is-creator-serviceaccount): "false"
+              internal.workspaces.konflux.io/creator: "{{ request.userInfo.username }}"

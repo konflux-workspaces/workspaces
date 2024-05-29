@@ -18,7 +18,7 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.object.spec.owner.id }}"
+          urlPath: "/apis/internal.workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
           jmesPath: "items | length(@)"
       - name: workspacesLimit
         variable:
@@ -44,7 +44,7 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/workspaces.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=workspaces.io/owner={{ request.object.spec.owner.id }}"
+          urlPath: "/apis/internal.workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
           jmesPath: "items | length(@)"
       - name: workspacesLimit
         variable:

@@ -1,11 +1,11 @@
-apiVersion: workspaces.io/v1alpha1
+apiVersion: internal.workspaces.konflux.io/v1alpha1
 kind: Workspace
 metadata:
   labels:
-    workspaces.io/creator-namespace: workspaces-system
-    workspaces.io/creator-serviceaccount: saname
-    workspaces.io/is-creator-serviceaccount: "true"
-    workspaces.io/owner: owner
+    internal.workspaces.konflux.io/creator-namespace: workspaces-system
+    internal.workspaces.konflux.io/creator-serviceaccount: saname
+    internal.workspaces.konflux.io/is-creator-serviceaccount: "true"
+    internal.workspaces.konflux.io/owner: owner
   name: workspace-sample
   namespace: workspaces-system
 spec:

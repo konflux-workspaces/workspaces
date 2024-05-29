@@ -1,4 +1,4 @@
-apiVersion: workspaces.io/v1alpha1
+apiVersion: internal.workspaces.konflux.io/v1alpha1
 kind: Workspace
 metadata:
   name: workspace-sample

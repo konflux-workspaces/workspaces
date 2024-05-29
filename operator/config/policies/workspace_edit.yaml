@@ -21,17 +21,17 @@ spec:
         deny:
           conditions:
             all:
-            - key: '{{ request.oldObject.metadata.labels."workspaces.io/owner" | to_string(@) }}'
+            - key: '{{ request.oldObject.metadata.labels."internal.workspaces.konflux.io/owner" | to_string(@) }}'
               operator: NotEquals
               value: '{{ request.userInfo.username }}'
-            - key: '{{ request.oldObject.metadata.labels."workspaces.io/creator" | to_string(@) }}'
+            - key: '{{ request.oldObject.metadata.labels."internal.workspaces.konflux.io/creator" | to_string(@) }}'
               operator: NotEquals
               value: '{{ request.userInfo.username }}'
             - key: >-
                 {{
                   join('/', [
-                    request.oldObject.metadata.labels."workspaces.io/creator-namespace",
-                    request.oldObject.metadata.labels."workspaces.io/creator-serviceaccount" 
+                    request.oldObject.metadata.labels."internal.workspaces.konflux.io/creator-namespace",
+                    request.oldObject.metadata.labels."internal.workspaces.konflux.io/creator-serviceaccount"
                   ])
                 }}
               operator: NotEquals
