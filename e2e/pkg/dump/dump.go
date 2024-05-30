@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
@@ -46,6 +47,41 @@ func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList
 		return err
 	}
 
+	return dumpCleanUnstructuredOrResource(resource)
+}
+
+func dumpCleanUnstructuredOrResource(resource client.ObjectList) error {
+	if err := dumpCleanUnstructured(resource); err == nil {
+		return nil
+	}
+	return dumpResource(resource)
+}
+
+func dumpCleanUnstructured(resource client.ObjectList) error {
+	ur, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
+	if err != nil {
+		return err
+	}
+
+	ii := ur["items"].([]interface{})
+	for _, i := range ii {
+		ie, ok := i.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		om, ok := ie["objectmeta"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		om["managedfields"] = nil
+	}
+
+	return dumpResource(ur)
+}
+
+func dumpResource(resource any) error {
 	// marshal to yaml
 	o, err := yaml.Marshal(resource)
 	if err != nil {
@@ -58,4 +94,5 @@ func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList
 	}
 
 	return nil
+
 }
