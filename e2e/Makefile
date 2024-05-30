@@ -32,7 +32,7 @@ push-images:
 deploy-operator:
 	(\
 		f=$$(mktemp --directory /tmp/workspaces-config.XXXXX) && \
-		cp -r "../hack" "../operator" "../server" "$$f" && \
+		cp -r "../hack" "../operator" "../server" "../e2e" "$$f" && \
 		cd "$$f/operator" && \
 		( \
 			cd config/manager && \
@@ -43,7 +43,8 @@ deploy-operator:
 					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
-		IMG=$(OPERATOR_IMG) $(MAKE) install deploy \
+		cd "$$f/e2e/config/operator/e2e" && $(KUSTOMIZE) edit set image controller=${OPERATOR_IMG} && \
+		$(KUSTOMIZE) build "$$f/e2e/config/operator/e2e" | kubectl apply -f - \
 	)
 
 .PHONY: prepare
