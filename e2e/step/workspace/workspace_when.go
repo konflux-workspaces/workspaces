@@ -73,7 +73,7 @@ func ownerChangesVisibilityTo(ctx context.Context, visibility workspacesv1alpha1
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return ctx, err
 	}
 
 	return tcontext.InjectInternalWorkspace(ctx, w), nil
