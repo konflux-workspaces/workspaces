@@ -13,8 +13,6 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.When(`^The user requests a new community workspace$`, whenUserRequestsANewCommunityWorkspace)
 	ctx.When(`^The user requests a new private workspace$`, whenUserRequestsANewPrivateWorkspace)
 	ctx.When(`^A workspace is created for an user$`, whenAWorkspaceIsCreatedForUser)
-	ctx.When(`^The owner changes visibility to community$`, whenOwnerChangesVisibilityToCommunity)
-	ctx.When(`^The owner changes visibility to private$`, whenOwnerChangesVisibilityToPrivate)
 
 	// then
 	ctx.Then(`^The workspace is readable for everyone$`, thenTheWorkspaceIsReadableForEveryone)
