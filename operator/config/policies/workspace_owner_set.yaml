@@ -10,7 +10,7 @@ spec:
         any:
         - resources:
             kinds:
-            - Workspace
+            - workspaces.konflux.io/*/InternalWorkspace
             namespaces:
             - workspaces-system
             operations:
@@ -26,7 +26,7 @@ spec:
         any:
         - resources:
             kinds:
-            - Workspace
+            - workspaces.konflux.io/*/InternalWorkspace
             namespaces:
             - workspaces-system
             operations:
@@ -43,7 +43,7 @@ spec:
         any:
         - resources:
             kinds:
-            - Workspace
+            - workspaces.konflux.io/*/InternalWorkspace
             namespaces:
             - workspaces-system
             operations:

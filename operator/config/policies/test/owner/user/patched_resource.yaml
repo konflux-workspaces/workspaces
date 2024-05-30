@@ -1,5 +1,5 @@
-apiVersion: internal.workspaces.konflux.io/v1alpha1
-kind: Workspace
+apiVersion: workspaces.konflux.io/v1alpha1
+kind: InternalWorkspace
 metadata:
   labels:
     internal.workspaces.konflux.io/is-creator-serviceaccount: "false"

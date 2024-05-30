@@ -14,5 +14,5 @@ results:
     rule: quota-same-user
     resources: 
       - workspaces-system/workspace-sample
-    kind: Workspace
+    kind: InternalWorkspace
     result: fail

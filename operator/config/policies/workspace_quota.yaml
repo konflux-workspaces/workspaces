@@ -10,7 +10,7 @@ spec:
         any:
         - resources:
             kinds:
-            - Workspace
+            - workspaces.konflux.io/*/InternalWorkspace
             namespaces:
             - workspaces-system
             operations:
@@ -18,7 +18,7 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/internal.workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
           jmesPath: "items | length(@)"
       - name: workspacesLimit
         variable:
@@ -36,7 +36,7 @@ spec:
         any:
         - resources:
             kinds:
-            - Workspace
+            - workspaces.konflux.io/*/InternalWorkspace
             namespaces:
             - workspaces-system
             operations:
@@ -44,7 +44,7 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/internal.workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/workspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
           jmesPath: "items | length(@)"
       - name: workspacesLimit
         variable:

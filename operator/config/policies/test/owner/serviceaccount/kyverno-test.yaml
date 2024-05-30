@@ -13,11 +13,11 @@ results:
     rule: set-owner-workspace-serviceaccount-namespace
     resources: 
       - workspaces-system/workspace-sample
-    kind: Workspace
+    kind: InternalWorkspace
     result: pass
   - policy: set-owner-workspace
     rule: set-owner-workspace-user
     resources: 
       - workspaces-system/workspace-sample
-    kind: Workspace
+    kind: InternalWorkspace
     result: skip
