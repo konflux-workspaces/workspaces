@@ -53,4 +53,4 @@ spec:
           metadata:
             labels:
               (internal.workspaces.konflux.io/is-creator-serviceaccount): "false"
-              internal.workspaces.konflux.io/creator: "{{ request.userInfo.username }}"
+              # internal.workspaces.konflux.io/creator: "{{ base64_encode('{{ request.userInfo.username }}') }}"
