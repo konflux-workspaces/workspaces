@@ -117,8 +117,11 @@ lint:
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
-##@ Build
+.PHONY: test-policies
+test-policies:
+	$(KYVERNO_CLI) test config/policies 
 
+##@ Build
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
@@ -179,7 +182,6 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Build Dependencies
-
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
@@ -189,6 +191,9 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+
+# TODO(@filariow): temporary, move to local bin folder
+KYVERNO_CLI ?= kubectl kyverno
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
