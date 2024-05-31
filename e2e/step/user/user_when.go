@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
+	"github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 	wrest "github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -83,4 +85,55 @@ func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility str
 		return ctx, err
 	}
 	return tcontext.InjectUserWorkspace(ctx, *w), nil
+}
+
+func whenUserRequestsANewPrivateWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspace(ctx, "new-private", restworkspacesv1alpha1.WorkspaceVisibilityPrivate)
+}
+
+func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Context, error) {
+	return createNewWorkspace(ctx, "new-community", restworkspacesv1alpha1.WorkspaceVisibilityCommunity)
+}
+
+func createNewWorkspace(ctx context.Context, name string, visibility restworkspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
+	u := tcontext.RetrieveUser(ctx)
+	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
+
+	cli, err := rest.BuildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	w, err := createWorkspace(ctx, cli, ns, name, u.Status.CompliantUsername, visibility)
+	if err != nil {
+		return ctx, err
+	}
+	return tcontext.InjectUserWorkspace(ctx, *w), nil
+}
+func createWorkspace(
+	ctx context.Context,
+	cli client.Client,
+	namespace, name, user string,
+	visibility restworkspacesv1alpha1.WorkspaceVisibility,
+) (*restworkspacesv1alpha1.Workspace, error) {
+	w := restworkspacesv1alpha1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels: map[string]string{
+				restworkspacesv1alpha1.LabelWorkspaceOwner: user,
+			},
+		},
+		Spec: restworkspacesv1alpha1.WorkspaceSpec{
+			Visibility: visibility,
+			Owner: restworkspacesv1alpha1.Owner{
+				Id: user,
+			},
+		},
+	}
+
+	if err := cli.Create(ctx, &w); err != nil {
+		return nil, err
+	}
+	return &w, nil
 }
