@@ -15,6 +15,7 @@ namePrefix: workspaces-
 bases:
 - ../crd
 - ../rbac
+- ../rbac/alleditors
 - ../manager
 - ../policies
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
