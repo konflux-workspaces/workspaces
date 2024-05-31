@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
@@ -39,51 +39,49 @@ func DumpAll(ctx context.Context) error {
 }
 
 func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList) error {
-	// retrieve host client
-	cli := tcontext.RetrieveHostClient(ctx)
-
-	// list resources
-	if err := cli.Client.List(ctx, resource, client.InNamespace(metav1.NamespaceAll)); err != nil {
-		return err
-	}
-
-	return dumpCleanUnstructuredOrResource(resource)
-}
-
-func dumpCleanUnstructuredOrResource(resource client.ObjectList) error {
-	if err := dumpCleanUnstructured(resource); err == nil {
-		return nil
-	}
-	return dumpResource(resource)
-}
-
-func dumpCleanUnstructured(resource client.ObjectList) error {
-	ur, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
+	// list resource as UnstructuredList
+	list, err := listAsUnstructuredList(ctx, resource)
 	if err != nil {
 		return err
 	}
 
-	ii := ur["items"].([]interface{})
-	for _, i := range ii {
-		ie, ok := i.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		om, ok := ie["objectmeta"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		om["managedfields"] = nil
-	}
-
-	return dumpResource(ur)
+	// dump resources
+	return dumpUnstructuredList(list)
 }
 
-func dumpResource(resource any) error {
+func listAsUnstructuredList(ctx context.Context, resource client.ObjectList) (*unstructured.UnstructuredList, error) {
+	// retrieve host client
+	cli := tcontext.RetrieveHostClient(ctx)
+
+	// build UnstructuredList from ObjectList
+	d, err := buildUnstructuredListFromObjectList(cli.Client, resource)
+	if err != nil {
+		return nil, err
+	}
+
+	// list resources as UnstructuredList
+	if err := cli.Client.List(ctx, d, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func buildUnstructuredListFromObjectList(cli client.Client, resource client.ObjectList) (*unstructured.UnstructuredList, error) {
+	// retrieve gvk for client.object
+	gvk, err := cli.GroupVersionKindFor(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	// build UnstructuredList
+	d := &unstructured.UnstructuredList{}
+	d.SetGroupVersionKind(gvk)
+	return d, nil
+}
+
+func dumpUnstructuredList(list *unstructured.UnstructuredList) error {
 	// marshal to yaml
-	o, err := yaml.Marshal(resource)
+	o, err := yaml.Marshal(list)
 	if err != nil {
 		return err
 	}
@@ -92,7 +90,5 @@ func dumpResource(resource any) error {
 	if _, err := fmt.Fprintln(os.Stderr, string(o)); err != nil {
 		return err
 	}
-
 	return nil
-
 }
