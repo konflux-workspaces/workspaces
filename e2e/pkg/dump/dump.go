@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"slices"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
@@ -27,20 +27,29 @@ var resourcesToDump = []client.ObjectList{
 }
 
 func DumpAll(ctx context.Context) error {
-	rr := slices.Clone(resourcesToDump)
+	// retrieve host client
+	cli := tcontext.RetrieveHostClient(ctx)
 
 	errs := []error{}
-	for _, r := range rr {
-		err := dumpResourceInAllNamespaces(ctx, r)
-		errs = append(errs, err)
+	for _, r := range resourcesToDump {
+		// retrieve gvk for client.object
+		gvk, err := cli.GroupVersionKindFor(r)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		if err := dumpResourceInAllNamespaces(ctx, cli.Client, gvk); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	return errors.Join(errs...)
 }
 
-func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList) error {
+func dumpResourceInAllNamespaces(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) error {
 	// list resource as UnstructuredList
-	list, err := listAsUnstructuredList(ctx, resource)
+	list, err := listAsUnstructuredList(ctx, cli, gvk)
 	if err != nil {
 		return err
 	}
@@ -49,33 +58,15 @@ func dumpResourceInAllNamespaces(ctx context.Context, resource client.ObjectList
 	return dumpUnstructuredList(list)
 }
 
-func listAsUnstructuredList(ctx context.Context, resource client.ObjectList) (*unstructured.UnstructuredList, error) {
-	// retrieve host client
-	cli := tcontext.RetrieveHostClient(ctx)
-
-	// build UnstructuredList from ObjectList
-	d, err := buildUnstructuredListFromObjectList(cli.Client, resource)
-	if err != nil {
-		return nil, err
-	}
-
-	// list resources as UnstructuredList
-	if err := cli.Client.List(ctx, d, client.InNamespace(metav1.NamespaceAll)); err != nil {
-		return nil, err
-	}
-	return d, nil
-}
-
-func buildUnstructuredListFromObjectList(cli client.Client, resource client.ObjectList) (*unstructured.UnstructuredList, error) {
-	// retrieve gvk for client.object
-	gvk, err := cli.GroupVersionKindFor(resource)
-	if err != nil {
-		return nil, err
-	}
-
+func listAsUnstructuredList(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) (*unstructured.UnstructuredList, error) {
 	// build UnstructuredList
 	d := &unstructured.UnstructuredList{}
 	d.SetGroupVersionKind(gvk)
+
+	// list resources as UnstructuredList
+	if err := cli.List(ctx, d, client.InNamespace(metav1.NamespaceAll)); err != nil {
+		return nil, err
+	}
 	return d, nil
 }
 
