@@ -97,43 +97,24 @@ func whenUserRequestsANewCommunityWorkspace(ctx context.Context) (context.Contex
 
 func createNewWorkspace(ctx context.Context, name string, visibility restworkspacesv1alpha1.WorkspaceVisibility) (context.Context, error) {
 	u := tcontext.RetrieveUser(ctx)
-	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
 
 	cli, err := rest.BuildWorkspacesClient(ctx)
 	if err != nil {
 		return ctx, err
 	}
 
-	w, err := createWorkspace(ctx, cli, ns, name, u.Status.CompliantUsername, visibility)
-	if err != nil {
-		return ctx, err
-	}
-	return tcontext.InjectUserWorkspace(ctx, *w), nil
-}
-func createWorkspace(
-	ctx context.Context,
-	cli client.Client,
-	namespace, name, user string,
-	visibility restworkspacesv1alpha1.WorkspaceVisibility,
-) (*restworkspacesv1alpha1.Workspace, error) {
 	w := restworkspacesv1alpha1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: namespace,
-			Labels: map[string]string{
-				restworkspacesv1alpha1.LabelWorkspaceOwner: user,
-			},
+			Namespace: u.Status.CompliantUsername,
 		},
 		Spec: restworkspacesv1alpha1.WorkspaceSpec{
 			Visibility: visibility,
-			Owner: restworkspacesv1alpha1.Owner{
-				Id: user,
-			},
 		},
 	}
 
 	if err := cli.Create(ctx, &w); err != nil {
 		return nil, err
 	}
-	return &w, nil
+	return tcontext.InjectUserWorkspace(ctx, w), nil
 }
