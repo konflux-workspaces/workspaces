@@ -7,7 +7,7 @@ Feature: Create workspaces via REST API
     Given An user is onboarded
     When  The user requests a new private workspace
     Then  A private workspace is created
-  
+
   Scenario: user requests a community workspace
     Given An user is onboarded
     When  The user requests a new community workspace
