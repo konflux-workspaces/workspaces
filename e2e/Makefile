@@ -44,7 +44,8 @@ push-images:
 helm: $(HELM)
 $(HELM): $(LOCALBIN)
 	test -s $(LOCALBIN)/helm || ( \
-		curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | USE_SUDO=false HELM_INSTALL_DIR=$(LOCALBIN) bash )
+		curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | \
+		USE_SUDO=false HELM_INSTALL_DIR="$(LOCALBIN)" PATH="${PATH}:$(LOCALBIN)" bash )
 
 .PHONY: deploy-kyverno
 deploy-kyverno: helm
