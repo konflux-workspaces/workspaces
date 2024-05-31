@@ -60,6 +60,9 @@ func dumpResourceInAllNamespaces(ctx context.Context, cli client.Client, gvk sch
 		return err
 	}
 
+	// remove noisy information from data
+	removeNoisyFields(list)
+
 	// dump resources
 	return dumpUnstructuredList(list)
 }
@@ -74,6 +77,12 @@ func listAsUnstructuredList(ctx context.Context, cli client.Client, gvk schema.G
 		return nil, err
 	}
 	return d, nil
+}
+
+func removeNoisyFields(list *unstructured.UnstructuredList) {
+	for _, i := range list.Items {
+		i.SetManagedFields(nil)
+	}
 }
 
 func dumpUnstructuredList(list *unstructured.UnstructuredList) error {
