@@ -30,24 +30,28 @@ func DumpAll(ctx context.Context) error {
 	// retrieve host client
 	cli := tcontext.RetrieveHostClient(ctx)
 
+	// fetching and printing all resources listed in resourcesToDump
 	errs := []error{}
 	for _, r := range resourcesToDump {
-		// retrieve gvk for client.object
+		// retrieve resource's GroupVersionKind
 		gvk, err := cli.GroupVersionKindFor(r)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
+		// dump resources in all namespaces
 		if err := dumpResourceInAllNamespaces(ctx, cli.Client, gvk); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
+	// return joined errors if any
 	return errors.Join(errs...)
 }
 
 func dumpResourceInAllNamespaces(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) error {
+	// print header line
 	fmt.Fprintf(os.Stderr, "*** Dump: %s\n", gvk.String())
 
 	// list resource as UnstructuredList
@@ -61,11 +65,11 @@ func dumpResourceInAllNamespaces(ctx context.Context, cli client.Client, gvk sch
 }
 
 func listAsUnstructuredList(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) (*unstructured.UnstructuredList, error) {
-	// build UnstructuredList
+	// build UnstructuredList for GroupVersionKind
 	d := &unstructured.UnstructuredList{}
 	d.SetGroupVersionKind(gvk)
 
-	// list resources as UnstructuredList
+	// list resources
 	if err := cli.List(ctx, d, client.InNamespace(metav1.NamespaceAll)); err != nil {
 		return nil, err
 	}
