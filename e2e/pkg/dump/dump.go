@@ -48,6 +48,8 @@ func DumpAll(ctx context.Context) error {
 }
 
 func dumpResourceInAllNamespaces(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) error {
+	fmt.Fprintf(os.Stderr, "*** Dump: %s\n", gvk.String())
+
 	// list resource as UnstructuredList
 	list, err := listAsUnstructuredList(ctx, cli, gvk)
 	if err != nil {
