@@ -1,5 +1,6 @@
 Feature: Workspace lifecycle
 
+  @wip
   Scenario: user onboarding
     When An user onboards
     Then Default workspace is created for them

@@ -106,7 +106,8 @@ func addWorkspaces(
 
 func withAuthHeaderInfo(next http.Handler) http.Handler {
 	return middleware.NewHeaderInfoMiddleware(next, map[string]interface{}{
-		"X-Subject": ccontext.UserKey,
+		"X-Subject":  ccontext.UserSubKey,
+		"X-Username": ccontext.UserUsernameKey,
 	})
 }
 

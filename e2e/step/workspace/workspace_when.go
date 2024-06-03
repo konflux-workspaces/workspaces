@@ -37,14 +37,15 @@ func createInternalWorkspace(ctx context.Context, cli cli.Cli, namespace, name, 
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				workspacesv1alpha1.LabelDisplayName:    name,
-				workspacesv1alpha1.LabelWorkspaceOwner: user,
+				workspacesv1alpha1.LabelDisplayName: name,
 			},
 		},
 		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 			Visibility: visibility,
-			Owner: workspacesv1alpha1.Owner{
-				Id: user,
+			Owner: workspacesv1alpha1.UserInfo{
+				JWTInfo: workspacesv1alpha1.JwtInfo{
+					Username: user,
+				},
 			},
 		},
 	}

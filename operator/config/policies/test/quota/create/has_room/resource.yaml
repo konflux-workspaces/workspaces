@@ -10,5 +10,6 @@ metadata:
   namespace: workspaces-system
 spec:
   owner:
-    id: owner
+    jwtInfo:
+      username: owner
   visibility: private

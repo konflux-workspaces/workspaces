@@ -19,7 +19,6 @@ func (m *Mapper) WorkspaceToInternalWorkspace(workspace *restworkspacesv1alpha1.
 		}
 	}
 	ll[workspacesv1alpha1.LabelDisplayName] = workspace.GetName()
-	ll[workspacesv1alpha1.LabelWorkspaceOwner] = workspace.GetNamespace()
 
 	return &workspacesv1alpha1.InternalWorkspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -28,8 +27,10 @@ func (m *Mapper) WorkspaceToInternalWorkspace(workspace *restworkspacesv1alpha1.
 		},
 		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 			Visibility: workspacesv1alpha1.InternalWorkspaceVisibility(workspace.Spec.Visibility),
-			Owner: workspacesv1alpha1.Owner{
-				Id: workspace.Spec.Owner.Id,
+			Owner: workspacesv1alpha1.UserInfo{
+				JWTInfo: workspacesv1alpha1.JwtInfo{
+					Username: workspace.Namespace,
+				},
 			},
 		},
 	}, nil

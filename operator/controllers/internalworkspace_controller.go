@@ -133,7 +133,8 @@ func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w worksp
 		if ll == nil {
 			ll = map[string]string{}
 		}
-		ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.Id
+		// TODO(@filariow): this need to be set to UserSignup.Status.CompliantName
+		// ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.JWTInfo.Sub
 
 		s.SetLabels(ll)
 		return nil

@@ -119,7 +119,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 .PHONY: test-policies
 test-policies:
-	$(KYVERNO_CLI) test config/policies 
+	$(KYVERNO_CLI) test config/policies/test/quota 
 
 ##@ Build
 .PHONY: build

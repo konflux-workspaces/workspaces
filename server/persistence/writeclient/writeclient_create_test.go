@@ -39,14 +39,20 @@ var _ = Describe("WriteclientCreate", func() {
 			&ww,
 			client.InNamespace(namespace),
 			client.MatchingLabels{
-				workspacesv1alpha1.LabelDisplayName:    workspace.Name,
-				workspacesv1alpha1.LabelWorkspaceOwner: "owner",
+				workspacesv1alpha1.LabelDisplayName: workspace.Name,
 			},
 		)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ww.Items).To(HaveLen(1))
-		Expect(ww.Items[0].Spec).ToNot(BeNil())
-		Expect(ww.Items[0].Spec.Visibility).To(Equal(expectedVisibility))
+
+		dww := []*workspacesv1alpha1.InternalWorkspace{}
+		for _, w := range ww.Items {
+			if w.Spec.Owner.JWTInfo.Username == "owner" {
+				dww = append(dww, &w)
+			}
+		}
+		Expect(dww).To(HaveLen(1))
+		Expect(dww[0].Spec).ToNot(BeNil())
+		Expect(dww[0].Spec.Visibility).To(Equal(expectedVisibility))
 	}
 
 	BeforeEach(func() {

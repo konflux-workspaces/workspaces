@@ -1,6 +1,9 @@
 package mapper_test
 
 import (
+	"fmt"
+
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -12,6 +15,7 @@ import (
 )
 
 var _ = Describe("InternalworkspaceToWorkspace", func() {
+	uuidSub := uuid.New()
 
 	When("a valid InternalWorkspace is converted", func() {
 		var internalWorkspace workspacesv1alpha1.InternalWorkspace
@@ -37,14 +41,21 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 					GenerateName: displayName,
 					Namespace:    workspacesNamespace,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelDisplayName:                           displayName,
-						workspacesv1alpha1.LabelWorkspaceOwner:                        ownerName,
-						"expected-label":                                              "not-empty",
+						workspacesv1alpha1.LabelDisplayName: displayName,
+						"expected-label":                    "not-empty",
 						workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
 					},
 					Generation: 1,
 				},
-				Spec: workspacesv1alpha1.InternalWorkspaceSpec{},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: ownerName,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+							Email:    fmt.Sprintf("%s@domain.com", ownerName),
+						},
+					},
+				},
 			}
 		})
 
@@ -81,37 +92,6 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 		})
 	})
 
-	When("a InternalWorkspace is missing internal owner name label", func() {
-		var internalWorkspace workspacesv1alpha1.InternalWorkspace
-		workspacesNamespace := "foo"
-		displayName := "bar"
-
-		BeforeEach(func() {
-			// given
-			internalWorkspace = workspacesv1alpha1.InternalWorkspace{
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: displayName,
-					Namespace:    workspacesNamespace,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelDisplayName: displayName,
-					},
-				},
-				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
-					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
-				},
-			}
-		})
-
-		It("returns an error", func() {
-			// when
-			w, err := mapper.Default.InternalWorkspaceToWorkspace(&internalWorkspace)
-
-			// then
-			Expect(err).To(HaveOccurred())
-			Expect(w).To(BeNil())
-		})
-	})
-
 	When("a InternalWorkspace is missing internal display name label", func() {
 		var internalWorkspace workspacesv1alpha1.InternalWorkspace
 		workspacesNamespace := "foo"
@@ -123,12 +103,18 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					GenerateName: "foo",
 					Namespace:    workspacesNamespace,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: ownerName,
-					},
+					Labels:       map[string]string{},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
+
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: ownerName,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+							Email:    fmt.Sprintf("%s@domain.com", ownerName),
+						},
+					},
 				},
 			}
 		})

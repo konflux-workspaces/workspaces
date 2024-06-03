@@ -7,7 +7,6 @@ import (
 
 var (
 	_ http.Handler = &HeaderInfoMiddleware{}
-	_ http.Handler = &HeaderInfoMiddleware{}
 )
 
 // HeaderInfoMiddleware reads headers from request and add their value in request context

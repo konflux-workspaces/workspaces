@@ -18,13 +18,13 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
-          jmesPath: "items | length(@)"
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces"
+          jmesPath: "items[?spec.owner.jwtInfo.username=='{{ request.object.spec.owner.jwtInfo.username }}'] | length(@)"
       - name: workspacesLimit
         variable:
           value: 1
       validate:
-        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.id }}"
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.jwtInfo.username }}"
         deny:
           conditions:
             all:
@@ -44,19 +44,19 @@ spec:
       context:
       - name: ownedWorkspaces
         apiCall:
-          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces?labelSelector=internal.workspaces.konflux.io/owner={{ request.object.spec.owner.id }}"
-          jmesPath: "items | length(@)"
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces"
+          jmesPath: "items[?spec.owner.jwtInfo.username=='{{ request.object.spec.owner.jwtInfo.username }}'] | length(@)"
       - name: workspacesLimit
         variable:
           value: 1
       validate:
-        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.id }}"
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.jwtInfo.username }}"
         deny:
           conditions:
             all:
             - key: "{{ ownedWorkspaces }}"
               operator: GreaterThan
               value: "{{ sum([workspacesLimit, `-1`]) }}"
-            - key: "{{ request.oldObject.spec.owner.id }}"
+            - key: "{{ request.oldObject.spec.owner.jwtInfo.username }}"
               operator: NotEquals
-              value: "{{ request.object.spec.owner.id }}"
+              value: "{{ request.object.spec.owner.jwtInfo.username }}"

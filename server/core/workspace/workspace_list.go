@@ -39,7 +39,7 @@ func NewListWorkspaceHandler(lister WorkspaceLister) *ListWorkspaceHandler {
 func (h *ListWorkspaceHandler) Handle(ctx context.Context, query ListWorkspaceQuery) (*ListWorkspaceResponse, error) {
 	// authorization
 	// If required, implement here complex logic like multiple-domains filtering, etc
-	u, ok := ctx.Value(ccontext.UserKey).(string)
+	u, ok := ctx.Value(ccontext.UserUsernameKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}
