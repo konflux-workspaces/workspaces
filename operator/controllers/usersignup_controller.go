@@ -81,13 +81,16 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 			ll = map[string]string{}
 		}
 		ll[workspacesv1alpha1.LabelHomeWorkspace] = u.Name
-		ll[workspacesv1alpha1.LabelWorkspaceOwner] = u.Name
 		ll[workspacesv1alpha1.LabelDisplayName] = "default"
 		w.Labels = ll
 
 		w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
-		w.Spec.Owner = workspacesv1alpha1.Owner{
-			Id: u.Name,
+		w.Spec.Owner = workspacesv1alpha1.UserInfo{
+			JWTInfo: workspacesv1alpha1.JwtInfo{
+				Email:    u.Spec.IdentityClaims.Email,
+				Sub:      u.Spec.IdentityClaims.Sub,
+				Username: u.Spec.IdentityClaims.PreferredUsername,
+			},
 		}
 		return nil
 	})

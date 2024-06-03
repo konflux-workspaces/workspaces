@@ -1,0 +1,3 @@
+resources:
+- internalworkspace_editor_role.yaml
+- alleditors_role_binding.yaml

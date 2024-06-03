@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,6 +25,16 @@ var _ = Describe("List", func() {
 	ksns := "kubesaw-namespace"
 	wsns := "workspaces-namespace"
 
+	ownerName := "owner-user"
+	uuidSub := uuid.New()
+	ownerUserInfo := workspacesv1alpha1.UserInfo{
+		JWTInfo: workspacesv1alpha1.JwtInfo{
+			Username: ownerName,
+			Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+			Email:    fmt.Sprintf("%s@domain.com", ownerName),
+		},
+	}
+
 	BeforeEach(func() {
 		ctx = context.Background()
 	})
@@ -35,9 +46,9 @@ var _ = Describe("List", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "no-space-binding",
 					Namespace: wsns,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: ownerUserInfo,
 				},
 			})
 
@@ -67,7 +78,7 @@ var _ = Describe("List", func() {
 					Namespace: ksns,
 				},
 				Spec: toolchainv1alpha1.SpaceBindingSpec{
-					MasterUserRecord: "owner-user",
+					MasterUserRecord: ownerName,
 					SpaceRole:        "admin",
 					Space:            "no-label",
 				},
@@ -93,9 +104,11 @@ var _ = Describe("List", func() {
 				Name:      generateName(wName),
 				Namespace: wsns,
 				Labels: map[string]string{
-					workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-					workspacesv1alpha1.LabelDisplayName:    wName,
+					workspacesv1alpha1.LabelDisplayName: wName,
 				},
+			},
+			Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+				Owner: ownerUserInfo,
 			},
 		}
 		BeforeEach(func() {
@@ -107,12 +120,12 @@ var _ = Describe("List", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            w.Name,
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            w.Name,
 					},
@@ -123,7 +136,7 @@ var _ = Describe("List", func() {
 		It("should be returned in list of owner's workspaces", func() {
 			// when the list of workspaces owned by 'owner-user' is requested
 			var ww workspacesv1alpha1.InternalWorkspaceList
-			err := c.ListAsUser(ctx, "owner-user", &ww)
+			err := c.ListAsUser(ctx, ownerName, &ww)
 			Expect(err).NotTo(HaveOccurred())
 
 			// then the list contains just the 'owner-ws' workspace
@@ -132,11 +145,10 @@ var _ = Describe("List", func() {
 				And(
 					BeEmpty(),
 					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
 				),
 			)
 			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
+			Expect(ww.Items[0].Namespace).ShouldNot(Equal(ownerName))
 		})
 
 		It("should NOT be returned in list of not-owner's workspaces", func() {
@@ -160,9 +172,11 @@ var _ = Describe("List", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+						workspacesv1alpha1.LabelDisplayName: wName,
 					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: ownerUserInfo,
 				},
 			}
 
@@ -171,12 +185,12 @@ var _ = Describe("List", func() {
 					Name:      wName,
 					Namespace: ksns,
 					Labels: map[string]string{
-						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 						toolchainv1alpha1.SpaceBindingSpaceLabelKey:            wName,
 					},
 				},
 				Spec: toolchainv1alpha1.SpaceBindingSpec{
-					MasterUserRecord: "owner-user",
+					MasterUserRecord: ownerName,
 					SpaceRole:        "admin",
 					Space:            wName,
 				},
@@ -198,7 +212,7 @@ var _ = Describe("List", func() {
 		It("should be returned in list of owner's workspaces", func() {
 			// when the list of workspaces owned by 'owner-user' is requested
 			var ww workspacesv1alpha1.InternalWorkspaceList
-			err := c.ListAsUser(ctx, "owner-user", &ww)
+			err := c.ListAsUser(ctx, ownerName, &ww)
 			Expect(err).NotTo(HaveOccurred())
 
 			// then the list contains just the 'owner-ws' workspace
@@ -208,8 +222,8 @@ var _ = Describe("List", func() {
 			for _, w := range wwi {
 				sw := slices.ContainsFunc(wwi, func(z workspacesv1alpha1.InternalWorkspace) bool {
 					zll, wll := z.GetLabels(), w.GetLabels()
-					return zll[workspacesv1alpha1.LabelDisplayName] == wll[workspacesv1alpha1.LabelDisplayName] &&
-						zll[workspacesv1alpha1.LabelWorkspaceOwner] == wll[workspacesv1alpha1.LabelWorkspaceOwner]
+					return z.Spec.Owner.JWTInfo.Username != w.Spec.Owner.JWTInfo.Username &&
+						zll[workspacesv1alpha1.LabelDisplayName] == wll[workspacesv1alpha1.LabelDisplayName]
 				})
 				Expect(sw).Should(BeTrue())
 			}
@@ -233,9 +247,9 @@ var _ = Describe("List", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-ws",
 						Namespace: "not-monitored",
-						Labels: map[string]string{
-							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						},
+					},
+					Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+						Owner: ownerUserInfo,
 					},
 				},
 				&toolchainv1alpha1.SpaceBinding{
@@ -243,12 +257,12 @@ var _ = Describe("List", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            "owner-ws",
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            "owner-ws",
 					},
@@ -259,7 +273,7 @@ var _ = Describe("List", func() {
 		It("is not returned in list", func() {
 			// when
 			var ww workspacesv1alpha1.InternalWorkspaceList
-			err := c.ListAsUser(ctx, "owner-user", &ww)
+			err := c.ListAsUser(ctx, ownerName, &ww)
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
@@ -276,9 +290,11 @@ var _ = Describe("List", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+						workspacesv1alpha1.LabelDisplayName: wName,
 					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: ownerUserInfo,
 				},
 			}
 			c = buildCache(wsns, ksns,
@@ -289,7 +305,7 @@ var _ = Describe("List", func() {
 						Namespace: ksns,
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            wName,
 					},
@@ -324,11 +340,10 @@ var _ = Describe("List", func() {
 				And(
 					BeEmpty(),
 					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
 				),
 			)
 			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
+			Expect(ww.Items[0].Namespace).ShouldNot(Equal(ownerName))
 		})
 	})
 
@@ -342,12 +357,12 @@ var _ = Describe("List", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
-						icache.LabelWorkspaceVisibility:        string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
+						workspacesv1alpha1.LabelDisplayName: wName,
+						icache.LabelWorkspaceVisibility:     string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
 					},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner:      ownerUserInfo,
 					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
 				},
 			}
@@ -358,12 +373,12 @@ var _ = Describe("List", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            w.Name,
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            w.Name,
 					},
@@ -383,12 +398,10 @@ var _ = Describe("List", func() {
 				And(
 					BeEmpty(),
 					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
 				),
 			)
 			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
-
+			Expect(ww.Items[0].Namespace).ShouldNot(Equal(ownerName))
 		})
 	})
 })

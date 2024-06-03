@@ -20,7 +20,6 @@ COPY server/core/ server/core/
 COPY server/rest/ server/rest/
 COPY server/log/ server/log/
 COPY server/persistence/ server/persistence/
-COPY server/workspacesutil server/workspacesutil
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command

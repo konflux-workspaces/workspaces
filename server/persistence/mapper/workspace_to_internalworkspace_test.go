@@ -27,8 +27,7 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 			Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
 			Expect(w.GetLabels()).To(HaveKey(workspacesv1alpha1.LabelDisplayName))
 			Expect(w.GetLabels()[workspacesv1alpha1.LabelDisplayName]).To(Equal(displayName))
-			Expect(w.GetLabels()).To(HaveKey(workspacesv1alpha1.LabelWorkspaceOwner))
-			Expect(w.GetLabels()[workspacesv1alpha1.LabelWorkspaceOwner]).To(Equal(ownerName))
+			Expect(w.Spec.Owner.JWTInfo.Username).To(Equal(ownerName))
 			Expect(w.Spec).ToNot(BeNil())
 		}
 

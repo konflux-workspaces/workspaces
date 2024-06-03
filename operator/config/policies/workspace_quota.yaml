@@ -1,0 +1,62 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: workspace-quota
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: quota-same-user
+      match:
+        any:
+        - resources:
+            kinds:
+            - workspaces.konflux.io/*/InternalWorkspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - CREATE
+      context:
+      - name: ownedWorkspaces
+        apiCall:
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces"
+          jmesPath: "items[?spec.owner.jwtInfo.username=='{{ request.object.spec.owner.jwtInfo.username }}'] | length(@)"
+      - name: workspacesLimit
+        variable:
+          value: 1
+      validate:
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.jwtInfo.username }}"
+        deny:
+          conditions:
+            all:
+            - key: "{{ ownedWorkspaces }}"
+              operator: GreaterThan
+              value: "{{ sum([workspacesLimit, `-1`]) }}"
+    - name: quota-owner-change
+      match:
+        any:
+        - resources:
+            kinds:
+            - workspaces.konflux.io/*/InternalWorkspace
+            namespaces:
+            - workspaces-system
+            operations:
+            - UPDATE
+      context:
+      - name: ownedWorkspaces
+        apiCall:
+          urlPath: "/apis/workspaces.konflux.io/v1alpha1/namespaces/workspaces-system/internalworkspaces"
+          jmesPath: "items[?spec.owner.jwtInfo.username=='{{ request.object.spec.owner.jwtInfo.username }}'] | length(@)"
+      - name: workspacesLimit
+        variable:
+          value: 1
+      validate:
+        message: "Maximum number of workspaces ({{ workspacesLimit }}) reached for {{ request.object.spec.owner.jwtInfo.username }}"
+        deny:
+          conditions:
+            all:
+            - key: "{{ ownedWorkspaces }}"
+              operator: GreaterThan
+              value: "{{ sum([workspacesLimit, `-1`]) }}"
+            - key: "{{ request.oldObject.spec.owner.jwtInfo.username }}"
+              operator: NotEquals
+              value: "{{ request.object.spec.owner.jwtInfo.username }}"

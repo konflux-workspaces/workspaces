@@ -40,7 +40,7 @@ func NewReadWorkspaceHandler(reader WorkspaceReader) *ReadWorkspaceHandler {
 func (h *ReadWorkspaceHandler) Handle(ctx context.Context, query ReadWorkspaceQuery) (*ReadWorkspaceResponse, error) {
 	// authorization
 	// If required, implement here complex logic like multiple-domains filtering, etc
-	u, ok := ctx.Value(ccontext.UserKey).(string)
+	u, ok := ctx.Value(ccontext.UserUsernameKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}

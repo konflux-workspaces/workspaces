@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +24,8 @@ var _ = Describe("Read", func() {
 
 	ksns := "kubesaw-namespace"
 	wsns := "workspaces-namespace"
+	ownerName := "owner-user"
+	uuidSub := uuid.New()
 
 	BeforeEach(func() {
 		ctx = context.Background()
@@ -36,8 +39,16 @@ var _ = Describe("Read", func() {
 					Name:      generateName("no-space-binding"),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    "no-space-binding",
+						workspacesv1alpha1.LabelDisplayName: "no-space-binding",
+					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: ownerName,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+							Email:    fmt.Sprintf("%s@domain.com", ownerName),
+						},
 					},
 				},
 			})
@@ -72,7 +83,7 @@ var _ = Describe("Read", func() {
 					Namespace: ksns,
 				},
 				Spec: toolchainv1alpha1.SpaceBindingSpec{
-					MasterUserRecord: "owner-user",
+					MasterUserRecord: ownerName,
 					SpaceRole:        "admin",
 					Space:            "no-label",
 				},
@@ -97,8 +108,16 @@ var _ = Describe("Read", func() {
 				Name:      generateName("owner-ws"),
 				Namespace: wsns,
 				Labels: map[string]string{
-					workspacesv1alpha1.LabelDisplayName:    "owner-ws",
-					workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+					workspacesv1alpha1.LabelDisplayName: "owner-ws",
+				},
+			},
+			Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+				Owner: workspacesv1alpha1.UserInfo{
+					JWTInfo: workspacesv1alpha1.JwtInfo{
+						Username: ownerName,
+						Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+						Email:    fmt.Sprintf("%s@domain.com", ownerName),
+					},
 				},
 			},
 		}
@@ -111,12 +130,12 @@ var _ = Describe("Read", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            w.Name,
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            w.Name,
 					},
@@ -127,8 +146,8 @@ var _ = Describe("Read", func() {
 		It("should be returned in read", func() {
 			// when
 			var rw workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
-			err := c.GetAsUser(ctx, "owner-user", key, &rw)
+			key := iwclient.SpaceKey{Owner: ownerName, Name: "owner-ws"}
+			err := c.GetAsUser(ctx, ownerName, key, &rw)
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
@@ -138,7 +157,7 @@ var _ = Describe("Read", func() {
 		It("should NOT be returned in read of not-owner-user workspace", func() {
 			// when
 			rw := workspacesv1alpha1.InternalWorkspace{}
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
+			key := iwclient.SpaceKey{Owner: ownerName, Name: "owner-ws"}
 			err := c.GetAsUser(ctx, "not-owner-user", key, &rw)
 
 			// then
@@ -158,8 +177,16 @@ var _ = Describe("Read", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+						workspacesv1alpha1.LabelDisplayName: wName,
+					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: ownerName,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+							Email:    fmt.Sprintf("%s@domain.com", ownerName),
+						},
 					},
 				},
 			}
@@ -168,12 +195,12 @@ var _ = Describe("Read", func() {
 					Name:      fmt.Sprintf("owner-sb-%d", i),
 					Namespace: ksns,
 					Labels: map[string]string{
-						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+						toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 						toolchainv1alpha1.SpaceBindingSpaceLabelKey:            ww[i].GetName(),
 					},
 				},
 				Spec: toolchainv1alpha1.SpaceBindingSpec{
-					MasterUserRecord: "owner-user",
+					MasterUserRecord: ownerName,
 					SpaceRole:        "admin",
 					Space:            ww[i].GetName(),
 				},
@@ -198,8 +225,8 @@ var _ = Describe("Read", func() {
 
 				// when
 				var rw workspacesv1alpha1.InternalWorkspace
-				key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
-				err := c.GetAsUser(ctx, "owner-user", key, &rw)
+				key := iwclient.SpaceKey{Owner: ownerName, Name: wName}
+				err := c.GetAsUser(ctx, ownerName, key, &rw)
 				Expect(err).NotTo(HaveOccurred())
 
 				// then
@@ -213,7 +240,7 @@ var _ = Describe("Read", func() {
 
 				// when
 				rw := workspacesv1alpha1.InternalWorkspace{}
-				key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
+				key := iwclient.SpaceKey{Owner: ownerName, Name: wName}
 				err := c.GetAsUser(ctx, "not-owner-user", key, &rw)
 
 				// then
@@ -235,8 +262,16 @@ var _ = Describe("Read", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+						workspacesv1alpha1.LabelDisplayName: wName,
+					},
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: ownerName,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+							Email:    fmt.Sprintf("%s@domain.com", ownerName),
+						},
 					},
 				},
 			}
@@ -247,12 +282,12 @@ var _ = Describe("Read", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            expectedWorkspace.GetName(),
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            wName,
 					},
@@ -278,8 +313,8 @@ var _ = Describe("Read", func() {
 		It("is returned in read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
-			err := c.GetAsUser(ctx, "owner-user", key, &w)
+			key := iwclient.SpaceKey{Owner: ownerName, Name: wName}
+			err := c.GetAsUser(ctx, ownerName, key, &w)
 
 			// then
 			Expect(err).NotTo(HaveOccurred())
@@ -295,13 +330,19 @@ var _ = Describe("Read", func() {
 				Name:      generateName(wName),
 				Namespace: wsns,
 				Labels: map[string]string{
-					workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-					icache.LabelWorkspaceVisibility:        string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
-					workspacesv1alpha1.LabelDisplayName:    wName,
+					icache.LabelWorkspaceVisibility:     string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
+					workspacesv1alpha1.LabelDisplayName: wName,
 				},
 			},
 			Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 				Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
+				Owner: workspacesv1alpha1.UserInfo{
+					JWTInfo: workspacesv1alpha1.JwtInfo{
+						Username: ownerName,
+						Sub:      fmt.Sprintf("f:%s:%s", uuidSub, ownerName),
+						Email:    fmt.Sprintf("%s@domain.com", ownerName),
+					},
+				},
 			},
 		}
 
@@ -313,12 +354,12 @@ var _ = Describe("Read", func() {
 						Name:      "owner-sb",
 						Namespace: ksns,
 						Labels: map[string]string{
-							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: "owner-user",
+							toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: ownerName,
 							toolchainv1alpha1.SpaceBindingSpaceLabelKey:            expectedWorkspace.GetName(),
 						},
 					},
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
-						MasterUserRecord: "owner-user",
+						MasterUserRecord: ownerName,
 						SpaceRole:        "admin",
 						Space:            expectedWorkspace.GetName(),
 					},
@@ -329,7 +370,7 @@ var _ = Describe("Read", func() {
 		It("is returned in other-user's read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
+			key := iwclient.SpaceKey{Owner: ownerName, Name: wName}
 			err := c.GetAsUser(ctx, "other-user", key, &w)
 			Expect(err).NotTo(HaveOccurred())
 

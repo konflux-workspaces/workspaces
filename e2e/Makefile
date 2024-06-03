@@ -2,6 +2,13 @@ KUBECLI ?= kubectl
 KUSTOMIZE ?= kustomize
 GO = go
 
+# TODO(@filariow): temporary, move this to common bin folder as part of JIRA ASC-551
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+LOCALBIN := $(ROOT_DIR)/bin
+$(LOCALBIN):
+	mkdir $(LOCALBIN)
+HELM ?= $(LOCALBIN)/helm
+
 V ?=
 
 DATE_SUFFIX != date +'%s'
@@ -13,6 +20,9 @@ IMAGE_BUILDER ?= docker
 export IMAGE_BUILDER
 
 USE_INSECURE_TLS ?= false
+
+KYVERNO_CHART_VERSION ?= 3.2.4
+KYVERNO_NAMESPACE ?= kyverno
 
 .PHONY: vet
 vet:
@@ -28,11 +38,34 @@ push-images:
 	$(IMAGE_BUILDER) push $(OPERATOR_IMG)
 	$(IMAGE_BUILDER) push $(SERVER_IMG)
 
+
+# TODO(@filariow): temporary, move this to common bin folder as part of JIRA ASC-551
+.PHONY: helm
+helm: $(HELM)
+$(HELM): $(LOCALBIN)
+	test -s $(LOCALBIN)/helm || ( \
+		curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | \
+		USE_SUDO=false HELM_INSTALL_DIR="$(LOCALBIN)" PATH="${PATH}:$(LOCALBIN)" bash )
+
+.PHONY: deploy-kyverno
+deploy-kyverno: helm
+	[ "$$($(HELM) list -n $(KYVERNO_NAMESPACE) -o json | jq  -r '.[] | select(.name == "kyverno") | .chart')" = "kyverno-$(KYVERNO_CHART_VERSION)" ] || ( \
+		# TODO(@filariow): remove the delete namespace workaround required because of Openshift requirements on pod security context \
+		$(KUBECLI) delete namespace $(KYVERNO_NAMESPACE) || true; \
+		$(HELM) repo add kyverno https://kyverno.github.io/kyverno/ && \
+		$(HELM) repo update && \
+		$(HELM) upgrade --install kyverno kyverno/kyverno \
+			-n $(KYVERNO_NAMESPACE) --create-namespace \
+			--timeout 3m \
+			--version "$(KYVERNO_CHART_VERSION)" \
+			--wait \
+	)
+
 .PHONY: deploy-operator
-deploy-operator:
+deploy-operator: deploy-kyverno
 	(\
 		f=$$(mktemp --directory /tmp/workspaces-config.XXXXX) && \
-		cp -r "../hack" "../operator" "../server" "$$f" && \
+		cp -r "../hack" "../operator" "../server" "../e2e" "$$f" && \
 		cd "$$f/operator" && \
 		( \
 			cd config/manager && \
@@ -43,7 +76,8 @@ deploy-operator:
 					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
-		IMG=$(OPERATOR_IMG) $(MAKE) install deploy \
+		cd "$$f/e2e/config/operator/e2e" && $(KUSTOMIZE) edit set image controller=${OPERATOR_IMG} && \
+		$(KUSTOMIZE) build "$$f/e2e/config/operator/e2e" | kubectl apply -f - \
 	)
 
 .PHONY: prepare

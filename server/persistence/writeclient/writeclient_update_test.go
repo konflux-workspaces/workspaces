@@ -2,7 +2,9 @@ package writeclient_test
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -29,6 +31,8 @@ var _ = Describe("WriteclientUpdate", func() {
 
 	workspacesNamespace := "workspaces-system"
 	kubesawNamespace := "toolchain-host"
+
+	uuidSub := uuid.New()
 
 	user := "foo"
 	namespace := "bar"
@@ -77,12 +81,18 @@ var _ = Describe("WriteclientUpdate", func() {
 					Name:      workspace.Name + "-fddjk",
 					Namespace: workspacesNamespace,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelDisplayName:    workspace.Name,
-						workspacesv1alpha1.LabelWorkspaceOwner: user,
+						workspacesv1alpha1.LabelDisplayName: workspace.Name,
 					},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityPrivate,
+					Owner: workspacesv1alpha1.UserInfo{
+						JWTInfo: workspacesv1alpha1.JwtInfo{
+							Username: user,
+							Sub:      fmt.Sprintf("f:%s:%s", uuidSub, user),
+							Email:    fmt.Sprintf("%s@domain.com", user),
+						},
+					},
 				},
 			}
 		})

@@ -36,7 +36,7 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 	}
 
 	wns := tcontext.RetrieveWorkspacesNamespace(ctx)
-	w, err := createWorkspace(ctx, cli, wns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
+	w, err := createInternalWorkspace(ctx, cli, wns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 	if err != nil {
 		return ctx, err
 	}

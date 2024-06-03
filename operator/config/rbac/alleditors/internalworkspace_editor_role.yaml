@@ -1,20 +1,16 @@
 # permissions for end users to edit workspaces.
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   labels:
-    app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: workspace-editor-role
-    app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: workspaces
     app.kubernetes.io/part-of: workspaces
-    app.kubernetes.io/managed-by: kustomize
   name: workspace-editor-role
 rules:
 - apiGroups:
-  - workspaces.io
+  - workspaces.konflux.io
   resources:
-  - workspaces
+  - internalworkspaces
   verbs:
   - create
   - delete
@@ -24,8 +20,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - workspaces.io
+  - workspaces.konflux.io
   resources:
-  - workspaces/status
+  - internalworkspaces/status
   verbs:
   - get

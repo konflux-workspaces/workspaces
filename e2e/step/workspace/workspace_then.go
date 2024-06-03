@@ -59,13 +59,42 @@ func thenTheWorkspaceIsReadableForEveryone(ctx context.Context) error {
 }
 
 func thenACommunityWorkspaceIsCreated(ctx context.Context) error {
-	w := tcontext.RetrieveInternalWorkspace(ctx)
+	w, err := retrieveInternalWorkspaceFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
 }
 
 func thenAPrivateWorkspaceIsCreated(ctx context.Context) error {
-	w := tcontext.RetrieveInternalWorkspace(ctx)
+	w, err := retrieveInternalWorkspaceFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	return checkWorkspaceVisibility(ctx, w.Name, workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
+}
+
+func retrieveInternalWorkspaceFromContext(ctx context.Context) (*workspacesv1alpha1.InternalWorkspace, error) {
+	if w, ok := tcontext.LookupInternalWorkspace(ctx); ok {
+		return &w, nil
+	}
+
+	uw := tcontext.RetrieveUserWorkspace(ctx)
+	cli := tcontext.RetrieveHostClient(ctx)
+	ww := workspacesv1alpha1.InternalWorkspaceList{}
+
+	if err := cli.Client.List(ctx, &ww,
+		client.InNamespace(tcontext.RetrieveWorkspacesNamespace(ctx)),
+		client.MatchingLabels{
+			workspacesv1alpha1.LabelDisplayName: uw.Name,
+		},
+	); err != nil {
+		return nil, err
+	}
+
+	return &ww.Items[0], nil
 }
 
 func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {

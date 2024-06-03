@@ -44,11 +44,24 @@ spec:
             description: InternalWorkspaceSpec defines the desired state of Workspace
             properties:
               owner:
+                description: UserInfo collects information for a logged user
                 properties:
-                  id:
-                    type: string
+                  jwtInfo:
+                    description: JwtInfo collects information from the User JSON Web
+                      Token
+                    properties:
+                      email:
+                        type: string
+                      sub:
+                        type: string
+                      username:
+                        type: string
+                    required:
+                    - sub
+                    - username
+                    type: object
                 required:
-                - id
+                - jwtInfo
                 type: object
               visibility:
                 type: string

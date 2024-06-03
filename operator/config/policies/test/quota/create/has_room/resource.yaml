@@ -1,0 +1,15 @@
+apiVersion: workspaces.konflux.io/v1alpha1
+kind: InternalWorkspace
+metadata:
+  labels:
+    internal.workspaces.konflux.io/creator-namespace: workspaces-system
+    internal.workspaces.konflux.io/creator-serviceaccount: saname
+    internal.workspaces.konflux.io/is-creator-serviceaccount: "true"
+    internal.workspaces.konflux.io/owner: owner
+  name: workspace-sample
+  namespace: workspaces-system
+spec:
+  owner:
+    jwtInfo:
+      username: owner
+  visibility: private
