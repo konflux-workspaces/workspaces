@@ -58,6 +58,7 @@ deploy-kyverno: helm
 			-n $(KYVERNO_NAMESPACE) --create-namespace \
 			--timeout 3m \
 			--version "$(KYVERNO_CHART_VERSION)" \
+			--wait \
 	)
 
 .PHONY: deploy-operator
