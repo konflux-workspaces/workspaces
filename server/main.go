@@ -70,6 +70,7 @@ func run(l *slog.Logger) error {
 	s := rest.New(
 		l,
 		DefaultAddr,
+		crc,
 		workspace.NewReadWorkspaceHandler(c).Handle,
 		workspace.NewListWorkspaceHandler(c).Handle,
 		workspace.NewCreateWorkspaceHandler(writer).Handle,

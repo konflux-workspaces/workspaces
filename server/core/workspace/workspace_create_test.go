@@ -45,7 +45,7 @@ var _ = Describe("", func() {
 	It("should allow authenticated requests", func() {
 		// given
 		username := "foo"
-		ctx := context.WithValue(ctx, ccontext.UserKey, username)
+		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
 		opts := &client.CreateOptions{}
 		creator.EXPECT().
 			CreateUserWorkspace(ctx, username, &request.Workspace, opts).
@@ -64,7 +64,7 @@ var _ = Describe("", func() {
 	It("should forward errors from the workspace creator", func() {
 		// given
 		username := "foo"
-		ctx := context.WithValue(ctx, ccontext.UserKey, username)
+		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
 		opts := &client.CreateOptions{}
 		error := fmt.Errorf("Failed to create workspace!")
 		creator.EXPECT().

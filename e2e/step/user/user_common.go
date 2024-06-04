@@ -31,6 +31,7 @@ func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*too
 	h := md5.New()
 	h.Write([]byte(e))
 	eh := hex.EncodeToString(h.Sum(nil))
+	prefixedUsername := cli.EnsurePrefix(name)
 
 	u := toolchainv1alpha1.UserSignup{
 		ObjectMeta: metav1.ObjectMeta{
@@ -44,8 +45,9 @@ func OnboardUser(ctx context.Context, cli cli.Cli, namespace, name string) (*too
 			IdentityClaims: toolchainv1alpha1.IdentityClaimsEmbedded{
 				PropagatedClaims: toolchainv1alpha1.PropagatedClaims{
 					Email: e,
+					Sub:   prefixedUsername,
 				},
-				PreferredUsername: cli.EnsurePrefix(name),
+				PreferredUsername: prefixedUsername,
 			},
 			States: []toolchainv1alpha1.UserSignupState{toolchainv1alpha1.UserSignupStateApproved},
 		},
