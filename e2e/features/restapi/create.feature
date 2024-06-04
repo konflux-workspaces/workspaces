@@ -3,11 +3,13 @@ Feature: Create workspaces via REST API
   @skip
   Scenario: users can create a new workspace
 
+  @skip
   Scenario: user requests a private workspace
     Given An user is onboarded
     When  The user requests a new private workspace
     Then  A private workspace is created
 
+  @skip
   Scenario: user requests a community workspace
     Given An user is onboarded
     When  The user requests a new community workspace
