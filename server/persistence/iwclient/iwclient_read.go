@@ -26,7 +26,7 @@ func (c *Client) GetAsUser(
 ) error {
 	l := log.FromContext(ctx).With("key", key, "user", user)
 	l.Debug("retrieving InternalWorkspace")
-	w, err := c.fetchInternalWorkspaceByLabel(ctx, user, key.Owner, key.Name, nil)
+	w, err := c.fetchInternalWorkspaceByLabel(ctx, key.Owner, key.Name, nil)
 	if err != nil {
 		l.Error("error retrieving InternalWorkspace", "error", err)
 		return err
@@ -56,7 +56,6 @@ func (c *Client) GetAsUser(
 
 func (c *Client) fetchInternalWorkspaceByLabel(
 	ctx context.Context,
-	user string,
 	owner string,
 	space string,
 	_ ...client.GetOption,
