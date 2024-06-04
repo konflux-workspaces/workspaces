@@ -3,5 +3,6 @@ package context
 type ServerContextKey string
 
 const (
-	UserKey ServerContextKey = "user"
+	UserSubKey                 ServerContextKey = "user-sub"
+	UserSignupComplaintNameKey ServerContextKey = "usersignup-complaintname"
 )
