@@ -1,7 +1,4 @@
-Feature: Create, update, and delete workspaces via REST API
-
-  @skip
-  Scenario: users can create a new workspace
+Feature: Update workspaces via REST API
 
   Scenario: users can update their workspaces' visibility
     Given An user is onboarded
@@ -11,9 +8,14 @@ Feature: Create, update, and delete workspaces via REST API
 
   @skip
   Scenario: users can not update visibility of non-owned workspaces
+  
+  Scenario: visibility changes from private to community
+    Given A private workspace exists for an user
+    When  The owner changes visibility to community
+    Then  The workspace is readable for everyone
 
-  @skip
-  Scenario: users can delete owned workspaces
+  Scenario: visibility changes from community to private
+    Given A community workspace exists for an user
+    When  The owner changes visibility to private
+    Then  The workspace is readable only for the ones directly granted access to
 
-  @skip
-  Scenario: users cannot delete default workspace
