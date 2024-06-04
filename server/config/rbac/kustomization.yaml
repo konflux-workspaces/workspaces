@@ -3,10 +3,8 @@ kind: Kustomization
 resources:
 - clusterrole_spacebinding_reader.yaml
 - clusterrole_usersignup_reader.yaml
-- clusterrole_workspace_reader.yaml
+- clusterrole_workspace_editor.yaml
 - clusterrolebinding_spacebinding_reader.yaml
 - clusterrolebinding_usersignup_reader.yaml
-- clusterrolebinding_workspace_reader.yaml
+- clusterrolebinding_workspace_editor.yaml
 - serviceaccount.yaml
-- ./clusterrole_user_impersonator.yaml
-- ./clusterrolebinding_user_impersonator.yaml
