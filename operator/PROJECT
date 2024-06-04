@@ -16,7 +16,7 @@ resources:
     namespaced: true
   controller: true
   domain: workspaces.io
-  kind: Workspace
+  kind: InternalWorkspace
   path: github.com/konflux-workspaces/workspaces/operator/api/v1alpha1
   version: v1alpha1
 version: "3"
