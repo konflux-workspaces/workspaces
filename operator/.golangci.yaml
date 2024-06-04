@@ -3,25 +3,48 @@ run:
   timeout: 30m
   go: '1.22'
   issues-exit-code: 2
+
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+  # restore some of the defaults
+  # (fill in the rest as needed)
+  exclude-rules:
+    - path: "api/*"
+      linters:
+        - lll
+    - path: "internal/*"
+      linters:
+        - dupl
+        - lll
 linters:
+  disable-all: true
   enable:
-  - gosimple
-  - staticcheck
-  - errcheck
-  - govet
-  - ineffassign
-  - typecheck
-  - unused
-  - misspell
-  - cyclop
-  - errname
-  - errorlint
-  - ginkgolinter
-  - gocritic
-  - gofmt
-  - gosec
-  fast: true
-  verbose: true
+    - dupl
+    - errcheck
+    - errname
+    - errorlint
+    - exportloopref
+    - ginkgolinter
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
 
 # https://golangci-lint.run/usage/linters
 linters-settings:

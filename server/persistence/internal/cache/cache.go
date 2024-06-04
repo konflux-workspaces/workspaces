@@ -42,6 +42,9 @@ func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesa
 	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{}); err != nil {
 		return nil, err
 	}
+	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.UserSignup{}); err != nil {
+		return nil, err
+	}
 	if _, err := c.GetInformer(ctx, &workspacesv1alpha1.InternalWorkspace{}); err != nil {
 		return nil, err
 	}
@@ -55,6 +58,7 @@ func newCache(cfg *rest.Config, scheme *runtime.Scheme, mapper meta.RESTMapper, 
 		Mapper:                      mapper,
 		ReaderFailOnMissingInformer: true,
 		ByObject: map[client.Object]cache.ByObject{
+			&toolchainv1alpha1.UserSignup{}:         {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
 			&toolchainv1alpha1.SpaceBinding{}:       {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
 			&workspacesv1alpha1.InternalWorkspace{}: {Namespaces: map[string]cache.Config{workspacesNamespace: {}}},
 		},

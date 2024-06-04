@@ -35,7 +35,7 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	"github.com/konflux-workspaces/workspaces/operator/controllers"
+	"github.com/konflux-workspaces/workspaces/operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -109,7 +109,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.WorkspaceReconciler{
+	if err = (&controller.WorkspaceReconciler{
 		Client:              mgr.GetClient(),
 		Scheme:              mgr.GetScheme(),
 		KubespaceNamespace:  kns,
@@ -118,7 +118,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Workspace")
 		os.Exit(1)
 	}
-	if err = (&controllers.UserSignupReconciler{
+	if err = (&controller.UserSignupReconciler{
 		Client:              mgr.GetClient(),
 		Scheme:              mgr.GetScheme(),
 		WorkspacesNamespace: wns,
