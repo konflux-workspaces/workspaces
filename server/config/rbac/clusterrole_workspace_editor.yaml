@@ -11,3 +11,4 @@ rules:
   - list
   - get
   - watch
+  - update

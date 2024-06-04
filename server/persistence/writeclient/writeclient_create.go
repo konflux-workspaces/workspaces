@@ -5,7 +5,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konflux-workspaces/workspaces/server/core/workspace/v2"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 
