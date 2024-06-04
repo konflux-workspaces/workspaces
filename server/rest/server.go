@@ -64,7 +64,7 @@ func addWorkspaces(
 	cache cache.Cache,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-	postHandle workspace.CreateWorkspaceCreateHandlerFunc,
+	_ workspace.CreateWorkspaceCreateHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) {
 	// Read
@@ -102,15 +102,15 @@ func addWorkspaces(
 				))))
 
 	// Create
-	mux.Handle(fmt.Sprintf("POST %s", NamespacedWorkspacesPrefix),
-		withAuthHeaderInfo(
-			withUserSignupAuth(cache, true,
-				workspace.NewPostWorkspaceHandler(
-					workspace.MapPostWorkspaceHttp,
-					postHandle,
-					marshal.DefaultMarshalerProvider,
-					marshal.DefaultUnmarshalerProvider,
-				))))
+	// mux.Handle(fmt.Sprintf("POST %s", NamespacedWorkspacesPrefix),
+	// 	withAuthHeaderInfo(
+	// 		withUserSignupAuth(cache, true,
+	// 			workspace.NewPostWorkspaceHandler(
+	// 				workspace.MapPostWorkspaceHttp,
+	// 				postHandle,
+	// 				marshal.DefaultMarshalerProvider,
+	// 				marshal.DefaultUnmarshalerProvider,
+	// 			))))
 }
 
 func withAuthHeaderInfo(next http.Handler) http.Handler {
