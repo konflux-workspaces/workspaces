@@ -25,7 +25,9 @@ func thenTheWorkspaceIsReadableOnlyForGranted(ctx context.Context) error {
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)
 
 	asbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := cli.Client.List(ctx, &asbb, client.InNamespace(ns)); err != nil {
+	if err := cli.Client.List(ctx, &asbb, client.InNamespace(ns), client.MatchingLabels{
+		toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: u.Name,
+	}); err != nil {
 		return err
 	}
 

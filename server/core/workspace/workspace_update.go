@@ -41,7 +41,7 @@ func NewUpdateWorkspaceHandler(updater WorkspaceUpdater) *UpdateWorkspaceHandler
 func (h *UpdateWorkspaceHandler) Handle(ctx context.Context, query UpdateWorkspaceCommand) (*UpdateWorkspaceResponse, error) {
 	// authorization
 	// If required, implement here complex logic like multiple-domains filtering, etc
-	u, ok := ctx.Value(ccontext.UserKey).(string)
+	u, ok := ctx.Value(ccontext.UserSignupComplaintNameKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("unauthenticated request")
 	}
