@@ -41,7 +41,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 						}
 						return false, err
 					}
-					return false, nil
+					return true, nil
 				}); err != nil {
 					errs = append(errs, err)
 				}
@@ -65,7 +65,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 						}
 						return false, err
 					}
-					return false, nil
+					return true, nil
 				}); err != nil {
 					errs = append(errs, err)
 				}
@@ -89,7 +89,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 						}
 						return false, err
 					}
-					return false, nil
+					return true, nil
 				}); err != nil {
 					errs = append(errs, err)
 				}
@@ -113,7 +113,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 						}
 						return false, err
 					}
-					return false, nil
+					return true, nil
 				}); err != nil {
 					errs = append(errs, err)
 				}
@@ -137,7 +137,7 @@ func deleteResources(ctx context.Context, sc *godog.Scenario, err error) (contex
 						}
 						return false, err
 					}
-					return false, nil
+					return true, nil
 				}); err != nil {
 					errs = append(errs, err)
 				}
