@@ -12,16 +12,14 @@ import (
 )
 
 type UserSignupMiddleware struct {
-	cache             cache.Cache
-	requireUserSignup bool
+	cache cache.Cache
 
 	next http.Handler
 }
 
-func NewUserSignupMiddleware(next http.Handler, cache cache.Cache, requireUserSignup bool) *UserSignupMiddleware {
+func NewUserSignupMiddleware(next http.Handler, cache cache.Cache) *UserSignupMiddleware {
 	return &UserSignupMiddleware{
-		cache:             cache,
-		requireUserSignup: requireUserSignup,
+		cache: cache,
 
 		next: next,
 	}
