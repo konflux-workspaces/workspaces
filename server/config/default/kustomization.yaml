@@ -7,8 +7,6 @@ resources:
 - ../network
 namePrefix: workspaces-
 
-namespace: mynamespace
-
 configMapGenerator:
   - name: rest-api-server-cm
     options:
