@@ -1,11 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: rest-api-server:usersignup-reader
+  name: rest-api-server:spacebinding-reader
+  namespace: system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: usersignup-reader
+  kind: Role
+  name: spacebinding-reader
 subjects:
 - kind: ServiceAccount
   name: rest-api-server
