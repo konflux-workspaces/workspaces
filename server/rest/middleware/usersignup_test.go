@@ -69,10 +69,26 @@ var _ = Describe("Usersignup", func() {
 		It("invokes next handler", func() {
 			// set expectations
 			c.EXPECT().List(gomock.Any(), gomock.Any()).Times(0)
-			h.EXPECT().ServeHTTP(gomock.Any(), gomock.Any()).Times(1)
+			h.EXPECT().
+				ServeHTTP(gomock.Any(), gomock.Any()).
+				Times(1).
+				DoAndReturn(
+					func(_ http.ResponseWriter, r *http.Request) {
+						v := r.Context().Value(ccontext.UserSignupComplaintNameKey)
+						Expect(v).To(BeNil(), "expecting context key '%s' not to be set", ccontext.UserSignupComplaintNameKey)
+
+						w.WriteHeader(999)
+						_, err := w.Write(nil)
+						Expect(err).NotTo(HaveOccurred(), "error writing empty payload")
+					},
+				)
 
 			// when
 			m.ServeHTTP(w, r)
+
+			// then
+			Expect(w.Code).To(Equal(999))
+			Expect(w.Body.String()).To(BeZero())
 		})
 	})
 
