@@ -62,7 +62,7 @@ var _ = Describe("Usersignup", func() {
 		r = lr
 
 		// middleware
-		m = middleware.NewUserSignupMiddleware(h, c, true)
+		m = middleware.NewUserSignupMiddleware(h, c)
 	})
 
 	When("sub HTTP header is not present", func() {

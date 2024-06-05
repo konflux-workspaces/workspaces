@@ -70,7 +70,7 @@ func addWorkspaces(
 	// Read
 	mux.Handle(fmt.Sprintf("GET %s/{name}", NamespacedWorkspacesPrefix),
 		withAuthHeaderInfo(
-			withUserSignupAuth(cache, true,
+			withUserSignupAuth(cache,
 				workspace.NewReadWorkspaceHandler(
 					workspace.MapReadWorkspaceHttp,
 					readHandle,
@@ -79,7 +79,7 @@ func addWorkspaces(
 
 	// List
 	lh := withAuthHeaderInfo(
-		withUserSignupAuth(cache, true,
+		withUserSignupAuth(cache,
 			workspace.NewListWorkspaceHandler(
 				workspace.MapListWorkspaceHttp,
 				listHandle,
@@ -93,7 +93,7 @@ func addWorkspaces(
 	// Update
 	mux.Handle(fmt.Sprintf("PUT %s/{name}", NamespacedWorkspacesPrefix),
 		withAuthHeaderInfo(
-			withUserSignupAuth(cache, true,
+			withUserSignupAuth(cache,
 				workspace.NewUpdateWorkspaceHandler(
 					workspace.MapUpdateWorkspaceHttp,
 					updateHandle,
@@ -119,8 +119,8 @@ func withAuthHeaderInfo(next http.Handler) http.Handler {
 	})
 }
 
-func withUserSignupAuth(cache cache.Cache, required bool, next http.Handler) http.Handler {
-	return middleware.NewUserSignupMiddleware(next, cache, required)
+func withUserSignupAuth(cache cache.Cache, next http.Handler) http.Handler {
+	return middleware.NewUserSignupMiddleware(next, cache)
 }
 
 func addHealthz(mux *http.ServeMux) {
