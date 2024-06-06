@@ -3,11 +3,14 @@ package iwclient
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/log"
+
+	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 var (
@@ -61,22 +64,46 @@ func (c *Client) fetchInternalWorkspaceByLabel(
 	_ ...client.GetOption,
 ) (*workspacesv1alpha1.InternalWorkspace, error) {
 	ww := workspacesv1alpha1.InternalWorkspaceList{}
-	opts := []client.ListOption{
-		client.MatchingLabels{
-			workspacesv1alpha1.LabelDisplayName:    space,
-			workspacesv1alpha1.LabelWorkspaceOwner: owner,
-		},
+	if err := c.backend.List(ctx, &ww); err != nil {
+		return nil, err
 	}
-	if err := c.backend.List(ctx, &ww, opts...); err != nil {
+	if len(ww.Items) == 0 {
+		return nil, ErrWorkspaceNotFound
+	}
+
+	u, err := c.fetchUserSignupByComplaintName(ctx, owner)
+	if err != nil {
 		return nil, err
 	}
 
-	switch ni := len(ww.Items); ni {
-	case 0:
+	i := 0
+	if i = slices.IndexFunc(ww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
+		return w.Spec.DisplayName == space &&
+			w.Status.Owner.Username == u.Status.CompliantUsername
+	}); i == -1 {
 		return nil, ErrWorkspaceNotFound
-	case 1:
-		return &ww.Items[0], nil
+	}
+
+	return &ww.Items[i], nil
+}
+
+func (c *Client) fetchUserSignupByComplaintName(
+	ctx context.Context,
+	complaintName string,
+) (*toolchainv1alpha1.UserSignup, error) {
+	uu := toolchainv1alpha1.UserSignupList{}
+	if err := c.backend.List(ctx, &uu); err != nil {
+		return nil, err
+	}
+
+	i := slices.IndexFunc(uu.Items, func(u toolchainv1alpha1.UserSignup) bool {
+		return u.Status.CompliantUsername == complaintName
+	})
+
+	switch i {
+	case -1:
+		return nil, ErrWorkspaceNotFound
 	default:
-		return nil, ErrMoreThanOneFound
+		return &uu.Items[i], nil
 	}
 }

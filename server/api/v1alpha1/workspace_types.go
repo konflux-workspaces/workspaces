@@ -23,42 +23,40 @@ import (
 type WorkspaceVisibility string
 
 const (
+	// WorkspaceVisibilityCommunity Community value for Workspaces visibility
 	WorkspaceVisibilityCommunity WorkspaceVisibility = "community"
-	WorkspaceVisibilityPrivate   WorkspaceVisibility = "private"
+	// WorkspaceVisibilityPrivate Private value for Workspaces visibility
+	WorkspaceVisibilityPrivate WorkspaceVisibility = "private"
 )
-
-const (
-	LabelHomeWorkspace  string = "workspaces.io/home-workspace"
-	LabelWorkspaceOwner string = "workspaces.io/owner"
-)
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-type Owner struct {
-	// +required
-	// Name string `json:"name"`
-
-	// +required
-	Id string `json:"id"`
-}
 
 // WorkspaceSpec defines the desired state of Workspace
 type WorkspaceSpec struct {
-	// +required
+	//+required
 	Visibility WorkspaceVisibility `json:"visibility"`
-	// +required
-	Owner Owner `json:"owner"`
+}
+
+// SpaceInfo Information about a Space
+type SpaceInfo struct {
+	//+required
+	Name string `json:"name"`
+}
+
+// UserInfoStatus User info stored in the status
+type UserInfoStatus struct {
+	//+required
+	Email string `json:"email"`
 }
 
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
-	Space string `json:"space"`
+	//+optional
+	Space *SpaceInfo      `json:"space,omitempty"`
+	Owner *UserInfoStatus `json:"owner,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
+//+kubebuilder:printcolumn:name="Visibility",type="string",JSONPath=`.spec.visibility`
 
 // Workspace is the Schema for the workspaces API
 type Workspace struct {

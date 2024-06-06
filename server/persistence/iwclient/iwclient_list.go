@@ -1,8 +1,10 @@
 package iwclient
 
 import (
+	"cmp"
 	"context"
 	"slices"
+	"sort"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -36,26 +38,33 @@ func (c *Client) fetchMissingWorkspaces(ctx context.Context, user string, worksp
 		return err
 	}
 
+	// fetch all workspaces
+	aww := workspacesv1alpha1.InternalWorkspaceList{}
+	if err := c.backend.List(ctx, &aww); err != nil {
+		return err
+	}
+
 	// filter already fetched Workspaces
-	fsbb := make([]*toolchainv1alpha1.SpaceBinding, 0, len(sbb.Items))
+	fsp := make([]string, 0, len(sbb.Items))
 	for i, sb := range sbb.Items {
 		if slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
-			return w.Name == sb.Spec.Space
+			return w.Status.Space.Name == sb.Spec.Space
 		}) {
 			continue
 		}
 
-		fsbb = append(fsbb, &sbb.Items[i])
+		fsp = append(fsp, sbb.Items[i].Spec.Space)
 	}
+	sort.Strings(fsp)
+	fsp = slices.CompactFunc(fsp, func(s1, s2 string) bool { return cmp.Compare(s1, s2) <= 0 })
 
-	for _, sb := range fsbb {
-		k := c.workspaceNamespacedName(sb.Spec.Space)
-		w := workspacesv1alpha1.InternalWorkspace{}
-		if err := c.backend.Get(ctx, k, &w, &client.GetOptions{}); err != nil {
-			continue
+	// add workspaces to which the user has direct access to return list
+	for _, s := range fsp {
+		if i := slices.IndexFunc(aww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
+			return w.Status.Space.Name == s
+		}); i != -1 {
+			workspaces.Items = append(workspaces.Items, aww.Items[i])
 		}
-
-		workspaces.Items = append(workspaces.Items, w)
 	}
 	return nil
 }

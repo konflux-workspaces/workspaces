@@ -13,7 +13,7 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 
-	icache "github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
+	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 )
 
@@ -35,8 +35,10 @@ var _ = Describe("List", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "no-space-binding",
 					Namespace: wsns,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+				},
+				Status: workspacesv1alpha1.InternalWorkspaceStatus{
+					Owner: workspacesv1alpha1.UserInfoStatus{
+						Username: "owner-user",
 					},
 				},
 			})
@@ -48,7 +50,7 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(BeEmpty())
+			Expect(ww.Items).To(BeEmpty())
 		})
 	})
 
@@ -81,7 +83,7 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(BeEmpty())
+			Expect(ww.Items).To(BeEmpty())
 		})
 
 	})
@@ -92,9 +94,17 @@ var _ = Describe("List", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      generateName(wName),
 				Namespace: wsns,
-				Labels: map[string]string{
-					workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-					workspacesv1alpha1.LabelDisplayName:    wName,
+			},
+			Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+				DisplayName: wName,
+			},
+			Status: workspacesv1alpha1.InternalWorkspaceStatus{
+				Owner: workspacesv1alpha1.UserInfoStatus{
+					Username: "owner-user",
+				},
+				Space: workspacesv1alpha1.SpaceInfo{
+					IsHome: false,
+					Name:   "space",
 				},
 			},
 		}
@@ -114,7 +124,7 @@ var _ = Describe("List", func() {
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
 						MasterUserRecord: "owner-user",
 						SpaceRole:        "admin",
-						Space:            w.Name,
+						Space:            "space",
 					},
 				},
 			)
@@ -127,16 +137,11 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then the list contains just the 'owner-ws' workspace
-			Expect(ww.Items).Should(HaveLen(1))
-			Expect(ww.Items[0].GetLabels()).ShouldNot(
-				And(
-					BeEmpty(),
-					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
-				),
-			)
-			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
+			Expect(ww.Items).To(HaveLen(1))
+			Expect(ww.Items[0].Spec.DisplayName).To(Equal("owner-ws"))
+			Expect(ww.Items[0].Status.Owner.Username).To(Equal("owner-user"))
+			Expect(ww.Items[0].Name).ToNot(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).ToNot(Equal("owner-user"))
 		})
 
 		It("should NOT be returned in list of not-owner's workspaces", func() {
@@ -146,7 +151,7 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(BeEmpty())
+			Expect(ww.Items).To(BeEmpty())
 		})
 	})
 
@@ -159,9 +164,18 @@ var _ = Describe("List", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      generateName(wName),
 					Namespace: wsns,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					DisplayName: wName,
+					Visibility:  workspacesv1alpha1.InternalWorkspaceVisibilityPrivate,
+				},
+				Status: workspacesv1alpha1.InternalWorkspaceStatus{
+					Space: workspacesv1alpha1.SpaceInfo{
+						IsHome: false,
+						Name:   wName,
+					},
+					Owner: workspacesv1alpha1.UserInfoStatus{
+						Username: "owner-user",
 					},
 				},
 			}
@@ -197,21 +211,18 @@ var _ = Describe("List", func() {
 
 		It("should be returned in list of owner's workspaces", func() {
 			// when the list of workspaces owned by 'owner-user' is requested
-			var ww workspacesv1alpha1.InternalWorkspaceList
-			err := c.ListAsUser(ctx, "owner-user", &ww)
+			var iww workspacesv1alpha1.InternalWorkspaceList
+			err := c.ListAsUser(ctx, "owner-user", &iww)
 			Expect(err).NotTo(HaveOccurred())
 
 			// then the list contains just the 'owner-ws' workspace
-			wwi := ww.Items
-			Expect(wwi).Should(HaveLen(len(wwi)))
+			Expect(iww.Items).To(HaveLen(len(ww)))
 
-			for _, w := range wwi {
-				sw := slices.ContainsFunc(wwi, func(z workspacesv1alpha1.InternalWorkspace) bool {
-					zll, wll := z.GetLabels(), w.GetLabels()
-					return zll[workspacesv1alpha1.LabelDisplayName] == wll[workspacesv1alpha1.LabelDisplayName] &&
-						zll[workspacesv1alpha1.LabelWorkspaceOwner] == wll[workspacesv1alpha1.LabelWorkspaceOwner]
+			for _, w := range iww.Items {
+				sw := slices.ContainsFunc(ww, func(z *workspacesv1alpha1.InternalWorkspace) bool {
+					return z.Spec.DisplayName == w.Spec.DisplayName && z.Spec.Owner.JwtInfo.Sub == w.Spec.Owner.JwtInfo.Sub
 				})
-				Expect(sw).Should(BeTrue())
+				Expect(sw).To(BeTrue())
 			}
 		})
 
@@ -222,7 +233,7 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(BeEmpty())
+			Expect(ww.Items).To(BeEmpty())
 		})
 	})
 
@@ -233,8 +244,13 @@ var _ = Describe("List", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "owner-ws",
 						Namespace: "not-monitored",
-						Labels: map[string]string{
-							workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
+					},
+					Status: workspacesv1alpha1.InternalWorkspaceStatus{
+						Owner: workspacesv1alpha1.UserInfoStatus{
+							Username: "owner-user",
+						},
+						Space: workspacesv1alpha1.SpaceInfo{
+							Name: "space",
 						},
 					},
 				},
@@ -263,7 +279,7 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(BeEmpty())
+			Expect(ww.Items).To(BeEmpty())
 		})
 	})
 
@@ -275,9 +291,17 @@ var _ = Describe("List", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      generateName(wName),
 					Namespace: wsns,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
+				},
+				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+					DisplayName: wName,
+				},
+				Status: workspacesv1alpha1.InternalWorkspaceStatus{
+					Owner: workspacesv1alpha1.UserInfoStatus{
+						Username: "owner-user",
+					},
+					Space: workspacesv1alpha1.SpaceInfo{
+						IsHome: false,
+						Name:   "space",
 					},
 				},
 			}
@@ -306,7 +330,7 @@ var _ = Describe("List", func() {
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
 						MasterUserRecord: "other-user",
 						SpaceRole:        "viewer",
-						Space:            w.Name,
+						Space:            "space",
 					},
 				},
 			)
@@ -319,16 +343,11 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(1))
-			Expect(ww.Items[0].GetLabels()).ShouldNot(
-				And(
-					BeEmpty(),
-					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
-				),
-			)
-			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
+			Expect(ww.Items).To(HaveLen(1))
+			Expect(ww.Items[0].Spec.DisplayName).To(Equal("owner-ws"))
+			Expect(ww.Items[0].Status.Owner.Username).To(Equal("owner-user"))
+			Expect(ww.Items[0].Name).ToNot(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).ToNot(Equal("owner-user"))
 		})
 	})
 
@@ -342,13 +361,21 @@ var _ = Describe("List", func() {
 					Name:      generateName(wName),
 					Namespace: wsns,
 					Labels: map[string]string{
-						workspacesv1alpha1.LabelWorkspaceOwner: "owner-user",
-						workspacesv1alpha1.LabelDisplayName:    wName,
-						icache.LabelWorkspaceVisibility:        string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
+						cache.LabelWorkspaceVisibility: string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
 					},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
-					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
+					Visibility:  workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
+					DisplayName: wName,
+				},
+				Status: workspacesv1alpha1.InternalWorkspaceStatus{
+					Owner: workspacesv1alpha1.UserInfoStatus{
+						Username: "owner-user",
+					},
+					Space: workspacesv1alpha1.SpaceInfo{
+						IsHome: false,
+						Name:   "space",
+					},
 				},
 			}
 			c = buildCache(wsns, ksns,
@@ -365,7 +392,7 @@ var _ = Describe("List", func() {
 					Spec: toolchainv1alpha1.SpaceBindingSpec{
 						MasterUserRecord: "owner-user",
 						SpaceRole:        "admin",
-						Space:            w.Name,
+						Space:            "space",
 					},
 				},
 			)
@@ -378,17 +405,11 @@ var _ = Describe("List", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// then
-			Expect(ww.Items).Should(HaveLen(1))
-			Expect(ww.Items[0].GetLabels()).ShouldNot(
-				And(
-					BeEmpty(),
-					HaveKeyWithValue(workspacesv1alpha1.LabelDisplayName, "owner-ws"),
-					HaveKeyWithValue(workspacesv1alpha1.LabelWorkspaceOwner, "owner-user"),
-				),
-			)
-			Expect(ww.Items[0].Name).ShouldNot(Equal("owner-ws"))
-			Expect(ww.Items[0].Namespace).ShouldNot(Equal("owner-user"))
-
+			Expect(ww.Items).To(HaveLen(1))
+			Expect(ww.Items[0].Spec.DisplayName).To(Equal("owner-ws"))
+			Expect(ww.Items[0].Status.Owner.Username).To(Equal("owner-user"))
+			Expect(ww.Items[0].Name).ToNot(Equal("owner-ws"))
+			Expect(ww.Items[0].Namespace).ToNot(Equal("owner-user"))
 		})
 	})
 })

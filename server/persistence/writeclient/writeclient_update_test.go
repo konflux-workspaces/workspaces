@@ -38,6 +38,11 @@ var _ = Describe("WriteclientUpdate", func() {
 			Name:      "workspace-foo",
 		},
 		Spec: restworkspacesv1alpha1.WorkspaceSpec{},
+		Status: restworkspacesv1alpha1.WorkspaceStatus{
+			Space: &restworkspacesv1alpha1.SpaceInfo{
+				Name: "space",
+			},
+		},
 	}
 
 	BeforeEach(func() {
@@ -76,13 +81,22 @@ var _ = Describe("WriteclientUpdate", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      workspace.Name + "-fddjk",
 					Namespace: workspacesNamespace,
-					Labels: map[string]string{
-						workspacesv1alpha1.LabelDisplayName:    workspace.Name,
-						workspacesv1alpha1.LabelWorkspaceOwner: user,
-					},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
-					Visibility: workspacesv1alpha1.InternalWorkspaceVisibilityPrivate,
+					Visibility:  workspacesv1alpha1.InternalWorkspaceVisibilityPrivate,
+					DisplayName: workspace.Name,
+					Owner: workspacesv1alpha1.UserInfo{
+						JwtInfo: workspacesv1alpha1.JwtInfo{},
+					},
+				},
+				Status: workspacesv1alpha1.InternalWorkspaceStatus{
+					Space: workspacesv1alpha1.SpaceInfo{
+						IsHome: true,
+						Name:   "space",
+					},
+					Owner: workspacesv1alpha1.UserInfoStatus{
+						Username: user,
+					},
 				},
 			}
 		})
@@ -131,8 +145,17 @@ var _ = Describe("WriteclientUpdate", func() {
 						MasterUserRecord: user,
 					},
 				}
+				userSignup := toolchainv1alpha1.UserSignup{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      user,
+						Namespace: kubesawNamespace,
+					},
+					Status: toolchainv1alpha1.UserSignupStatus{
+						CompliantUsername: workspace.Namespace,
+					},
+				}
 
-				beforeInitializeCli(&internalWorkspace, &workspace, &spaceBinding)
+				beforeInitializeCli(&internalWorkspace, &spaceBinding, &userSignup)
 			})
 
 			It("should update if the user is the owner", func() {

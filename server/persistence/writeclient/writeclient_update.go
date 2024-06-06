@@ -35,7 +35,9 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 	ciw := workspacesv1alpha1.InternalWorkspace{}
 	key := iwclient.SpaceKey{Owner: workspace.Namespace, Name: workspace.Name}
 	if err := c.workspacesReader.GetAsUser(ctx, user, key, &ciw); err != nil {
-		return kerrors.NewNotFound(restworkspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), workspace.Name)
+		return kerrors.NewNotFound(
+			restworkspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(),
+			workspace.Name)
 	}
 
 	// check Generation matching
