@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 
-	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -34,7 +33,6 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacescomv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 // WorkspaceReconciler reconciles a Workspace object
@@ -68,14 +66,7 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	w := workspacescomv1alpha1.InternalWorkspace{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &w); err != nil {
-		if kerrors.IsNotFound(err) {
-			return ctrl.Result{}, r.ensureSpaceIsDeleted(ctx, req.Name)
-		}
-		return ctrl.Result{}, err
-	}
-
-	if err := r.ensureSpaceIsPresent(ctx, w); err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	if err := r.ensureWorkspaceVisibilityIsSatisfied(ctx, w); err != nil {
@@ -118,50 +109,6 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 	default:
 		return fmt.Errorf("%w: invalid workspace visibility value", ErrNonTransient)
 	}
-}
-
-func (r *WorkspaceReconciler) ensureSpaceIsPresent(ctx context.Context, w workspacescomv1alpha1.InternalWorkspace) error {
-	// skip if home workspace
-	if ll := w.GetLabels(); ll != nil && ll[workspacesv1alpha1.LabelHomeWorkspace] != "" {
-		return nil
-	}
-
-	s := toolchainv1alpha1.Space{ObjectMeta: metav1.ObjectMeta{Name: w.Name, Namespace: r.KubespaceNamespace}}
-	l := log.FromContext(ctx).WithValues("space", s.Name, "space-namespace", r.KubespaceNamespace)
-	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
-		ll := s.GetLabels()
-		if ll == nil {
-			ll = map[string]string{}
-		}
-		ll[toolchainv1alpha1.SpaceCreatorLabelKey] = w.Spec.Owner.Id
-
-		s.SetLabels(ll)
-		return nil
-	})
-	if err != nil {
-		l.Error(err, "error creating/updating space")
-		return err
-	}
-
-	l.Info("space created/updated")
-	return nil
-}
-
-func (r *WorkspaceReconciler) ensureSpaceIsDeleted(ctx context.Context, name string) error {
-	s := toolchainv1alpha1.Space{}
-	t := types.NamespacedName{Name: name, Namespace: r.KubespaceNamespace}
-	l := log.FromContext(ctx).WithValues("space", t.Name, "space-namespace", t.Namespace)
-	l.Info("retrieving space for deletion")
-	if err := r.Get(ctx, t, &s); err != nil {
-		if kerrors.IsNotFound(err) {
-			l.Info("space not found")
-			return nil
-		}
-		return err
-	}
-
-	l.Info("deleting space")
-	return client.IgnoreNotFound(r.Delete(ctx, &s))
 }
 
 // SetupWithManager sets up the controller with the Manager.
