@@ -18,13 +18,10 @@ package controller
 
 import (
 	"context"
-	"errors"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/selection"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -56,12 +53,8 @@ func (r *UserSignupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	u := toolchainv1alpha1.UserSignup{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &u); err != nil {
 		if kerrors.IsNotFound(err) {
-			err := r.ensureWorkspaceIsDeleted(ctx, req.Name)
-			if errors.Is(err, ErrNonTransient) {
-				l.Error(err, "can not delete workspace", "user", req.Name)
-				return ctrl.Result{}, nil
-			}
-			return ctrl.Result{}, err
+			l.V(4).Info("user signup not found, nothing to do")
+			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
 	}
@@ -89,33 +82,14 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		w.Spec.Owner = workspacesv1alpha1.Owner{
 			Id: u.Name,
 		}
-		return nil
+
+		return controllerutil.SetOwnerReference(&u, w, r.Scheme)
 	})
 	if err != nil {
 		log.FromContext(ctx).Error(err, "error creating or updating workspace", "workspace", w)
 	}
 
 	return err
-}
-
-func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, name string) error {
-	lr, err := labels.NewRequirement(workspacesv1alpha1.LabelHomeWorkspace, selection.Equals, []string{name})
-	if err != nil {
-		return errors.Join(ErrNonTransient, err)
-	}
-	ls := labels.NewSelector()
-	ls.Add(*lr)
-
-	w := workspacesv1alpha1.InternalWorkspace{}
-	if err := r.DeleteAllOf(ctx, &w, &client.DeleteAllOfOptions{
-		ListOptions: client.ListOptions{
-			LabelSelector: ls,
-			Namespace:     r.WorkspacesNamespace,
-		},
-	}); err != nil {
-		return client.IgnoreNotFound(err)
-	}
-	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
