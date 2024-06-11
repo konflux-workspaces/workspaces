@@ -16,10 +16,6 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
-const (
-	LabelWorkspaceVisibility string = workspacesv1alpha1.LabelInternalDomain + "visibility"
-)
-
 // NewCache creates a controller-runtime cache.Cache instance configured to monitor
 // spacebindings.toolchain.dev.openshift.com and workspaces.workspaces.io.
 // IMPORTANT: returned cache needs to be started and initialized.
@@ -39,6 +35,7 @@ func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesa
 		return nil, err
 	}
 
+	// build informers
 	if _, err := c.GetInformer(ctx, &toolchainv1alpha1.SpaceBinding{}); err != nil {
 		return nil, err
 	}
@@ -47,6 +44,18 @@ func NewCache(ctx context.Context, cfg *rest.Config, workspacesNamespace, kubesa
 	}
 	if _, err := c.GetInformer(ctx, &workspacesv1alpha1.InternalWorkspace{}); err != nil {
 		return nil, err
+	}
+
+	// configure field indexers for filtering
+	for k, f := range UserSignupIndexers {
+		if err := c.IndexField(ctx, &toolchainv1alpha1.UserSignup{}, k, f); err != nil {
+			return nil, err
+		}
+	}
+	for k, f := range InternalWorkspacesIndexers {
+		if err := c.IndexField(ctx, &workspacesv1alpha1.InternalWorkspace{}, k, f); err != nil {
+			return nil, err
+		}
 	}
 
 	return c, nil
@@ -61,17 +70,6 @@ func newCache(cfg *rest.Config, scheme *runtime.Scheme, mapper meta.RESTMapper, 
 			&toolchainv1alpha1.UserSignup{}:         {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
 			&toolchainv1alpha1.SpaceBinding{}:       {Namespaces: map[string]cache.Config{kubesawNamespace: {}}},
 			&workspacesv1alpha1.InternalWorkspace{}: {Namespaces: map[string]cache.Config{workspacesNamespace: {}}},
-		},
-		DefaultTransform: func(obj interface{}) (interface{}, error) {
-			if ws, ok := obj.(*workspacesv1alpha1.InternalWorkspace); ok {
-				if ws.Labels == nil {
-					ws.Labels = map[string]string{}
-				}
-				ws.Labels[LabelWorkspaceVisibility] = string(ws.Spec.Visibility)
-				return ws, nil
-			}
-
-			return obj, nil
 		},
 	})
 }

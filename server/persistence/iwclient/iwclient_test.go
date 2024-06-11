@@ -9,6 +9,7 @@ import (
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 )
 
@@ -20,8 +21,18 @@ func buildCache(wsns, ksns string, objs ...client.Object) *iwclient.Client {
 	err = toolchainv1alpha1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	fc := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
-	return iwclient.New(fc, wsns, ksns)
+	fcb := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(objs...)
+
+	for key, indexer := range cache.UserSignupIndexers {
+		fcb.WithIndex(&toolchainv1alpha1.UserSignup{}, key, indexer)
+	}
+	for key, indexer := range cache.InternalWorkspacesIndexers {
+		fcb.WithIndex(&workspacesv1alpha1.InternalWorkspace{}, key, indexer)
+	}
+
+	return iwclient.New(fcb.Build(), wsns, ksns)
 }
 
 func generateName(namePrefix string) string {

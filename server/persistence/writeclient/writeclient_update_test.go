@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 	"github.com/konflux-workspaces/workspaces/server/persistence/writeclient"
 
@@ -102,7 +103,15 @@ var _ = Describe("WriteclientUpdate", func() {
 		})
 
 		beforeInitializeCli := func(objs ...client.Object) {
-			fakeClient = fakeClientBuilder.WithObjects(objs...).Build()
+			fcb := fakeClientBuilder.
+				WithObjects(objs...)
+			for key, indexer := range cache.UserSignupIndexers {
+				fcb.WithIndex(&toolchainv1alpha1.UserSignup{}, key, indexer)
+			}
+			for key, indexer := range cache.InternalWorkspacesIndexers {
+				fcb.WithIndex(&workspacesv1alpha1.InternalWorkspace{}, key, indexer)
+			}
+			fakeClient = fcb.Build()
 
 			clientFunc := func(string) (client.Client, error) {
 				return fakeClient, nil
