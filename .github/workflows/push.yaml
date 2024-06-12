@@ -5,6 +5,11 @@ on: # yamllint disable-line rule:truthy
     branches: [main]
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
 
 env:
   QUAY_NAMESPACE: ${{ vars.QUAY_NAMESPACE || 'konflux-workspaces' }}
@@ -38,7 +43,7 @@ jobs:
 
       - name: Checkout Git Repository
         uses: actions/checkout@v4
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name != 'pull_request_target' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -61,8 +66,10 @@ jobs:
           if [[ "${GITHUB_EVENT_NAME}" = "pull_request_target" ]]; then
             export PR_SHA=${{ github.event.pull_request.head.sha }}
             export IMG="${{ steps.img.outputs.base }}:pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}"
-          else
+          elif [[ "${GITHUB_EVENT_NAME}" = "push" ]]; then
             export IMG="${{ steps.img.outputs.base }}:${GITHUB_SHA:0:8}"
+          else
+            export IMG="${{ steps.img.outputs.base }}:${{ inputs.version }}"
           fi
           echo "tag=${IMG}" >> ${GITHUB_OUTPUT}
           make -C "${{ matrix.directory }}" docker-build
@@ -125,3 +132,30 @@ jobs:
         run: |
           export TAG=pr-${{ github.event.pull_request.number }}-${PR_SHA:0:8}
           ci/toolchain_manager.sh publish "${TAG}"
+
+  package:
+    permissions:
+      contents: write
+    name: Create draft release
+    needs: build-workspaces
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Git Repository
+        uses: actions/checkout@v4
+
+      - name: Package manifests for server
+        run: make -C server package
+
+      - name: Package manifests for operator
+        run: make -C operator package
+
+      - name: Make a draft release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "operator/operator.tar.gz,server/server.tar.gz"
+          tag: ${{ input.version }}
+          commit: main
+          draft: true
+          generateReleaseNotes: true

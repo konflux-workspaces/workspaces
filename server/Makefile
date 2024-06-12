@@ -126,3 +126,12 @@ docker-build:
 .PHONY: deploy
 deploy: kustomize yq
 	YQ="$(YQ)" KUSTOMIZE="$(KUSTOMIZE)" ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
+
+.PHONY: package
+package: kustomize yq
+	JWKS_URL="https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs" \
+			 TOOLCHAIN_HOST="toolchain-host-operator" \
+			 YQ="$(YQ)" \
+			 KUSTOMIZE="$(KUSTOMIZE)" \
+			 MANIFEST_TARBALL="$$(realpath ./server.tar.gz)" \
+			 ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
