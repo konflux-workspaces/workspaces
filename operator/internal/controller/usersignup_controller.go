@@ -120,16 +120,15 @@ func (r *UserSignupReconciler) ensureWorkspaceIsDeleted(ctx context.Context, nam
 	}
 
 	// look for user's home InternalWorkspace
-	i := -1
-	if i = slices.IndexFunc(ww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
+	if i := slices.IndexFunc(ww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
 		return w.Status.Space.IsHome && w.Status.Owner.Username == name
-	}); i == -1 {
-		// workspace not found, nothing to delete
-		return nil
+	}); i != -1 {
+		// delete the user's Home InternalWorkspace
+		return r.Delete(ctx, &ww.Items[i])
 	}
 
-	// delete the user's Home InternalWorkspace
-	return r.Delete(ctx, &ww.Items[i])
+	// workspace not found, nothing to delete
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

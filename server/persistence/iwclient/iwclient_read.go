@@ -76,15 +76,14 @@ func (c *Client) fetchInternalWorkspaceByLabel(
 		return nil, err
 	}
 
-	i := 0
-	if i = slices.IndexFunc(ww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
+	if i := slices.IndexFunc(ww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
 		return w.Spec.DisplayName == space &&
 			w.Status.Owner.Username == u.Status.CompliantUsername
-	}); i == -1 {
-		return nil, ErrWorkspaceNotFound
+	}); i != -1 {
+		return &ww.Items[i], nil
 	}
 
-	return &ww.Items[i], nil
+	return nil, ErrWorkspaceNotFound
 }
 
 func (c *Client) fetchUserSignupByComplaintName(

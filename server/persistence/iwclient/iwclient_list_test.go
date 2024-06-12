@@ -3,7 +3,6 @@ package iwclient_test
 import (
 	"context"
 	"fmt"
-	"slices"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -219,10 +218,10 @@ var _ = Describe("List", func() {
 			Expect(iww.Items).To(HaveLen(len(ww)))
 
 			for _, w := range iww.Items {
-				sw := slices.ContainsFunc(ww, func(z *workspacesv1alpha1.InternalWorkspace) bool {
-					return z.Spec.DisplayName == w.Spec.DisplayName && z.Spec.Owner.JwtInfo.Sub == w.Spec.Owner.JwtInfo.Sub
-				})
-				Expect(sw).To(BeTrue())
+				Expect(ww).To(ContainElement(
+					Satisfy(func(z *workspacesv1alpha1.InternalWorkspace) bool {
+						return z.Spec.DisplayName == w.Spec.DisplayName && z.Spec.Owner.JwtInfo.Sub == w.Spec.Owner.JwtInfo.Sub
+					})))
 			}
 		})
 
