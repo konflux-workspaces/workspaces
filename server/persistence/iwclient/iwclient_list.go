@@ -1,11 +1,10 @@
 package iwclient
 
 import (
-	"cmp"
 	"context"
 	"slices"
-	"sort"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -32,34 +31,21 @@ func (c *Client) ListAsUser(ctx context.Context, user string, workspaces *worksp
 }
 
 func (c *Client) fetchMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
-	// list user's space bindings
-	sbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
-		return err
-	}
-
 	// fetch all workspaces
 	aww := workspacesv1alpha1.InternalWorkspaceList{}
 	if err := c.backend.List(ctx, &aww); err != nil {
 		return err
 	}
 
-	// filter already fetched Workspaces
-	fsp := make([]string, 0, len(sbb.Items))
-	for i, sb := range sbb.Items {
-		if slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
-			return w.Status.Space.Name == sb.Spec.Space
-		}) {
-			continue
-		}
-
-		fsp = append(fsp, sbb.Items[i].Spec.Space)
+	// retrieve names of missing workspaces
+	nmww, err := c.calculateNamesOfMissingWorkspaces(ctx, user, workspaces)
+	if err != nil {
+		return err
 	}
-	sort.Strings(fsp)
-	fsp = slices.CompactFunc(fsp, func(s1, s2 string) bool { return cmp.Compare(s1, s2) <= 0 })
 
 	// add workspaces to which the user has direct access to return list
-	for _, s := range fsp {
+	for _, s := range nmww {
+		// TODO(@filariow): use a field selector after #195 lands
 		if i := slices.IndexFunc(aww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
 			return w.Status.Space.Name == s
 		}); i != -1 {
@@ -67,6 +53,26 @@ func (c *Client) fetchMissingWorkspaces(ctx context.Context, user string, worksp
 		}
 	}
 	return nil
+}
+
+func (c *Client) calculateNamesOfMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) ([]string, error) {
+	// list user's space bindings
+	sbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
+		return nil, err
+	}
+
+	wwn := sets.New[string]()
+	for _, w := range workspaces.Items {
+		wwn = wwn.Insert(w.Status.Space.Name)
+	}
+
+	sbbn := sets.New[string]()
+	for _, sb := range sbb.Items {
+		sbbn.Insert(sb.Spec.Space)
+	}
+
+	return sbbn.Difference(wwn).UnsortedList(), nil
 }
 
 func (c *Client) listUserSpaceBindings(
