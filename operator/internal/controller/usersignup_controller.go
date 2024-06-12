@@ -90,14 +90,9 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
 		w.Spec.Owner = workspacesv1alpha1.UserInfo{
 			JwtInfo: workspacesv1alpha1.JwtInfo{
-				Sub:               u.Spec.IdentityClaims.Sub,
-				Email:             u.Spec.IdentityClaims.Email,
-				UserId:            u.Spec.IdentityClaims.UserID,
-				PreferredUsername: u.Spec.IdentityClaims.PreferredUsername,
-				AccountId:         u.Spec.IdentityClaims.AccountID,
-				Company:           u.Spec.IdentityClaims.Company,
-				GivenName:         u.Spec.IdentityClaims.GivenName,
-				FamilyName:        u.Spec.IdentityClaims.FamilyName,
+				Sub:    u.Spec.IdentityClaims.Sub,
+				Email:  u.Spec.IdentityClaims.Email,
+				UserId: u.Spec.IdentityClaims.UserID,
 			},
 		}
 

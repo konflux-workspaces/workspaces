@@ -52,17 +52,6 @@ type JwtInfo struct {
 	UserId string `json:"userId"`
 	//+required
 	Sub string `json:"sub"`
-
-	//+optional
-	PreferredUsername string `json:"preferredUsername,omitempty"`
-	//+optional
-	AccountId string `json:"accountId,omitempty"`
-	//+optional
-	Company string `json:"company,omitempty"`
-	//+optional
-	GivenName string `json:"givenName,omitempty"`
-	//+optional
-	FamilyName string `json:"familyName,omitempty"`
 }
 
 // InternalWorkspaceSpec defines the desired state of Workspace
