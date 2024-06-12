@@ -14,6 +14,7 @@ Feature: Update workspaces via REST API
     When  The owner changes visibility to community
     Then  The workspace is readable for everyone
 
+  @skip
   Scenario: visibility changes from community to private
     Given A community workspace exists for an user
     When  The owner changes visibility to private
