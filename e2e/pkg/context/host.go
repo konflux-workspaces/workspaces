@@ -119,7 +119,7 @@ func RetrieveUserWorkspaces(ctx context.Context) restworkspacesv1alpha1.Workspac
 
 // Scenario Id
 func InjectScenarioId(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, keyTestNamespace, id)
+	return context.WithValue(ctx, keyScenarioId, id)
 }
 
 func RetrieveScenarioId(ctx context.Context) string {
