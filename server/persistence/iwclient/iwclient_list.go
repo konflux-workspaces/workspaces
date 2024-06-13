@@ -4,7 +4,7 @@ import (
 	"context"
 	"slices"
 
-	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/utils/set"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -63,7 +63,7 @@ func (c *Client) calculateNamesOfMissingWorkspaces(ctx context.Context, user str
 	}
 
 	// retrieve all the spaces
-	sbbn := sets.New[string]()
+	sbbn := set.New[string]()
 	for _, sb := range sbb.Items {
 		sbbn = sbbn.Insert(sb.Spec.Space)
 	}
