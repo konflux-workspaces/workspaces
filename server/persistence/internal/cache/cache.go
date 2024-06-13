@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	LabelWorkspaceVisibility string = "workspaces.io/visibility"
+	LabelWorkspaceVisibility string = workspacesv1alpha1.LabelInternalDomain + "visibility"
 )
 
 // NewCache creates a controller-runtime cache.Cache instance configured to monitor

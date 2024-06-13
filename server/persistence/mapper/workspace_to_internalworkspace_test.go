@@ -25,11 +25,9 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 			Expect(w.GetLabels()).To(HaveKey("expected-label"))
 			Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
 			Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
-			Expect(w.GetLabels()).To(HaveKey(workspacesv1alpha1.LabelDisplayName))
-			Expect(w.GetLabels()[workspacesv1alpha1.LabelDisplayName]).To(Equal(displayName))
-			Expect(w.GetLabels()).To(HaveKey(workspacesv1alpha1.LabelWorkspaceOwner))
-			Expect(w.GetLabels()[workspacesv1alpha1.LabelWorkspaceOwner]).To(Equal(ownerName))
 			Expect(w.Spec).ToNot(BeNil())
+			Expect(w.Spec.DisplayName).To(Equal(displayName))
+			Expect(w.Status.Owner.Username).To(Equal(ownerName))
 		}
 
 		BeforeEach(func() {
@@ -44,7 +42,14 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 					},
 					Generation: 1,
 				},
-				Spec: restworkspacesv1alpha1.WorkspaceSpec{},
+				Spec: restworkspacesv1alpha1.WorkspaceSpec{
+					Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
+				},
+				Status: restworkspacesv1alpha1.WorkspaceStatus{
+					Space: &restworkspacesv1alpha1.SpaceInfo{
+						Name: "space-name",
+					},
+				},
 			}
 		})
 

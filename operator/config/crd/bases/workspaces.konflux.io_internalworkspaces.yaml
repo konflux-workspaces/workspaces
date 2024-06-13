@@ -43,26 +43,56 @@ spec:
           spec:
             description: InternalWorkspaceSpec defines the desired state of Workspace
             properties:
+              displayName:
+                type: string
               owner:
+                description: UserInfo contains information about a user identity
                 properties:
-                  id:
-                    type: string
+                  jwtInfo:
+                    description: JwtInfo contains information extracted from the user
+                      JWT Token
+                    properties:
+                      email:
+                        type: string
+                      sub:
+                        type: string
+                      userId:
+                        type: string
+                    required:
+                    - email
+                    - sub
+                    - userId
+                    type: object
                 required:
-                - id
+                - jwtInfo
                 type: object
               visibility:
                 type: string
             required:
+            - displayName
             - owner
             - visibility
             type: object
           status:
-            description: WorkspaceStatus defines the observed state of Workspace
+            description: InternalWorkspaceStatus defines the observed state of Workspace
             properties:
+              owner:
+                description: Owner contains information on the owner
+                properties:
+                  username:
+                    type: string
+                type: object
               space:
-                type: string
-            required:
-            - space
+                description: Space contains information about the underlying Space
+                properties:
+                  isHome:
+                    type: boolean
+                  name:
+                    type: string
+                required:
+                - isHome
+                - name
+                type: object
             type: object
         type: object
     served: true

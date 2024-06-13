@@ -10,7 +10,6 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
-	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 	"github.com/konflux-workspaces/workspaces/server/persistence/readclient"
 	"github.com/konflux-workspaces/workspaces/server/persistence/readclient/mocks"
 )
@@ -48,28 +47,5 @@ var _ = Describe("Read", func() {
 		Entry("unauthorized -> not found", iwclient.ErrUnauthorized, kerrors.IsNotFound),
 		// TODO: should we use here a different error? like InternalServerError?
 		Entry("more than one found -> not found", iwclient.ErrMoreThanOneFound, kerrors.IsNotFound),
-	)
-
-	DescribeTable("Mapper returns an error", func(rerr error, expectedErrorFunc func(error) bool) {
-		// given
-		frc.EXPECT().
-			GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(nil).
-			Times(1)
-
-		mp.EXPECT().
-			InternalWorkspaceToWorkspace(gomock.Any()).
-			Return(nil, rerr).
-			Times(1)
-
-		// when
-		err := rc.ReadUserWorkspace(ctx, "", "", "", nil)
-
-		// then
-		Expect(err).To(HaveOccurred())
-		Expect(expectedErrorFunc(err)).To(BeTrue())
-	},
-		Entry("display label not found -> internal error", mapper.ErrLabelDisplayNameNotFound, kerrors.IsInternalError),
-		Entry("owner label not found -> internal error", mapper.ErrLabelOwnerNotFound, kerrors.IsInternalError),
 	)
 })

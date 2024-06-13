@@ -30,14 +30,16 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 	cli := tcontext.RetrieveHostClient(ctx)
 	kns := tcontext.RetrieveKubespaceNamespace(ctx)
 
-	u, err := user.OnboardUser(ctx, cli, kns, user.DefaultUserName)
+	u, w, err := createUserSignupAndWaitForWorkspace(ctx, cli, kns, user.DefaultUserName)
 	if err != nil {
 		return ctx, err
 	}
 
-	wns := tcontext.RetrieveWorkspacesNamespace(ctx)
-	w, err := createWorkspace(ctx, cli, wns, "new-community", u.Status.CompliantUsername, workspacesv1alpha1.InternalWorkspaceVisibilityCommunity)
-	if err != nil {
+	ctx = tcontext.InjectUser(ctx, *u)
+	ctx = tcontext.InjectInternalWorkspace(ctx, *w)
+
+	w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityCommunity
+	if err := cli.Update(ctx, w); err != nil {
 		return ctx, err
 	}
 
@@ -45,7 +47,5 @@ func givenACommunityWorkspaceExists(ctx context.Context) (context.Context, error
 		return ctx, err
 	}
 
-	ctx = tcontext.InjectUser(ctx, *u)
-	ctx = tcontext.InjectInternalWorkspace(ctx, *w)
 	return ctx, nil
 }

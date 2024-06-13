@@ -74,6 +74,9 @@ func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility str
 		}
 		return &w, nil
 	}()
+	if err != nil {
+		return ctx, err
+	}
 
 	w.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
 	if err := cli.Update(ctx, w, &client.UpdateOptions{}); err != nil {
