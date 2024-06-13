@@ -80,6 +80,9 @@ type UserInfoStatus struct {
 
 // InternalWorkspaceStatus defines the observed state of Workspace
 type InternalWorkspaceStatus struct {
+	//+optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
 	// Space contains information about the underlying Space
 	//+optional
 	Space SpaceInfo `json:"space,omitempty"`
