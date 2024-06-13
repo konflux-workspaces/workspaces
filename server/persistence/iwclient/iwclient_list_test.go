@@ -12,7 +12,6 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 
-	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 )
 
@@ -359,9 +358,6 @@ var _ = Describe("List", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      generateName(wName),
 					Namespace: wsns,
-					Labels: map[string]string{
-						cache.LabelWorkspaceVisibility: string(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity),
-					},
 				},
 				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 					Visibility:  workspacesv1alpha1.InternalWorkspaceVisibilityCommunity,
