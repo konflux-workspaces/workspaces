@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"slices"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -88,23 +89,37 @@ func (r *WorkspaceReconciler) ensureWorkspaceOwnerExists(ctx context.Context, w 
 		return err
 	}
 
+	// set Space information
 	w.Status.Space = workspacesv1alpha1.SpaceInfo{
 		IsHome: w.Spec.DisplayName == "default",
 		Name:   w.Name,
 	}
+
+	// set Owner information
 	w.Status.Owner = workspacesv1alpha1.UserInfoStatus{}
 	i := slices.IndexFunc(uu.Items, func(u toolchainv1alpha1.UserSignup) bool {
 		return u.Spec.IdentityClaims.Sub == w.Spec.Owner.JwtInfo.Sub
 	})
-
 	switch i {
 	case -1:
-		log.FromContext(ctx).Info("user signup not found", "sub", w.Spec.Owner.JwtInfo.Sub)
-		//TODO(@filariow): update status condition
+		log.FromContext(ctx).Info("UserSignup not found by Sub", "sub", w.Spec.Owner.JwtInfo.Sub)
+		meta.SetStatusCondition(&w.Status.Conditions,
+			metav1.Condition{
+				Type:    workspacesv1alpha1.ConditionTypeReady,
+				Reason:  workspacesv1alpha1.ConditionReasonOwnerNotFound,
+				Status:  metav1.ConditionFalse,
+				Message: fmt.Sprintf("UserSignup with Sub %s not found", w.Spec.Owner.JwtInfo.Sub),
+			})
 	default:
 		log.FromContext(ctx).Info("user signup found", "sub", w.Spec.Owner.JwtInfo.Sub)
 		w.Status.Owner.Username = uu.Items[i].Status.CompliantUsername
-		//TODO(@filariow): update status condition
+		meta.SetStatusCondition(&w.Status.Conditions,
+			metav1.Condition{
+				Type:    workspacesv1alpha1.ConditionTypeReady,
+				Reason:  workspacesv1alpha1.ConditionReasonEverythingFine,
+				Status:  metav1.ConditionTrue,
+				Message: "",
+			})
 	}
 
 	return r.Status().Update(ctx, w)
