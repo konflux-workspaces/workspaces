@@ -36,7 +36,7 @@ const (
 	// LabelInternalDomain domain for internal labels
 	LabelInternalDomain string = "internal.workspaces.konflux.io/"
 
-	// TypeReady indicates whether an InternalWorkspace is Ready
+	// ConditionTypeReady indicates whether an InternalWorkspace is Ready
 	ConditionTypeReady string = "Ready"
 	// ConditionReasonEverythingFine indicates "everything is fine"
 	ConditionReasonEverythingFine string = "EverythingFine"
