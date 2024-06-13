@@ -62,17 +62,19 @@ func (c *Client) calculateNamesOfMissingWorkspaces(ctx context.Context, user str
 		return nil, err
 	}
 
-	wwn := sets.New[string]()
-	for _, w := range workspaces.Items {
-		wwn = wwn.Insert(w.Status.Space.Name)
-	}
-
+	// retrieve all the spaces
 	sbbn := sets.New[string]()
 	for _, sb := range sbb.Items {
-		sbbn.Insert(sb.Spec.Space)
+		sbbn = sbbn.Insert(sb.Spec.Space)
 	}
 
-	return sbbn.Difference(wwn).UnsortedList(), nil
+	// remove already fetched spaces
+	for _, w := range workspaces.Items {
+		sbbn = sbbn.Delete(w.Status.Space.Name)
+	}
+
+	// return missing spaces
+	return sbbn.UnsortedList(), nil
 }
 
 func (c *Client) listUserSpaceBindings(
