@@ -52,17 +52,7 @@ spec:
                     description: JwtInfo contains information extracted from the user
                       JWT Token
                     properties:
-                      accountId:
-                        type: string
-                      company:
-                        type: string
                       email:
-                        type: string
-                      familyName:
-                        type: string
-                      giveName:
-                        type: string
-                      preferredUsername:
                         type: string
                       sub:
                         type: string
