@@ -154,7 +154,7 @@ jobs:
       - name: Make a draft release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "operator/operator.tar.gz,server/server.tar.gz"
+          artifacts: "operator/out/operator.tar.gz,server/out/server.tar.gz"
           tag: ${{ input.version }}
           commit: main
           draft: true
