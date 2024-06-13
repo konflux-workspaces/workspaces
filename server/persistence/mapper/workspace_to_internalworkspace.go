@@ -18,19 +18,35 @@ func (m *Mapper) WorkspaceToInternalWorkspace(workspace *restworkspacesv1alpha1.
 			ll[k] = v
 		}
 	}
-	ll[workspacesv1alpha1.LabelDisplayName] = workspace.GetName()
-	ll[workspacesv1alpha1.LabelWorkspaceOwner] = workspace.GetNamespace()
 
-	return &workspacesv1alpha1.InternalWorkspace{
+	iw := &workspacesv1alpha1.InternalWorkspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:     ll,
 			Generation: workspace.Generation,
 		},
 		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
-			Visibility: workspacesv1alpha1.InternalWorkspaceVisibility(workspace.Spec.Visibility),
-			Owner: workspacesv1alpha1.Owner{
-				Id: workspace.Spec.Owner.Id,
+			DisplayName: workspace.Name,
+			Visibility:  workspacesv1alpha1.InternalWorkspaceVisibility(workspace.Spec.Visibility),
+			Owner: workspacesv1alpha1.UserInfo{
+				JwtInfo: workspacesv1alpha1.JwtInfo{},
 			},
 		},
-	}, nil
+		Status: workspacesv1alpha1.InternalWorkspaceStatus{
+			Space: workspacesv1alpha1.SpaceInfo{
+				IsHome: workspace.Name == "default",
+			},
+			Owner: workspacesv1alpha1.UserInfoStatus{
+				Username: workspace.Namespace,
+			},
+		},
+	}
+
+	if o := workspace.Status.Owner; o != nil {
+		iw.Spec.Owner.JwtInfo.Email = o.Email
+	}
+	if s := workspace.Status.Space; s != nil {
+		iw.Status.Space.Name = s.Name
+	}
+
+	return iw, nil
 }

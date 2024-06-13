@@ -10,23 +10,9 @@ import (
 )
 
 func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.InternalWorkspace) (*restworkspacesv1alpha1.Workspace, error) {
-	ll := workspace.GetLabels()
-
-	// retrieve WorkspaceOwner
-	lnamespace, ok := ll[workspacesv1alpha1.LabelWorkspaceOwner]
-	if !ok {
-		return nil, ErrLabelOwnerNotFound
-	}
-
-	// retrieve DisplayName
-	lname, ok := ll[workspacesv1alpha1.LabelDisplayName]
-	if !ok {
-		return nil, ErrLabelDisplayNameNotFound
-	}
-
 	// retrieve external labels
 	wll := map[string]string{}
-	for k, v := range ll {
+	for k, v := range workspace.GetLabels() {
 		if !strings.HasPrefix(k, workspacesv1alpha1.LabelInternalDomain) {
 			wll[k] = v
 		}
@@ -34,15 +20,20 @@ func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.Inte
 
 	return &restworkspacesv1alpha1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:       lname,
-			Namespace:  lnamespace,
+			Name:       workspace.Spec.DisplayName,
+			Namespace:  workspace.Status.Owner.Username,
 			Labels:     wll,
 			Generation: workspace.Generation,
 		},
 		Spec: restworkspacesv1alpha1.WorkspaceSpec{
 			Visibility: restworkspacesv1alpha1.WorkspaceVisibility(workspace.Spec.Visibility),
-			Owner: restworkspacesv1alpha1.Owner{
-				Id: workspace.Spec.Owner.Id,
+		},
+		Status: restworkspacesv1alpha1.WorkspaceStatus{
+			Space: &restworkspacesv1alpha1.SpaceInfo{
+				Name: workspace.Status.Space.Name,
+			},
+			Owner: &restworkspacesv1alpha1.UserInfoStatus{
+				Email: workspace.Spec.Owner.JwtInfo.Email,
 			},
 		},
 	}, nil

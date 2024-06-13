@@ -18,8 +18,8 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"slices"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
-	workspacescomv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
 // WorkspaceReconciler reconciles a Workspace object
@@ -62,24 +62,55 @@ var (
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	l := log.FromContext(ctx)
+	l := log.FromContext(ctx).WithValues("request", req)
 
-	w := workspacescomv1alpha1.InternalWorkspace{}
+	w := workspacesv1alpha1.InternalWorkspace{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &w); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.ensureWorkspaceVisibilityIsSatisfied(ctx, w); err != nil {
-		if errors.Is(err, ErrNonTransient) {
-			l.Error(err, "non transient error ensuring workspace visibility is satisfied")
-			return ctrl.Result{}, nil
-		}
+	if err := r.ensureWorkspaceOwnerExists(ctx, &w); err != nil {
 		return ctrl.Result{}, err
 	}
+
+	if err := r.ensureWorkspaceVisibilityIsSatisfied(ctx, w); err != nil {
+		l.Error(err, "error ensuring InternalWorkspace Visibility is satisfied")
+		return ctrl.Result{}, err
+	}
+
+	l.V(6).Info("InternalWorkspace's visibility is satisfied", "visibility", w.Spec.Visibility)
 	return ctrl.Result{}, nil
 }
 
-func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacescomv1alpha1.InternalWorkspace) error {
+func (r *WorkspaceReconciler) ensureWorkspaceOwnerExists(ctx context.Context, w *workspacesv1alpha1.InternalWorkspace) error {
+	uu := toolchainv1alpha1.UserSignupList{}
+	if err := r.List(ctx, &uu, client.InNamespace(r.KubespaceNamespace)); err != nil {
+		return err
+	}
+
+	w.Status.Space = workspacesv1alpha1.SpaceInfo{
+		IsHome: w.Spec.DisplayName == "default",
+		Name:   w.Name,
+	}
+	w.Status.Owner = workspacesv1alpha1.UserInfoStatus{}
+	i := slices.IndexFunc(uu.Items, func(u toolchainv1alpha1.UserSignup) bool {
+		return u.Spec.IdentityClaims.Sub == w.Spec.Owner.JwtInfo.Sub
+	})
+
+	switch i {
+	case -1:
+		log.FromContext(ctx).Info("user signup not found", "sub", w.Spec.Owner.JwtInfo.Sub)
+		//TODO(@filariow): update status condition
+	default:
+		log.FromContext(ctx).Info("user signup found", "sub", w.Spec.Owner.JwtInfo.Sub)
+		w.Status.Owner.Username = uu.Items[i].Status.CompliantUsername
+		//TODO(@filariow): update status condition
+	}
+
+	return r.Status().Update(ctx, w)
+}
+
+func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacesv1alpha1.InternalWorkspace) error {
 	s := toolchainv1alpha1.SpaceBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", w.Name),
@@ -94,16 +125,16 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 	)
 
 	switch w.Spec.Visibility {
-	case workspacescomv1alpha1.InternalWorkspaceVisibilityCommunity:
+	case workspacesv1alpha1.InternalWorkspaceVisibilityCommunity:
 		l.Info("ensuring spacebinding exists")
 		_, err := controllerutil.CreateOrUpdate(ctx, r.Client, &s, func() error {
 			s.Spec.Space = w.Name
-			s.Spec.MasterUserRecord = workspacescomv1alpha1.PublicViewerName
+			s.Spec.MasterUserRecord = workspacesv1alpha1.PublicViewerName
 			s.Spec.SpaceRole = "viewer"
 			return nil
 		})
 		return err
-	case workspacescomv1alpha1.InternalWorkspaceVisibilityPrivate:
+	case workspacesv1alpha1.InternalWorkspaceVisibilityPrivate:
 		l.Info("ensuring spacebinding doesn't exist")
 		return client.IgnoreNotFound(r.Client.Delete(ctx, &s))
 	default:
@@ -114,8 +145,9 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 // SetupWithManager sets up the controller with the Manager.
 func (r *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&workspacescomv1alpha1.InternalWorkspace{}).
+		For(&workspacesv1alpha1.InternalWorkspace{}).
 		Watches(&toolchainv1alpha1.SpaceBinding{}, handler.EnqueueRequestsFromMapFunc(r.mapSpaceBindingToWorkspace)).
+		Watches(&toolchainv1alpha1.UserSignup{}, handler.EnqueueRequestsFromMapFunc(r.mapUserSignupToWorkspace)).
 		Complete(r)
 }
 
@@ -134,6 +166,22 @@ func (r *WorkspaceReconciler) mapSpaceBindingToWorkspace(ctx context.Context, o 
 		{
 			NamespacedName: types.NamespacedName{
 				Name:      sn,
+				Namespace: r.WorkspacesNamespace,
+			},
+		},
+	}
+}
+
+func (r *WorkspaceReconciler) mapUserSignupToWorkspace(ctx context.Context, o client.Object) []reconcile.Request {
+	u, ok := o.(*toolchainv1alpha1.UserSignup)
+	if !ok || u.Status.CompliantUsername == "" {
+		return nil
+	}
+
+	return []reconcile.Request{
+		{
+			NamespacedName: types.NamespacedName{
+				Name:      u.Status.CompliantUsername,
 				Namespace: r.WorkspacesNamespace,
 			},
 		},

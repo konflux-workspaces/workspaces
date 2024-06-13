@@ -3,7 +3,6 @@ package iwclient
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -42,8 +41,4 @@ func (c *Client) existsSpaceBindingForUserAndSpace(ctx context.Context, user, sp
 	}
 
 	return len(sbb.Items) > 0, nil
-}
-
-func (c *Client) workspaceNamespacedName(space string) client.ObjectKey {
-	return types.NamespacedName{Namespace: c.workspacesNamespace, Name: space}
 }

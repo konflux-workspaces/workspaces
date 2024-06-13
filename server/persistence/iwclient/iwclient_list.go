@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"k8s.io/utils/set"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -30,34 +31,50 @@ func (c *Client) ListAsUser(ctx context.Context, user string, workspaces *worksp
 }
 
 func (c *Client) fetchMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) error {
-	// list user's space bindings
-	sbb := toolchainv1alpha1.SpaceBindingList{}
-	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
+	// fetch all workspaces
+	aww := workspacesv1alpha1.InternalWorkspaceList{}
+	if err := c.backend.List(ctx, &aww); err != nil {
 		return err
 	}
 
-	// filter already fetched Workspaces
-	fsbb := make([]*toolchainv1alpha1.SpaceBinding, 0, len(sbb.Items))
-	for i, sb := range sbb.Items {
-		if slices.ContainsFunc(workspaces.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
-			return w.Name == sb.Spec.Space
-		}) {
-			continue
-		}
-
-		fsbb = append(fsbb, &sbb.Items[i])
+	// retrieve names of missing workspaces
+	nmww, err := c.calculateNamesOfMissingWorkspaces(ctx, user, workspaces)
+	if err != nil {
+		return err
 	}
 
-	for _, sb := range fsbb {
-		k := c.workspaceNamespacedName(sb.Spec.Space)
-		w := workspacesv1alpha1.InternalWorkspace{}
-		if err := c.backend.Get(ctx, k, &w, &client.GetOptions{}); err != nil {
-			continue
+	// add workspaces to which the user has direct access to return list
+	for _, s := range nmww {
+		// TODO(@filariow): use a field selector after #195 lands
+		if i := slices.IndexFunc(aww.Items, func(w workspacesv1alpha1.InternalWorkspace) bool {
+			return w.Status.Space.Name == s
+		}); i != -1 {
+			workspaces.Items = append(workspaces.Items, aww.Items[i])
 		}
-
-		workspaces.Items = append(workspaces.Items, w)
 	}
 	return nil
+}
+
+func (c *Client) calculateNamesOfMissingWorkspaces(ctx context.Context, user string, workspaces *workspacesv1alpha1.InternalWorkspaceList) ([]string, error) {
+	// list user's space bindings
+	sbb := toolchainv1alpha1.SpaceBindingList{}
+	if err := c.listUserSpaceBindings(ctx, user, &sbb); err != nil {
+		return nil, err
+	}
+
+	// retrieve all the spaces
+	sbbn := set.New[string]()
+	for _, sb := range sbb.Items {
+		sbbn = sbbn.Insert(sb.Spec.Space)
+	}
+
+	// remove already fetched spaces
+	for _, w := range workspaces.Items {
+		sbbn = sbbn.Delete(w.Status.Space.Name)
+	}
+
+	// return missing spaces
+	return sbbn.UnsortedList(), nil
 }
 
 func (c *Client) listUserSpaceBindings(
