@@ -14,11 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package usersignup
 
 import (
 	"context"
-	"errors"
 	"slices"
 
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -57,10 +56,7 @@ func (r *UserSignupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if kerrors.IsNotFound(err) {
 			l.V(6).Info("UserSignup not found")
 			if err := r.ensureWorkspaceIsDeleted(ctx, req.Name); err != nil {
-				if errors.Is(err, ErrNonTransient) {
-					l.Error(err, "can not delete workspace", "user", req.Name)
-					return ctrl.Result{}, nil
-				}
+				l.Error(err, "can not delete workspace", "user", req.Name)
 				return ctrl.Result{}, err
 			}
 			return ctrl.Result{}, nil
