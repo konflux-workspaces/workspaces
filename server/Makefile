@@ -26,6 +26,7 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
 MANIFEST_TARBALL := $(ROOT_DIR)/server/out/server.tar.gz
+JWKS_URL := https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 
 ##@ General
 
@@ -136,7 +137,7 @@ deploy: kustomize yq
 
 .PHONY: package
 package: kustomize yq $(OUTDIR)
-	JWKS_URL="https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs" \
+	JWKS_URL="$(JWKS_URL)" \
 			 TOOLCHAIN_HOST="toolchain-host-operator" \
 			 YQ="$(YQ)" \
 			 KUSTOMIZE="$(KUSTOMIZE)" \
