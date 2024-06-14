@@ -23,6 +23,8 @@ import (
 type InternalWorkspaceVisibility string
 
 const (
+	// PublicViewerName the name of the KubeSaw's PublicViewer user
+	PublicViewerName string = "kubesaw-authenticated"
 	// DisplayNameDefaultWorkspace display name for the default Workspace
 	DisplayNameDefaultWorkspace string = "default"
 
@@ -34,8 +36,13 @@ const (
 	// LabelInternalDomain domain for internal labels
 	LabelInternalDomain string = "internal.workspaces.konflux.io/"
 
-	// PublicViewerName the name of the KubeSaw's PublicViewer user
-	PublicViewerName string = "kubesaw-authenticated"
+	// ConditionTypeReady indicates whether an InternalWorkspace is Ready
+	ConditionTypeReady string = "Ready"
+	// ConditionReasonEverythingFine indicates "everything is fine"
+	ConditionReasonEverythingFine string = "EverythingFine"
+	// ConditionReasonOwnerNotFound means that the UserSignup for the InternalWorkspace
+	// was not found
+	ConditionReasonOwnerNotFound string = "OwnerNotFound"
 )
 
 // UserInfo contains information about a user identity
@@ -80,6 +87,9 @@ type UserInfoStatus struct {
 
 // InternalWorkspaceStatus defines the observed state of Workspace
 type InternalWorkspaceStatus struct {
+	//+optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
 	// Space contains information about the underlying Space
 	//+optional
 	Space SpaceInfo `json:"space,omitempty"`
