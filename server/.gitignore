@@ -4,4 +4,4 @@ bin
 cover.out
 
 # generated materials, should never be committed
-out/*
+out/

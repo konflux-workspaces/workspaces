@@ -26,4 +26,4 @@ Dockerfile.cross
 *~
 
 # generated materials, should never be committed
-out/*
+out/
