@@ -2,3 +2,6 @@ bin
 
 # ignore code coverage information
 cover.out
+
+# generated materials, should never be committed
+out/

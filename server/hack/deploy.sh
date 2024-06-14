@@ -14,12 +14,14 @@ SERVER_LOG_LEVEL=${SERVER_LOG_LEVEL:-0}
 #
 # if the namespace doesn't exist, then head will return a failure (since it has
 # an empty input).  Since we manually check the error case, disable pipefail
-set +o pipefail
-toolchain_host=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
-if [[ -z "${toolchain_host}" ]]; then
-    toolchain_host="toolchain-host_operator"
+if [[ -z "${TOOLCHAIN_HOST}" ]]; then
+    set +o pipefail
+    TOOLCHAIN_HOST=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
+    if [[ -z "${TOOLCHAIN_HOST}" ]]; then
+        TOOLCHAIN_HOST="toolchain-host_operator"
+    fi
+    set -o pipefail
 fi
-set -o pipefail
 
 # prepare temporary folder
 f=$(mktemp --directory /tmp/workspaces-rest.XXXXX)
@@ -48,16 +50,21 @@ else
 fi
 
 # updating config locally
-cd "${f}/config/default"
 ${KUSTOMIZE} edit set namespace "$1"
 ${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 ${KUSTOMIZE} edit add configmap rest-api-server-config \
         --behavior=replace \
         --from-literal=log.level="${SERVER_LOG_LEVEL}" \
-        --from-literal=kubesaw.namespace="${toolchain_host}"
+        --from-literal=kubesaw.namespace="${TOOLCHAIN_HOST}"
 
-# apply config
-${KUSTOMIZE} build . | ${KUBECLI} apply -f -
+if [[ -n "${MANIFEST_TARBALL}" ]]; then
+    # save config to a tarball
+    cd "${f}"
+    tar -caf "${MANIFEST_TARBALL}" config/
+else
+    # apply config
+    ${KUSTOMIZE} build . | ${KUBECLI} apply -f -
+fi
 
 # cleanup
 rm -r "${f}"
