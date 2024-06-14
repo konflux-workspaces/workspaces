@@ -155,7 +155,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "operator/out/operator.tar.gz,server/out/server.tar.gz"
-          tag: ${{ input.version }}
+          tag: ${{ inputs.version }}
           commit: main
           draft: true
           generateReleaseNotes: true
