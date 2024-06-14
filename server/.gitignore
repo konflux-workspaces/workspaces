@@ -3,5 +3,5 @@ bin
 # ignore code coverage information
 cover.out
 
-# for packaging
-server.tar.gz
+# generated materials, should never be committed
+out/*

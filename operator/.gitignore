@@ -25,4 +25,5 @@ Dockerfile.cross
 *.swo
 *~
 
-operator.tar.gz
+# generated materials, should never be committed
+out/*
