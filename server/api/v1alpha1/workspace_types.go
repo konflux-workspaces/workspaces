@@ -50,8 +50,11 @@ type UserInfoStatus struct {
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
 	//+optional
-	Space *SpaceInfo      `json:"space,omitempty"`
+	Space *SpaceInfo `json:"space,omitempty"`
+	//+optional
 	Owner *UserInfoStatus `json:"owner,omitempty"`
+	//+optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
