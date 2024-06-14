@@ -3,6 +3,10 @@ LOCALBIN := $(ROOT_DIR)/bin
 $(LOCALBIN):
 	mkdir $(LOCALBIN)
 
+OUTDIR := $(ROOT_DIR)/out/
+$(OUTDIR):
+	@mkdir $(OUTDIR)
+
 GO ?= go
 LD_FLAGS ?= -s -w
 
@@ -20,6 +24,9 @@ YQ ?= $(LOCALBIN)/yq
 
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+
+MANIFEST_TARBALL := $(ROOT_DIR)/server/out/server.tar.gz
+JWKS_URL := https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 
 ##@ General
 
@@ -81,6 +88,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 .PHONY: clean
 clean:
 	@-rm -r $(LOCALBIN)
+	@-rm -r $(OUTDIR)
 
 .PHONY: build
 build:
@@ -126,3 +134,12 @@ docker-build:
 .PHONY: deploy
 deploy: kustomize yq
 	YQ="$(YQ)" KUSTOMIZE="$(KUSTOMIZE)" ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"
+
+.PHONY: package
+package: kustomize yq $(OUTDIR)
+	JWKS_URL="$(JWKS_URL)" \
+			 TOOLCHAIN_HOST="toolchain-host-operator" \
+			 YQ="$(YQ)" \
+			 KUSTOMIZE="$(KUSTOMIZE)" \
+			 MANIFEST_TARBALL="$(MANIFEST_TARBALL)" \
+			 ./hack/deploy.sh "$(NAMESPACE)" "$(IMG)"

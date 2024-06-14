@@ -74,6 +74,10 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: all
 all: build
 
+OUTDIR := out/
+$(OUTDIR):
+	@mkdir $(OUTDIR)
+
 ##@ General
 
 # The help target prints out all targets with their descriptions organized
@@ -287,3 +291,11 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+MANIFEST_TARBALL := $(realpath out/operator.tar.gz)
+
+# Package the config/ directory into a tarball for deployment via infra-deployments.
+.PHONY: package
+package: kustomize $(OUTDIR)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	tar -caf $(MANIFEST_TARBALL) config/
