@@ -31,6 +31,7 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 			Expect(w.Status).ToNot(BeNil())
 			Expect(w.Status.Space).ToNot(BeNil())
 			Expect(w.Status.Space.Name).To(Equal(displayName))
+			Expect(w.Status.Conditions).To(Equal(internalWorkspace.Status.Conditions))
 		}
 
 		BeforeEach(func() {
@@ -55,6 +56,9 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 					Space: workspacesv1alpha1.SpaceInfo{
 						IsHome: true,
 						Name:   displayName,
+					},
+					Conditions: []metav1.Condition{
+						{Message: "test", Type: "test", Reason: "test", Status: metav1.ConditionTrue},
 					},
 				},
 			}

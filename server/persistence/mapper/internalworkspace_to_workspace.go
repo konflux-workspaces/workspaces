@@ -35,6 +35,7 @@ func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.Inte
 			Owner: &restworkspacesv1alpha1.UserInfoStatus{
 				Email: workspace.Spec.Owner.JwtInfo.Email,
 			},
+			Conditions: workspace.Status.Conditions,
 		},
 	}, nil
 }
