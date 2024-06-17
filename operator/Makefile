@@ -292,7 +292,7 @@ catalog-build: opm ## Build a catalog image.
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
-MANIFEST_TARBALL := $(realpath out/operator.tar.gz)
+MANIFEST_TARBALL := $(realpath $(OUTDIR)/operator.tar.gz)
 
 # Package the config/ directory into a tarball for deployment via infra-deployments.
 .PHONY: package
