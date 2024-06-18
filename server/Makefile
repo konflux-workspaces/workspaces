@@ -3,7 +3,7 @@ LOCALBIN := $(ROOT_DIR)/bin
 $(LOCALBIN):
 	mkdir $(LOCALBIN)
 
-OUTDIR := $(ROOT_DIR)/out/
+OUTDIR := $(ROOT_DIR)/out
 $(OUTDIR):
 	@mkdir $(OUTDIR)
 
@@ -25,7 +25,7 @@ YQ ?= $(LOCALBIN)/yq
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 GOLANG_CI ?= $(GO) run -modfile $(shell dirname $(ROOT_DIR))/hack/tools/golang-ci/go.mod github.com/golangci/golangci-lint/cmd/golangci-lint
 
-MANIFEST_TARBALL := $(ROOT_DIR)/server/out/server.tar.gz
+MANIFEST_TARBALL := $(OUTDIR)/server.tar.gz
 JWKS_URL := https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 
 ##@ General
