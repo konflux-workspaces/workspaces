@@ -74,7 +74,9 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: all
 all: build
 
-OUTDIR := $(realpath out)
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
+OUTDIR := $(ROOT_DIR)/out
 $(OUTDIR):
 	@mkdir $(OUTDIR)
 
@@ -292,7 +294,7 @@ catalog-build: opm ## Build a catalog image.
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
-MANIFEST_TARBALL := $(realpath $(OUTDIR)/operator.tar.gz)
+MANIFEST_TARBALL := $(OUTDIR)/operator.tar.gz
 
 # Clean generated files & artifacts
 .PHONY: clean
