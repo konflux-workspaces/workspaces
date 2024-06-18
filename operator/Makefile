@@ -74,7 +74,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: all
 all: build
 
-OUTDIR := out/
+OUTDIR := $(realpath out)
 $(OUTDIR):
 	@mkdir $(OUTDIR)
 
@@ -293,6 +293,11 @@ catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
 MANIFEST_TARBALL := $(realpath $(OUTDIR)/operator.tar.gz)
+
+# Clean generated files & artifacts
+.PHONY: clean
+clean:
+	@rm -rf $(OUTDIR)
 
 # Package the config/ directory into a tarball for deployment via infra-deployments.
 .PHONY: package
