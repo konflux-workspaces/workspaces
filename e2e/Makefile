@@ -10,7 +10,6 @@ OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
 IMAGE_BUILDER ?= docker
-export IMAGE_BUILDER
 
 USE_INSECURE_TLS ?= false
 
@@ -20,8 +19,8 @@ vet:
 
 .PHONY: build-images
 build-images:
-	IMG=$(OPERATOR_IMG) $(MAKE) -C ../operator/ docker-build
-	IMG=$(SERVER_IMG) $(MAKE) -C ../server/ docker-build
+	CONTAINER_TOOL=$(IMAGE_BUILDER) IMG=$(OPERATOR_IMG) $(MAKE) -C ../operator/ docker-build
+	IMAGE_BUILDER=$(IMAGE_BUILDER) IMG=$(SERVER_IMG) $(MAKE) -C ../server/ docker-build
 
 .PHONY: push-images
 push-images:
