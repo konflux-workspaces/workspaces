@@ -36,26 +36,6 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      # TODO(user): Uncomment the following code to configure the nodeAffinity expression
-      # according to the platforms which are supported by your solution.
-      # It is considered best practice to support multiple architectures. You can
-      # build your manager image using the makefile target docker-buildx.
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #         - matchExpressions:
-      #           - key: kubernetes.io/arch
-      #             operator: In
-      #             values:
-      #               - amd64
-      #               - arm64
-      #               - ppc64le
-      #               - s390x
-      #           - key: kubernetes.io/os
-      #             operator: In
-      #             values:
-      #               - linux
       securityContext:
         runAsNonRoot: true
         # TODO(user): For common cases that do not require escalating privileges
@@ -66,13 +46,13 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       containers:
-      - command:
+      - name: manager
+        command:
         - /manager
         args:
-        - --leader-elect
+        - "--leader-elect"
         image: controller:latest
         imagePullPolicy: IfNotPresent
-        name: manager
         env:
         - name: KUBESAW_NAMESPACE
           valueFrom:
@@ -112,9 +92,3 @@ spec:
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: operator-config
-data:
-  kubesaw.namespace=workspaces-system

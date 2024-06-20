@@ -54,7 +54,7 @@ $(KUSTOMIZE):
 		$(GO) build \
 			-modfile $(shell dirname $(ROOT_DIR))/hack/tools/kustomize/go.mod \
 			-o $(LOCALBIN)/kustomize \
-			sigs.k8s.io/kustomize/kustomize/v4
+			sigs.k8s.io/kustomize/kustomize/v5
 
 .PHONY: mockgen
 mockgen: $(MOCKGEN)
