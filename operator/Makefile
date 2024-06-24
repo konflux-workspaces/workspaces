@@ -181,5 +181,5 @@ clean:
 package: kustomize $(OUTDIR)
 	cd config/manager && \
 		$(KUSTOMIZE) edit set image controller=${IMG} && \
-		$(KUSTOMIZE) edit add configmap operator-config --behavior=replace:w --from-literal=kubesaw.namespace=toolchain-host-operator
+		$(KUSTOMIZE) edit add configmap operator-config --behavior=replace --from-literal=kubesaw.namespace=toolchain-host-operator
 	tar -caf $(MANIFEST_TARBALL) config/
