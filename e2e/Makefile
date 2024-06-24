@@ -37,8 +37,7 @@ deploy-operator:
 			cd config/manager && \
 			( \
 				toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
-				$(KUSTOMIZE) edit add configmap operator-config \
-					--behavior=replace \
+				$(KUSTOMIZE) edit add configmap operator-config --behavior=replace \
 					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
 			) \
 		) && \
