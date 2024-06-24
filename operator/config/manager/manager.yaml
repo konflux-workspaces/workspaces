@@ -92,3 +92,9 @@ spec:
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-config
+data:
+  kubesaw.namespace: toolchain-host-operator

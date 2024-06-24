@@ -1,10 +1,3 @@
-# VERSION defines the project version for the bundle.
-# Update this value when you upgrade the version of your project.
-# To re-generate a bundle for another specific version without changing the standard setup, you can:
-# - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
-# - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
-
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -188,5 +181,5 @@ clean:
 package: kustomize $(OUTDIR)
 	cd config/manager && \
 		$(KUSTOMIZE) edit set image controller=${IMG} && \
-		$(KUSTOMIZE) edit set configmap operator-config --from-literal=kubesaw.namespace=toolchain-host-operator
+		$(KUSTOMIZE) edit add configmap operator-config --behavior=replace:w --from-literal=kubesaw.namespace=toolchain-host-operator
 	tar -caf $(MANIFEST_TARBALL) config/
