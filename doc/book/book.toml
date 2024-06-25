@@ -1,0 +1,6 @@
+[book]
+authors = ["The Workspaces Authors"]
+language = "en"
+multilingual = false
+src = "src"
+title = "The Workspaces Book"
