@@ -1,2 +1,5 @@
 # produced as a part of CI
 results.sarif
+
+# a temporary folder for ephemeral materials, used as a part of CI.
+out/
