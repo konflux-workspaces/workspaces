@@ -44,6 +44,9 @@ spec:
             description: WorkspaceSpec defines the desired state of Workspace
             properties:
               visibility:
+                enum:
+                - community
+                - private
                 type: string
             required:
             - visibility

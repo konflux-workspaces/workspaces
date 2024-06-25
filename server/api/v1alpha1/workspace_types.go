@@ -32,6 +32,7 @@ const (
 // WorkspaceSpec defines the desired state of Workspace
 type WorkspaceSpec struct {
 	//+required
+	//+kubebuilder:validation:Enum:=community;private
 	Visibility WorkspaceVisibility `json:"visibility"`
 }
 
