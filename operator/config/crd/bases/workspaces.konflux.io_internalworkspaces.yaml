@@ -67,6 +67,9 @@ spec:
                 - jwtInfo
                 type: object
               visibility:
+                enum:
+                - community
+                - private
                 type: string
             required:
             - displayName

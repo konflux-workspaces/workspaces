@@ -66,6 +66,7 @@ type InternalWorkspaceSpec struct {
 	//+required
 	DisplayName string `json:"displayName"`
 	//+required
+	//+kubebuilder:validation:Enum:=community;private
 	Visibility InternalWorkspaceVisibility `json:"visibility"`
 	//+required
 	Owner UserInfo `json:"owner"`
