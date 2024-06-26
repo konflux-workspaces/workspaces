@@ -1,6 +1,6 @@
 [book]
-authors = ["The Workspaces Authors"]
+authors = ["The Konflux Workspaces Authors"]
 language = "en"
 multilingual = false
 src = "src"
-title = "The Workspaces Book"
+title = "The Konflux Workspaces Book"
