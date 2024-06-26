@@ -51,11 +51,13 @@ fi
 
 # updating config locally
 ${KUSTOMIZE} edit set namespace "$1"
-${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 ${KUSTOMIZE} edit add configmap rest-api-server-config \
         --behavior=replace \
         --from-literal=log.level="${SERVER_LOG_LEVEL}" \
         --from-literal=kubesaw.namespace="${TOOLCHAIN_HOST}"
+
+cd ../server
+${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 
 if [[ -n "${MANIFEST_TARBALL}" ]]; then
     # save config to a tarball
