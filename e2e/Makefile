@@ -10,6 +10,7 @@ OPERATOR_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-op:test-${DATE_SUFFIX}
 SERVER_IMG ?= quay.io/$(QUAY_NAMESPACE)/workspaces-rest:test-${DATE_SUFFIX}
 CONCURRENCY ?= 1
 IMAGE_BUILDER ?= docker
+NAMESPACE ?= workspaces-system
 
 USE_INSECURE_TLS ?= false
 
@@ -38,8 +39,9 @@ deploy-operator:
 			( \
 				toolchain_host=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1); \
 				$(KUSTOMIZE) edit add configmap operator-config --behavior=replace \
-					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "workspaces-system" ) \
-			) \
+					--from-literal=kubesaw.namespace=$$(( [[ -n "$$toolchain_host" ]] && echo "$$toolchain_host" ) || echo "$(NAMESPACE)" ) \
+			); \
+			cd ../default && $(KUSTOMIZE) edit set namespace $(NAMESPACE) \
 		) && \
 		IMG=$(OPERATOR_IMG) $(MAKE) install deploy \
 	)
@@ -50,7 +52,7 @@ prepare: build-images push-images deploy-operator deploy-server
 
 .PHONY: deploy-server
 deploy-server:
-	IMG=$(SERVER_IMG) $(MAKE) -C ../server deploy
+	NAMESPACE=$(NAMESPACE) IMG=$(SERVER_IMG) $(MAKE) -C ../server deploy
 
 .PHONY: env
 env:
@@ -58,17 +60,17 @@ env:
 
 .PHONY: test
 test: vet clean
-	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n $(NAMESPACE) -o jsonpath='{.status.ingress[0].host}')}" \
 		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
-		WORKSPACES_NAMESPACE="workspaces-system" \
+		WORKSPACES_NAMESPACE="$(NAMESPACE)" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
 		$(GO) test ./... $(V) --godog.tags=~skip --godog.concurrency=$(CONCURRENCY)
 
 .PHONY: wip
 wip: vet clean
-	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n workspaces-system -o jsonpath='{.status.ingress[0].host}')}" \
+	PROXY_URL="$${PROXY_URL:-https://$$($(KUBECLI) get route workspaces-rest-api-server -n $(NAMESPACE) -o jsonpath='{.status.ingress[0].host}')}" \
 		KUBESPACE_NAMESPACE=$$($(KUBECLI) get namespaces -o name | grep toolchain-host | cut -d'/' -f2) \
-		WORKSPACES_NAMESPACE="workspaces-system" \
+		WORKSPACES_NAMESPACE="$(NAMESPACE)" \
 		E2E_USE_INSECURE_TLS="$(USE_INSECURE_TLS)" \
 		$(GO) test ./... -v -failfast -count 1 --godog.tags=wip
 
