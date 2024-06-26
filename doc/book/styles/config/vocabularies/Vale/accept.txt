@@ -1,0 +1,12 @@
+API[s]
+CRD[s]
+HTTP
+JWT['s]
+REST
+
+Konflux
+Kubernetes
+KubeSaw
+Traefik
+
+proxying
