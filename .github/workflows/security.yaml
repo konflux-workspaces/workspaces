@@ -129,10 +129,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: out/kube-linter.sarif
-
-      - name: Pretty-print sarif report
-        if: ${{ steps.kube-linter.outcome }} != "success"
-        run: |
-          cargo install sarif-fmt
-          sarif-fmt -i out/kube-linter.sarif
-          exit 1
