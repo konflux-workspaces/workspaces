@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -x -e -o pipefail
 
 LOCATION=$(readlink -f "$0")
 DIR=$(dirname "${LOCATION}")
@@ -56,7 +56,7 @@ ${KUSTOMIZE} edit add configmap rest-api-server-config \
         --from-literal=log.level="${SERVER_LOG_LEVEL}" \
         --from-literal=kubesaw.namespace="${TOOLCHAIN_HOST}"
 
-cd ../server
+cd "${f}/config/server"
 ${KUSTOMIZE} edit set image workspaces/rest-api="$2"
 
 if [[ -n "${MANIFEST_TARBALL}" ]]; then
@@ -65,6 +65,7 @@ if [[ -n "${MANIFEST_TARBALL}" ]]; then
     tar -caf "${MANIFEST_TARBALL}" config/
 else
     # apply config
+    cd "${f}/config/default"
     ${KUSTOMIZE} build . | ${KUBECLI} apply -f -
 fi
 
