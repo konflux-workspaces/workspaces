@@ -37,7 +37,7 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
-      - image: workspaces/rest-api:latest
+      - image: workspaces/rest-api:index
         name: rest-api
         imagePullPolicy: IfNotPresent
         env:
