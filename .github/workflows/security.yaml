@@ -108,7 +108,7 @@ jobs:
           mkdir out
           find operator server -name 'kustomization.yaml' | \
             xargs -I {} -n1 -P8 \
-            bash -c 'dir=$(dirname "{}"); output_file=$(echo $dir | tr / -)-kustomization.yaml; if ! log=$(kustomize build "$dir" -o "out/$output_file" 2>&1); then echo "Error when running kustomize build for $dir: $log" && exit 1;fi'
+            bash -c 'dir=$(dirname "{}"); output_file=$(realpath out/$(echo $dir | tr / -)-kustomization.yaml); if ! log=$(cd "$dir" && kustomize edit set image workspaces/rest-api:index controller:index && kustomize build . -o "$output_file" 2>&1); then echo "Error when running kustomize build for $dir: $log" && exit 1;fi'
 
       - name: Run kube-linter
         uses: stackrox/kube-linter-action@v1.0.4

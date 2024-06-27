@@ -51,7 +51,7 @@ spec:
         - /manager
         args:
         - "--leader-elect"
-        image: controller:index
+        image: controller:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: KUBESAW_NAMESPACE
