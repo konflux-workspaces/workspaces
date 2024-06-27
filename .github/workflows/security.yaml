@@ -68,7 +68,7 @@ jobs:
     permissions:
       security-events: write
 
-    steps: 
+    steps:
       - name: Checkout Git Repository
         uses: actions/checkout@v4
 
