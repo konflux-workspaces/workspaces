@@ -13,3 +13,4 @@
     - [Code structure](./development/code-structure.md)
     - [E2E test](./development/e2e/e2e.md)
         - [Run the test](./development/e2e/run-tests.md)
+    - [Releases](./development/release.md)
