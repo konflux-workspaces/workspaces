@@ -12,7 +12,7 @@ VALE_VERSION := v3.6.0
 
 .PHONY: book
 book:
-	$(CONTAINER_TOOL) run -it --rm \
+	$(CONTAINER_TOOL) run --rm \
 		--workdir "/book" \
 		--name "workspaces-mdbook" \
 		--volume $(BOOK_PATH):/book \
