@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x -e -o pipefail
+set -e -o pipefail
 
 LOCATION=$(readlink -f "$0")
 DIR=$(dirname "${LOCATION}")
