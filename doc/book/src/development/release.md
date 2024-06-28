@@ -24,6 +24,8 @@ ensure that production does not break.  In this case, staging and production wil
 different kustomize manifests, which will prevent production from pulling in resources that have not
 yet been tested and validated on staging.
 
+TODO: fill this with more detail once this actually happens.
+
 [199]: https://github.com/konflux-workspaces/workspaces/pull/199
 [workflow]: https://github.com/konflux-workspaces/workspaces/actions/workflows/push.yaml
 [infra-deployments]: https://github.com/redhat-appstudio/infra-deployments/
