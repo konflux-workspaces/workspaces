@@ -4,7 +4,6 @@ resources:
 - ../crd
 - ../rbac
 - ../server
-- ../network
 namePrefix: workspaces-
 
 configMapGenerator:
@@ -24,7 +23,7 @@ replacements:
     targets:
       # create Role and RoleBinding to read SpaceBinding into toolchain-host-operator
       - options:
-          create: false
+          create: true
         select:
           kind: RoleBinding
           group: rbac.authorization.k8s.io
@@ -32,7 +31,7 @@ replacements:
         fieldPaths:
           - 'metadata.namespace'
       - options:
-          create: false
+          create: true
         select:
           kind: Role
           group: rbac.authorization.k8s.io
@@ -41,7 +40,7 @@ replacements:
           - 'metadata.namespace'
       # create Role and RoleBinding to read UserSignups into toolchain-host-operator
       - options:
-          create: false
+          create: true
         select:
           kind: RoleBinding
           group: rbac.authorization.k8s.io
@@ -49,7 +48,7 @@ replacements:
         fieldPaths:
           - 'metadata.namespace'
       - options:
-          create: false
+          create: true
         select:
           kind: Role
           group: rbac.authorization.k8s.io
@@ -63,7 +62,7 @@ replacements:
     targets:
       # RoleBinding to read SpaceBinding should target the ServiceAccount in workspaces-system
       - options:
-          create: false
+          create: true
         select:
           kind: RoleBinding
           group: rbac.authorization.k8s.io
@@ -72,7 +71,7 @@ replacements:
           - 'subjects.0.namespace'
       # RoleBinding to read UserSignups should target the ServiceAccount in workspaces-system
       - options:
-          create: false
+          create: true
         select:
           kind: RoleBinding
           group: rbac.authorization.k8s.io

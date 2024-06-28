@@ -146,9 +146,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Package manifests for server
+        env:
+          IMG: quay.io/${{ env.QUAY_NAMESPACE }}/workspaces-server:${{ inputs.version }}
         run: make -C server package
 
       - name: Package manifests for operator
+        env:
+          IMG: quay.io/${{ env.QUAY_NAMESPACE }}/workspaces-operator:${{ inputs.version }}
         run: make -C operator package
 
       - name: Make a draft release
