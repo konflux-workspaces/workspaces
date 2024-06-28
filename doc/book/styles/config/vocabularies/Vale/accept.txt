@@ -1,12 +1,18 @@
 API[s]
 CRD[s]
+CQRS
 HTTP
 JWT['s]
 REST
+YAML
+E2E
 
 Konflux
 Kubernetes
 KubeSaw
 Traefik
 
+e2e
+godog
+monorepo
 proxying
