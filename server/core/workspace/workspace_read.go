@@ -10,8 +10,6 @@ import (
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
-//go:generate mockgen -destination=mocks/mocks_read.go -package=mocks . WorkspaceReader
-
 // ReadWorkspaceQuery contains the information needed to retrieve a Workspace the user has access to from the data source
 type ReadWorkspaceQuery struct {
 	Name  string

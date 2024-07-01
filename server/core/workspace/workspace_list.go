@@ -10,8 +10,6 @@ import (
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 )
 
-//go:generate mockgen -destination=mocks/mocks_list.go -package=mocks . WorkspaceLister
-
 // ListWorkspaceQuery contains the information needed to retrieve all the workspaces the user has access to from the data source
 type ListWorkspaceQuery struct {
 	Namespace string

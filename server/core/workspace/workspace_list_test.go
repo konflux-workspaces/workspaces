@@ -7,19 +7,20 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
-	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
+
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 var _ = Describe("WorkspaceList", func() {
 	var (
 		ctrl    *gomock.Controller
 		ctx     context.Context
-		lister  *mocks.MockWorkspaceLister
+		lister  *MockWorkspaceLister
 		request workspace.ListWorkspaceQuery
 		handler workspace.ListWorkspaceHandler
 	)
@@ -27,7 +28,7 @@ var _ = Describe("WorkspaceList", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
-		lister = mocks.NewMockWorkspaceLister(ctrl)
+		lister = NewMockWorkspaceLister(ctrl)
 		request = workspace.ListWorkspaceQuery{}
 		handler = *workspace.NewListWorkspaceHandler(lister)
 	})

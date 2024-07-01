@@ -8,8 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
 
-	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
@@ -22,7 +20,7 @@ var _ = Describe("", func() {
 	var (
 		ctrl    *gomock.Controller
 		ctx     context.Context
-		creator *mocks.MockWorkspaceCreator
+		creator *MockWorkspaceCreator
 		request workspace.CreateWorkspaceCommand
 		handler workspace.CreateWorkspaceHandler
 	)
@@ -30,7 +28,7 @@ var _ = Describe("", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
-		creator = mocks.NewMockWorkspaceCreator(ctrl)
+		creator = NewMockWorkspaceCreator(ctrl)
 		request = workspace.CreateWorkspaceCommand{Workspace: restworkspacesv1alpha1.Workspace{}}
 		handler = *workspace.NewCreateWorkspaceHandler(creator)
 	})

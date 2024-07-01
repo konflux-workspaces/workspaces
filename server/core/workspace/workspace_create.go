@@ -9,8 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-//go:generate mockgen -destination=mocks/mocks_create.go -package=mocks . WorkspaceCreator
-
 // CreateWorkspaceCommand contains the information needed to create a new workspace
 type CreateWorkspaceCommand struct {
 	Workspace restworkspacesv1alpha1.Workspace

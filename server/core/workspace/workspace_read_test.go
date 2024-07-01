@@ -7,19 +7,20 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
-	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
+
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 var _ = Describe("WorkspaceRead", func() {
 	var (
 		ctrl    *gomock.Controller
 		ctx     context.Context
-		reader  *mocks.MockWorkspaceReader
+		reader  *MockWorkspaceReader
 		request workspace.ReadWorkspaceQuery
 		handler workspace.ReadWorkspaceHandler
 	)
@@ -27,7 +28,7 @@ var _ = Describe("WorkspaceRead", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
-		reader = mocks.NewMockWorkspaceReader(ctrl)
+		reader = NewMockWorkspaceReader(ctrl)
 		request = workspace.ReadWorkspaceQuery{}
 		handler = *workspace.NewReadWorkspaceHandler(reader)
 	})
