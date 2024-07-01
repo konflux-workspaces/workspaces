@@ -21,6 +21,12 @@ export IMAGE_TAG=e2e-test
 export QUAY_NAMESPACE=my-quay-namespace
 ```
 
+> Tip
+>
+> By default the scripts will use `docker`.
+> If you want to use a different tool for building and pushing containers, you can export the `IMAGE_BUILDER` variable.
+> As an example, to use podman you will `export IMAGE_BUILDER=podman`.
+
 #### 1. Build KubeSaw fork
 
 As first thing, you'll need to build and push the KubeSaw fork from Konflux-Workspaces.
