@@ -11,6 +11,8 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
+//go:generate mockgen -destination=mocks/mocks_update.go -package=mocks . WorkspaceUpdater
+
 // UpdateWorkspaceCommand contains the information needed to retrieve a Workspace the user has access to from the data source
 type UpdateWorkspaceCommand struct {
 	Owner     string

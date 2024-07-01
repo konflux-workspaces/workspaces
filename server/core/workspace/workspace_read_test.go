@@ -7,32 +7,29 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
-
-	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	ccontext "github.com/konflux-workspaces/workspaces/server/core/context"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
-
-	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/core/workspace/mocks"
 )
 
-var _ = Describe("", func() {
+var _ = Describe("WorkspaceRead", func() {
 	var (
 		ctrl    *gomock.Controller
 		ctx     context.Context
-		creator *mocks.MockWorkspaceCreator
-		request workspace.CreateWorkspaceCommand
-		handler workspace.CreateWorkspaceHandler
+		reader  *mocks.MockWorkspaceReader
+		request workspace.ReadWorkspaceQuery
+		handler workspace.ReadWorkspaceHandler
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
-		creator = mocks.NewMockWorkspaceCreator(ctrl)
-		request = workspace.CreateWorkspaceCommand{Workspace: restworkspacesv1alpha1.Workspace{}}
-		handler = *workspace.NewCreateWorkspaceHandler(creator)
+		reader = mocks.NewMockWorkspaceReader(ctrl)
+		request = workspace.ReadWorkspaceQuery{}
+		handler = *workspace.NewReadWorkspaceHandler(reader)
 	})
 
 	AfterEach(func() { ctrl.Finish() })
@@ -50,9 +47,8 @@ var _ = Describe("", func() {
 		// given
 		username := "foo"
 		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
-		opts := &client.CreateOptions{}
-		creator.EXPECT().
-			CreateUserWorkspace(ctx, username, &request.Workspace, opts).
+		reader.EXPECT().
+			ReadUserWorkspace(ctx, username, request.Owner, request.Name, &restworkspacesv1alpha1.Workspace{}, []client.GetOption{}).
 			Return(nil)
 
 		// when
@@ -60,19 +56,18 @@ var _ = Describe("", func() {
 
 		// then
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response).To(Equal(&workspace.CreateWorkspaceResponse{
-			Workspace: &request.Workspace,
+		Expect(response).To(Equal(&workspace.ReadWorkspaceResponse{
+			Workspace: &restworkspacesv1alpha1.Workspace{},
 		}))
 	})
 
-	It("should forward errors from the workspace creator", func() {
+	It("should forward errors from the workspace reader", func() {
 		// given
 		username := "foo"
 		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
-		opts := &client.CreateOptions{}
 		error := fmt.Errorf("Failed to create workspace!")
-		creator.EXPECT().
-			CreateUserWorkspace(ctx, username, &request.Workspace, opts).
+		reader.EXPECT().
+			ReadUserWorkspace(ctx, username, request.Owner, request.Name, &restworkspacesv1alpha1.Workspace{}, []client.GetOption{}).
 			Return(error)
 
 		// when
