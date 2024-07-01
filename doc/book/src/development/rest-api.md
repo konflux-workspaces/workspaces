@@ -19,7 +19,7 @@ Finally, the `core` will build a Response and provide it back to the `rest` pack
 
 ## Run Tests
 
-To run Unit tests you can execute the `make test` command.
+To run unit tests you can execute the `make test` command.
 
 To run e2e tests, take a look at the [Run End-to-End Test](./e2e/run-tests.md) section.
 
