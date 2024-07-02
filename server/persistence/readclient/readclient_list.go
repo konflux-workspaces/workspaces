@@ -29,14 +29,11 @@ func (c *ReadClient) ListUserWorkspaces(
 		return kerrors.NewInternalError(fmt.Errorf("error retrieving the list of workspaces for user %v", user))
 	}
 
-	// map list options to InternalWorkspaces
-	listOpts, err := mapListOptions(opts...)
+	// filter internal workspaces
+	fiww, err := filterByLabels(&iww, opts...)
 	if err != nil {
 		return err
 	}
-
-	// filter internal workspaces
-	fiww := filterByLabels(&iww, listOpts)
 
 	// map back to Workspaces
 	ww, err := c.mapper.InternalWorkspaceListToWorkspaceList(fiww)
@@ -48,7 +45,12 @@ func (c *ReadClient) ListUserWorkspaces(
 	return nil
 }
 
-func filterByLabels(ww *workspacesv1alpha1.InternalWorkspaceList, listOpts *client.ListOptions) *workspacesv1alpha1.InternalWorkspaceList {
+func filterByLabels(ww *workspacesv1alpha1.InternalWorkspaceList, opts ...client.ListOption) (*workspacesv1alpha1.InternalWorkspaceList, error) {
+	listOpts, err := mapListOptions(opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	rww := workspacesv1alpha1.InternalWorkspaceList{}
 	for _, w := range ww.Items {
 		// selection
@@ -58,7 +60,7 @@ func filterByLabels(ww *workspacesv1alpha1.InternalWorkspaceList, listOpts *clie
 
 		rww.Items = append(rww.Items, w)
 	}
-	return &rww
+	return &rww, nil
 }
 
 func mapListOptions(opts ...client.ListOption) (*client.ListOptions, error) {
