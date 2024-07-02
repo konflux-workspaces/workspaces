@@ -25,7 +25,7 @@ func New(
 	cache cache.Cache,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-	createHandle workspace.CreateWorkspaceCreateHandlerFunc,
+	createHandle workspace.CreateWorkspaceCommandHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) *http.Server {
 	return &http.Server{
@@ -40,7 +40,7 @@ func buildServerHandler(
 	cache cache.Cache,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-	createHandle workspace.CreateWorkspaceCreateHandlerFunc,
+	createHandle workspace.CreateWorkspaceCommandHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) http.Handler {
 	mux := http.NewServeMux()
@@ -64,7 +64,7 @@ func addWorkspaces(
 	cache cache.Cache,
 	readHandle workspace.ReadWorkspaceQueryHandlerFunc,
 	listHandle workspace.ListWorkspaceQueryHandlerFunc,
-	_ workspace.CreateWorkspaceCreateHandlerFunc,
+	_ workspace.CreateWorkspaceCommandHandlerFunc,
 	updateHandle workspace.UpdateWorkspaceCommandHandlerFunc,
 ) {
 	// Read
@@ -84,7 +84,6 @@ func addWorkspaces(
 				workspace.MapListWorkspaceHttp,
 				listHandle,
 				marshal.DefaultMarshalerProvider,
-				marshal.DefaultUnmarshalerProvider,
 			),
 		))
 	mux.Handle(fmt.Sprintf("GET %s", WorkspacesPrefix), lh)
