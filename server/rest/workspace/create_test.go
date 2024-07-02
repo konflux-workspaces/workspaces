@@ -7,40 +7,43 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/codeready-toolchain/api/api/v1alpha1"
-	coreworkspace "github.com/konflux-workspaces/workspaces/server/core/workspace"
-	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
-	"github.com/konflux-workspaces/workspaces/server/rest/workspace"
-	"github.com/konflux-workspaces/workspaces/server/rest/workspace/mocks"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
+
+	"github.com/konflux-workspaces/workspaces/server/rest/workspace/mocks"
+
+	coreworkspace "github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/rest/marshal"
+	"github.com/konflux-workspaces/workspaces/server/rest/workspace"
+
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 var _ = Describe("Creation tests", func() {
 	var (
 		ctrl    *gomock.Controller
-		w       *v1alpha1.Workspace
+		w       *restworkspacesv1alpha1.Workspace
 		request *http.Request
 		fake    *mocks.MockFakeResponseWriter
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
-		w = &v1alpha1.Workspace{}
+		w = &restworkspacesv1alpha1.Workspace{}
 		w.Name = "foo"
 		w.Namespace = "bar"
 
 		request = buildPostRequest(w)
 		fake = mocks.NewMockFakeResponseWriter(ctrl)
 	})
+
 	AfterEach(func() { ctrl.Finish() })
 
 	DescribeTable("workspace POST handler",
 		func(
 			mapperFunc workspace.PostWorkspaceMapperFunc,
-			createHandler workspace.CreateWorkspaceCreateHandlerFunc,
+			createHandler workspace.CreateWorkspaceCommandHandlerFunc,
 			marshaler marshal.MarshalerProvider,
 			unmarshaler marshal.UnmarshalerProvider,
 			responseFunc func() http.ResponseWriter,
@@ -139,7 +142,7 @@ func nopCreateHandler(_ctx context.Context, cmd coreworkspace.CreateWorkspaceCom
 	}, nil
 }
 
-func buildPostRequest(workspace *v1alpha1.Workspace) *http.Request {
+func buildPostRequest(workspace *restworkspacesv1alpha1.Workspace) *http.Request {
 	byteSlice, err := marshal.DefaultMarshal.Marshal(workspace)
 	Expect(err).NotTo(HaveOccurred())
 

@@ -14,18 +14,18 @@ import (
 )
 
 type PostWorkspaceMapperFunc func(*http.Request, marshal.UnmarshalerProvider) (*workspace.CreateWorkspaceCommand, error)
-type CreateWorkspaceCreateHandlerFunc func(context.Context, workspace.CreateWorkspaceCommand) (*workspace.CreateWorkspaceResponse, error)
+type CreateWorkspaceCommandHandlerFunc func(context.Context, workspace.CreateWorkspaceCommand) (*workspace.CreateWorkspaceResponse, error)
 
 type PostWorkspaceHandler struct {
 	MapperFunc          PostWorkspaceMapperFunc
-	CreateHandler       CreateWorkspaceCreateHandlerFunc
+	CreateHandler       CreateWorkspaceCommandHandlerFunc
 	MarshalerProvider   marshal.MarshalerProvider
 	UnmarshalerProvider marshal.UnmarshalerProvider
 }
 
 func NewPostWorkspaceHandler(
 	mapperFunc PostWorkspaceMapperFunc,
-	createHandler CreateWorkspaceCreateHandlerFunc,
+	createHandler CreateWorkspaceCommandHandlerFunc,
 	marshalProvider marshal.MarshalerProvider,
 	unmarshalProvider marshal.UnmarshalerProvider,
 ) *PostWorkspaceHandler {
