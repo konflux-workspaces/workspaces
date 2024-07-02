@@ -13,9 +13,13 @@ func (m *Mapper) InternalWorkspaceListToWorkspaceList(workspaces *workspacesv1al
 			Kind:       "WorkspaceList",
 			APIVersion: restworkspacesv1alpha1.GroupVersion.String(),
 		},
-		Items: make([]restworkspacesv1alpha1.Workspace, len(workspaces.Items)),
+	}
+	if workspaces == nil {
+		ww.Items = make([]restworkspacesv1alpha1.Workspace, 0)
+		return &ww, nil
 	}
 
+	ww.Items = make([]restworkspacesv1alpha1.Workspace, len(workspaces.Items))
 	for i, w := range workspaces.Items {
 		rw, err := m.InternalWorkspaceToWorkspace(&w)
 		if err != nil {

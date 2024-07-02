@@ -17,40 +17,9 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 		displayName := "bar"
 		ownerName := "baz"
 
-		validateWorkspace := func(w *workspacesv1alpha1.InternalWorkspace) {
-			Expect(w).ToNot(BeNil())
-			Expect(w.Generation).To(Equal(int64(1)))
-			Expect(w.GetName()).To(BeZero())
-			Expect(w.GetNamespace()).To(BeZero())
-			Expect(w.GetLabels()).To(HaveKey("expected-label"))
-			Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
-			Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
-			Expect(w.Spec).ToNot(BeNil())
-			Expect(w.Spec.DisplayName).To(Equal(displayName))
-			Expect(w.Status.Owner.Username).To(Equal(ownerName))
-		}
-
 		BeforeEach(func() {
 			// given
-			workspace = restworkspacesv1alpha1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      displayName,
-					Namespace: ownerName,
-					Labels: map[string]string{
-						"expected-label": "not-empty",
-						workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
-					},
-					Generation: 1,
-				},
-				Spec: restworkspacesv1alpha1.WorkspaceSpec{
-					Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
-				},
-				Status: restworkspacesv1alpha1.WorkspaceStatus{
-					Space: &restworkspacesv1alpha1.SpaceInfo{
-						Name: "space-name",
-					},
-				},
-			}
+			workspace = buildExampleValidWorkspace(displayName, ownerName)
 		})
 
 		When("visibility is community", func() {
@@ -64,7 +33,7 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 
 				// then
 				Expect(err).NotTo(HaveOccurred())
-				validateWorkspace(iw)
+				validateMappedInternalWorkspace(iw, &workspace)
 				Expect(iw.Spec.Visibility).To(Equal(workspacesv1alpha1.InternalWorkspaceVisibilityCommunity))
 			})
 		})
@@ -80,9 +49,47 @@ var _ = Describe("WorkspaceToInternalworkspace", func() {
 
 				// then
 				Expect(err).NotTo(HaveOccurred())
-				validateWorkspace(iw)
+				validateMappedInternalWorkspace(iw, &workspace)
 				Expect(iw.Spec.Visibility).To(Equal(workspacesv1alpha1.InternalWorkspaceVisibilityPrivate))
 			})
 		})
 	})
 })
+
+func buildExampleValidWorkspace(displayName, ownerName string) restworkspacesv1alpha1.Workspace {
+	return restworkspacesv1alpha1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      displayName,
+			Namespace: ownerName,
+			Labels: map[string]string{
+				"expected-label": "not-empty",
+				workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
+			},
+			Generation: 1,
+		},
+		Spec: restworkspacesv1alpha1.WorkspaceSpec{
+			Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
+		},
+		Status: restworkspacesv1alpha1.WorkspaceStatus{
+			Owner: &restworkspacesv1alpha1.UserInfoStatus{
+				Email: "user@email.com",
+			},
+			Space: &restworkspacesv1alpha1.SpaceInfo{
+				Name: "space-name",
+			},
+		},
+	}
+}
+
+func validateMappedInternalWorkspace(w *workspacesv1alpha1.InternalWorkspace, from *restworkspacesv1alpha1.Workspace) {
+	Expect(w).ToNot(BeNil())
+	Expect(w.Generation).To(Equal(int64(1)))
+	Expect(w.GetName()).To(BeZero())
+	Expect(w.GetNamespace()).To(BeZero())
+	Expect(w.GetLabels()).To(HaveKey("expected-label"))
+	Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
+	Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
+	Expect(w.Spec).ToNot(BeNil())
+	Expect(w.Spec.DisplayName).To(Equal(from.Name))
+	Expect(w.Status.Owner.Username).To(Equal(from.Namespace))
+}
