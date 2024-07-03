@@ -111,7 +111,7 @@ jobs:
             bash -c 'dir=$(dirname "{}"); output_file=$(realpath out/$(echo $dir | tr / -)-kustomization.yaml); if ! log=$(cd "$dir" && kustomize edit set image workspaces/rest-api:index controller:index && kustomize build . -o "$output_file" 2>&1); then echo "Error when running kustomize build for $dir: $log" && exit 1;fi'
 
       - name: Run kube-linter
-        uses: stackrox/kube-linter-action@v1.0.4
+        uses: stackrox/kube-linter-action@v1.0.5
         id: kube-linter-action-scan
         with:
           version: v0.6.8
