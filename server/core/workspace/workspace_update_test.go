@@ -20,17 +20,17 @@ var _ = Describe("", func() {
 	var (
 		ctrl    *gomock.Controller
 		ctx     context.Context
-		creator *MockWorkspaceCreator
-		request workspace.CreateWorkspaceCommand
-		handler workspace.CreateWorkspaceHandler
+		updater *MockWorkspaceUpdater
+		request workspace.UpdateWorkspaceCommand
+		handler workspace.UpdateWorkspaceHandler
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.Background()
-		creator = NewMockWorkspaceCreator(ctrl)
-		request = workspace.CreateWorkspaceCommand{Workspace: restworkspacesv1alpha1.Workspace{}}
-		handler = *workspace.NewCreateWorkspaceHandler(creator)
+		updater = NewMockWorkspaceUpdater(ctrl)
+		request = workspace.UpdateWorkspaceCommand{Workspace: restworkspacesv1alpha1.Workspace{}}
+		handler = *workspace.NewUpdateWorkspaceHandler(updater)
 	})
 
 	AfterEach(func() { ctrl.Finish() })
@@ -48,9 +48,9 @@ var _ = Describe("", func() {
 		// given
 		username := "foo"
 		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
-		opts := &client.CreateOptions{}
-		creator.EXPECT().
-			CreateUserWorkspace(ctx, username, &request.Workspace, opts).
+		opts := &client.UpdateOptions{}
+		updater.EXPECT().
+			UpdateUserWorkspace(ctx, username, &request.Workspace, opts).
 			Return(nil)
 
 		// when
@@ -58,7 +58,7 @@ var _ = Describe("", func() {
 
 		// then
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response).To(Equal(&workspace.CreateWorkspaceResponse{
+		Expect(response).To(Equal(&workspace.UpdateWorkspaceResponse{
 			Workspace: &request.Workspace,
 		}))
 	})
@@ -67,10 +67,10 @@ var _ = Describe("", func() {
 		// given
 		username := "foo"
 		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
-		opts := &client.CreateOptions{}
+		opts := &client.UpdateOptions{}
 		error := fmt.Errorf("Failed to create workspace!")
-		creator.EXPECT().
-			CreateUserWorkspace(ctx, username, &request.Workspace, opts).
+		updater.EXPECT().
+			UpdateUserWorkspace(ctx, username, &request.Workspace, opts).
 			Return(error)
 
 		// when
