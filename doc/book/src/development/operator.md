@@ -8,7 +8,7 @@ The [operator code][operator-folder] is using the [Operator-SDK][operator-sdk].
 
 ## Run Tests
 
-To run Unit tests you can execute the `make test` command.
+To run unit tests you can execute the `make test` command.
 
 To run e2e tests, take a look at the [Run End-to-End Test](./e2e/run-tests.md) section.
 

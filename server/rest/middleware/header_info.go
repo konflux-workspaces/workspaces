@@ -21,8 +21,9 @@ func (m *HeaderInfoMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 
 	for header, contextKey := range m.headers {
-		value := r.Header.Get(header)
-		ctx = context.WithValue(ctx, contextKey, value)
+		if value := r.Header.Get(header); value != "" {
+			ctx = context.WithValue(ctx, contextKey, value)
+		}
 	}
 
 	m.next.ServeHTTP(w, r.WithContext(ctx))
