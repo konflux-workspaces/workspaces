@@ -19,6 +19,10 @@ func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.Inte
 	}
 
 	return &restworkspacesv1alpha1.Workspace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Workspace",
+			APIVersion: restworkspacesv1alpha1.GroupVersion.String(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       workspace.Spec.DisplayName,
 			Namespace:  workspace.Status.Owner.Username,

@@ -20,6 +20,10 @@ func (m *Mapper) WorkspaceToInternalWorkspace(workspace *restworkspacesv1alpha1.
 	}
 
 	iw := &workspacesv1alpha1.InternalWorkspace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "InternalWorkspace",
+			APIVersion: workspacesv1alpha1.GroupVersion.String(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:     ll,
 			Generation: workspace.Generation,

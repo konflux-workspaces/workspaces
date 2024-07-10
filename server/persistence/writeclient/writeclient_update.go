@@ -46,9 +46,7 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 	}
 
 	// update the InternalWorkspace
-	iw.SetName(ciw.GetName())
-	iw.SetNamespace(ciw.GetNamespace())
-	iw.SetResourceVersion(ciw.GetResourceVersion())
+	ciw.Spec.Visibility = iw.Spec.Visibility
 	log.FromContext(ctx).Debug("updating user workspace", "workspace", iw, "user", user)
-	return cli.Update(ctx, iw, opts...)
+	return cli.Update(ctx, &ciw, opts...)
 }
