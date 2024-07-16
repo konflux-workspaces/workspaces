@@ -33,3 +33,13 @@ vet:
 	-$(MAKE) -C $(E2E_FOLDER) vet
 	-$(MAKE) -C $(OPERATOR_FOLDER) vet
 	-$(MAKE) -C $(SERVER_FOLDER) vet
+
+.PHONY: unit-test
+unit-test:
+	@printf "%s " $(call text-style, setaf 2 bold, "run Operator's unit tests:")
+	$(MAKE) -C $(OPERATOR_FOLDER) test
+	@printf "\n%s " $(call text-style, setaf 2 bold, "run Server's unit tests:")
+	$(MAKE) -C $(SERVER_FOLDER) test
+
+# function to use to colorize output
+text-style = $(shell tput $1)$2$(shell tput sgr0)
