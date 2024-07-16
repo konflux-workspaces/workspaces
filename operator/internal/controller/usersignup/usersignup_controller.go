@@ -82,8 +82,11 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 		},
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, w, func() error {
-		w.Spec.DisplayName = "default"
-		w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
+		if w.ObjectMeta.CreationTimestamp.IsZero() {
+			w.Spec.DisplayName = "default"
+			w.Spec.Visibility = workspacesv1alpha1.InternalWorkspaceVisibilityPrivate
+		}
+
 		w.Spec.Owner = workspacesv1alpha1.UserInfo{
 			JwtInfo: workspacesv1alpha1.JwtInfo{
 				Sub:    u.Spec.IdentityClaims.Sub,
