@@ -18,7 +18,7 @@ if [[ -z "${TOOLCHAIN_HOST}" ]]; then
     set +o pipefail
     TOOLCHAIN_HOST=$(${KUBECLI} get namespaces -o name | grep toolchain-host | cut -d'/' -f2 | head -n 1)
     if [[ -z "${TOOLCHAIN_HOST}" ]]; then
-        TOOLCHAIN_HOST="toolchain-host_operator"
+        TOOLCHAIN_HOST="toolchain-host-operator"
     fi
     set -o pipefail
 fi
