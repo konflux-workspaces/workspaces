@@ -29,7 +29,11 @@ spec:
         - name: "traefik-plugin-storage"
           mountPath: "/plugins-storage" 
         securityContext:
+          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - "ALL"
         resources:
           limits:
             cpu: 500m
@@ -101,7 +105,7 @@ kind: ConfigMap
 metadata:
   name: rest-api-server-config
 data:
-  kubesaw.namespace=system
+  kubesaw.namespace: system
 ---
 apiVersion: v1
 data: {}
