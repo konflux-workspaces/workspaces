@@ -130,6 +130,10 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", w.Name),
 			Namespace: r.KubespaceNamespace,
+			Labels: map[string]string{
+				toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: toolchainv1alpha1.KubesawAuthenticatedUsername,
+				toolchainv1alpha1.SpaceBindingSpaceLabelKey:            w.Name,
+			},
 		},
 	}
 	l := log.FromContext(ctx).WithValues(

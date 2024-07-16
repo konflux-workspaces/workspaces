@@ -3,7 +3,7 @@ module github.com/konflux-workspaces/workspaces/server
 go 1.22.2
 
 require (
-	github.com/codeready-toolchain/api v0.0.0-20240209161348-1e69b9614bd8
+	github.com/codeready-toolchain/api v0.0.0-20240708122235-0af5a9a178bb
 	github.com/go-logr/logr v1.4.2
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.19.0

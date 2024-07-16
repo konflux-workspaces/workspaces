@@ -44,8 +44,25 @@ func (c *ReadClient) ListUserWorkspaces(
 		return kerrors.NewInternalError(fmt.Errorf("error retrieving the list of workspaces for user %v", user))
 	}
 
+	// filter by namespace
+	filterByNamespace(ww, listOpts.Namespace)
+
 	ww.DeepCopyInto(objs)
 	return nil
+}
+
+func filterByNamespace(ww *restworkspacesv1alpha1.WorkspaceList, namespace string) {
+	if namespace == "" {
+		return
+	}
+
+	fww := []restworkspacesv1alpha1.Workspace{}
+	for _, w := range ww.Items {
+		if w.Namespace == namespace {
+			fww = append(fww, w)
+		}
+	}
+	ww.Items = fww
 }
 
 func filterByLabels(ww *workspacesv1alpha1.InternalWorkspaceList, listOpts *client.ListOptions) *workspacesv1alpha1.InternalWorkspaceList {
@@ -66,7 +83,7 @@ func mapListOptions(opts ...client.ListOption) (*client.ListOptions, error) {
 	listOpts.ApplyOptions(opts)
 
 	if listOpts.LabelSelector == nil {
-		return nil, nil
+		return &listOpts, nil
 	}
 
 	rr, _ := listOpts.LabelSelector.Requirements()
