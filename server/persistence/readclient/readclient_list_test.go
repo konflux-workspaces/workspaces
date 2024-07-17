@@ -38,64 +38,124 @@ var _ = Describe("List", func() {
 		ctrl.Finish()
 	})
 
-	Describe("happy path", func() {
-		It("filters on label are applied", func() {
-			// given
-			user := "user"
-			internalLabel := workspacesv1alpha1.LabelInternalDomain + "whatever"
-			expectedObjectMeta := metav1.ObjectMeta{
-				Name:      "workspace-2",
-				Namespace: "namespace",
-				Labels: map[string]string{
-					"whatever": "whatever",
+	DescribeTable("Filter by label", func(unfilteredInternalWorkspaces []workspacesv1alpha1.InternalWorkspace, expectedObjectMetas []metav1.ObjectMeta) {
+		// given
+		user := "user"
+		// internalLabel := workspacesv1alpha1.LabelInternalDomain + "whatever"
+
+		// internal client expected to be called once.
+		// It returns no error so we can test the filtering by label.
+		frc.EXPECT().
+			ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, _ string, iww *workspacesv1alpha1.InternalWorkspaceList) error {
+				iww.Items = unfilteredInternalWorkspaces
+				return nil
+			}).
+			Times(1)
+
+			// mapper expects to be called once.
+			// It returns the list of mapped workspaces (just objectmeta)
+		mp.EXPECT().
+			InternalWorkspaceListToWorkspaceList(gomock.Any()).
+			Times(1).
+			DoAndReturn(func(iww *workspacesv1alpha1.InternalWorkspaceList) (*restworkspacesv1alpha1.WorkspaceList, error) {
+				ww := restworkspacesv1alpha1.WorkspaceList{Items: []restworkspacesv1alpha1.Workspace{}}
+				for _, w := range iww.Items {
+					ww.Items = append(ww.Items, restworkspacesv1alpha1.Workspace{ObjectMeta: w.ObjectMeta})
+				}
+				return &ww, nil
+			})
+
+		// when
+		actualWorkspaces := restworkspacesv1alpha1.WorkspaceList{}
+		err := rc.ListUserWorkspaces(ctx, user, &actualWorkspaces, client.MatchingLabels{"hit": "hit"})
+
+		// then
+		Expect(err).ToNot(HaveOccurred())
+		Expect(actualWorkspaces.Items).To(HaveLen(len(expectedObjectMetas)))
+		oww := make([]metav1.ObjectMeta, len(actualWorkspaces.Items))
+		for i, w := range actualWorkspaces.Items {
+			oww[i] = w.ObjectMeta
+		}
+		Expect(oww).To(BeEquivalentTo(expectedObjectMetas))
+	},
+		Entry("unfiltered InternalWorkspaces are nil returns empty list", nil, []metav1.ObjectMeta{}),
+		Entry("unfiltered InternalWorkspaces are empty returns empty list", []workspacesv1alpha1.InternalWorkspace{}, []metav1.ObjectMeta{}),
+		Entry("no matching InternalWorkspaces returns empty list", []workspacesv1alpha1.InternalWorkspace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "miss",
+					Namespace: "miss",
+					Labels: map[string]string{
+						"miss": "miss",
+					},
 				},
-			}
-
-			// internal client expected to be called once.
-			// It returns no error so we can test the filtering by label.
-			frc.EXPECT().
-				ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(_ context.Context, _ string, iww *workspacesv1alpha1.InternalWorkspaceList) error {
-					iww.Items = []workspacesv1alpha1.InternalWorkspace{
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "workspace-1",
-								Namespace: "namespace",
-								Labels: map[string]string{
-									internalLabel: "internal-whatever",
-								},
-							},
-						},
-						{ObjectMeta: expectedObjectMeta},
-					}
-					return nil
-				}).
-				Times(1)
-
-				// mapper expects to be called once.
-				// It returns the list of mapped workspaces (just objectmeta)
-			mp.EXPECT().
-				InternalWorkspaceListToWorkspaceList(gomock.Any()).
-				Times(1).
-				DoAndReturn(func(iww *workspacesv1alpha1.InternalWorkspaceList) (*restworkspacesv1alpha1.WorkspaceList, error) {
-					ww := restworkspacesv1alpha1.WorkspaceList{Items: []restworkspacesv1alpha1.Workspace{}}
-					for _, w := range iww.Items {
-						ww.Items = append(ww.Items, restworkspacesv1alpha1.Workspace{ObjectMeta: w.ObjectMeta})
-					}
-					return &ww, nil
-				})
-
-			// when
-			actualWorkspaces := restworkspacesv1alpha1.WorkspaceList{}
-			err := rc.ListUserWorkspaces(ctx, user, &actualWorkspaces, client.MatchingLabels{"whatever": "whatever"})
-
-			// then
-			Expect(err).ToNot(HaveOccurred())
-			Expect(actualWorkspaces.Items).To(HaveLen(1))
-			Expect(actualWorkspaces.Items[0].ObjectMeta).To(Equal(expectedObjectMeta))
-		})
-
-	})
+			},
+		}, []metav1.ObjectMeta{}),
+		Entry("single matching InternalWorkspaces returns one workspace", []workspacesv1alpha1.InternalWorkspace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "hit",
+					Namespace: "hit",
+					Labels: map[string]string{
+						"hit": "hit",
+					},
+				},
+			},
+		}, []metav1.ObjectMeta{
+			{
+				Name:      "hit",
+				Namespace: "hit",
+				Labels: map[string]string{
+					"hit": "hit",
+				},
+			},
+		}),
+		Entry("multiple matching InternalWorkspaces returns multiple workspaces", []workspacesv1alpha1.InternalWorkspace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "miss",
+					Namespace: "miss",
+					Labels: map[string]string{
+						"miss": "miss",
+					},
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "hit-1",
+					Namespace: "hit-1",
+					Labels: map[string]string{
+						"hit": "hit",
+					},
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "hit-2",
+					Namespace: "hit-2",
+					Labels: map[string]string{
+						"hit": "hit",
+					},
+				},
+			},
+		}, []metav1.ObjectMeta{
+			{
+				Name:      "hit-1",
+				Namespace: "hit-1",
+				Labels: map[string]string{
+					"hit": "hit",
+				},
+			},
+			{
+				Name:      "hit-2",
+				Namespace: "hit-2",
+				Labels: map[string]string{
+					"hit": "hit",
+				},
+			},
+		}),
+	)
 
 	DescribeTable("InternalClient returns an error", func(rerr error, expectedErrorFunc func(error) bool) {
 		// given
