@@ -72,12 +72,16 @@ var _ = Describe("List", func() {
 
 		// then
 		Expect(err).ToNot(HaveOccurred())
-		Expect(actualWorkspaces.Items).To(HaveLen(len(expectedObjectMetas)))
-		oww := make([]metav1.ObjectMeta, len(actualWorkspaces.Items))
-		for i, w := range actualWorkspaces.Items {
-			oww[i] = w.ObjectMeta
-		}
-		Expect(oww).To(BeEquivalentTo(expectedObjectMetas))
+		Expect(actualWorkspaces.Items).To(
+			And(
+				HaveLen(len(expectedObjectMetas)),
+				WithTransform(func(ww []restworkspacesv1alpha1.Workspace) []metav1.ObjectMeta {
+					oww := make([]metav1.ObjectMeta, len(ww))
+					for i, w := range actualWorkspaces.Items {
+						oww[i] = w.ObjectMeta
+					}
+					return oww
+				}, BeEquivalentTo(expectedObjectMetas))))
 	},
 		Entry("unfiltered InternalWorkspaces are nil returns empty list", nil, []metav1.ObjectMeta{}),
 		Entry("unfiltered InternalWorkspaces are empty returns empty list", []workspacesv1alpha1.InternalWorkspace{}, []metav1.ObjectMeta{}),
