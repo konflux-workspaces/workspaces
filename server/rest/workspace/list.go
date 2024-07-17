@@ -26,7 +26,6 @@ type ListWorkspaceHandler struct {
 	QueryHandler ListWorkspaceQueryHandlerFunc
 
 	MarshalerProvider marshal.MarshalerProvider
-	UnmarshalProvider marshal.UnmarshalerProvider
 }
 
 func NewDefaultListWorkspaceHandler(
@@ -36,7 +35,6 @@ func NewDefaultListWorkspaceHandler(
 		MapListWorkspaceHttp,
 		handler,
 		marshal.DefaultMarshalerProvider,
-		marshal.DefaultUnmarshalerProvider,
 	)
 }
 
@@ -45,13 +43,11 @@ func NewListWorkspaceHandler(
 	mapperFunc ListWorkspaceMapperFunc,
 	queryHandler ListWorkspaceQueryHandlerFunc,
 	marshalerProvider marshal.MarshalerProvider,
-	unmarshalerProvider marshal.UnmarshalerProvider,
 ) *ListWorkspaceHandler {
 	return &ListWorkspaceHandler{
 		MapperFunc:        mapperFunc,
 		QueryHandler:      queryHandler,
 		MarshalerProvider: marshalerProvider,
-		UnmarshalProvider: unmarshalerProvider,
 	}
 }
 
