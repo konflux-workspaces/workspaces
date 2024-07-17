@@ -74,7 +74,7 @@ var _ = Describe("Read", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(returnedWorkspace).To(Equal(mappedWorkspace))
 		// test data is deepcopied
-		Expect(&returnedWorkspace).NotTo(BeIdenticalTo(&mappedWorkspace))
+		Expect(returnedWorkspace).NotTo(BeIdenticalTo(mappedWorkspace))
 	})
 
 	// error handling
