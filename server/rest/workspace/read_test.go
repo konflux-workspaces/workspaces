@@ -94,9 +94,9 @@ func buildGetRequest(workspace *restworkspacesv1alpha1.Workspace) *http.Request 
 	byteSlice, err := marshal.DefaultMarshal.Marshal(workspace)
 	Expect(err).NotTo(HaveOccurred())
 
-	url := fmt.Sprintf("/apis/workspaces.io/v1alpha1/namespaces/%s/workspaces", workspace.GetNamespace())
+	url := fmt.Sprintf("/apis/workspaces.io/v1alpha1/namespaces/%s/workspaces/%s", workspace.GetNamespace(), workspace.GetName())
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(byteSlice))
+	request, err := http.NewRequest(http.MethodGet, url, bytes.NewReader(byteSlice))
 	Expect(err).NotTo(HaveOccurred())
 	request.Header.Add("Content-Type", marshal.DefaultUnmarshal.ContentType())
 	request.Header.Add("Accept", marshal.DefaultMarshal.ContentType())
