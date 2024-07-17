@@ -19,49 +19,9 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 		displayName := "bar"
 		ownerName := "baz"
 
-		validateWorkspace := func(w *restworkspacesv1alpha1.Workspace) {
-			Expect(w).ToNot(BeNil())
-			Expect(w.GetName()).To(Equal(displayName))
-			Expect(w.GetNamespace()).To(Equal(ownerName))
-			Expect(w.GetLabels()).To(HaveKey("expected-label"))
-			Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
-			Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
-			Expect(w.Generation).To(Equal(int64(1)))
-			Expect(w.Spec).ToNot(BeNil())
-			Expect(w.Status).ToNot(BeNil())
-			Expect(w.Status.Space).ToNot(BeNil())
-			Expect(w.Status.Space.Name).To(Equal(displayName))
-			Expect(w.Status.Conditions).To(Equal(internalWorkspace.Status.Conditions))
-		}
-
 		BeforeEach(func() {
 			// given
-			internalWorkspace = workspacesv1alpha1.InternalWorkspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      displayName,
-					Namespace: workspacesNamespace,
-					Labels: map[string]string{
-						"expected-label": "not-empty",
-						workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
-					},
-					Generation: 1,
-				},
-				Spec: workspacesv1alpha1.InternalWorkspaceSpec{
-					DisplayName: displayName,
-				},
-				Status: workspacesv1alpha1.InternalWorkspaceStatus{
-					Owner: workspacesv1alpha1.UserInfoStatus{
-						Username: ownerName,
-					},
-					Space: workspacesv1alpha1.SpaceInfo{
-						IsHome: true,
-						Name:   displayName,
-					},
-					Conditions: []metav1.Condition{
-						{Message: "test", Type: "test", Reason: "test", Status: metav1.ConditionTrue},
-					},
-				},
-			}
+			internalWorkspace = buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerName)
 		})
 
 		When("visibility is community", func() {
@@ -75,7 +35,7 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 
 				// then
 				Expect(err).NotTo(HaveOccurred())
-				validateWorkspace(w)
+				validateMappedWorkspace(w, internalWorkspace)
 				Expect(w.Spec.Visibility).To(Equal(restworkspacesv1alpha1.WorkspaceVisibilityCommunity))
 			})
 		})
@@ -91,9 +51,53 @@ var _ = Describe("InternalworkspaceToWorkspace", func() {
 
 				// then
 				Expect(err).NotTo(HaveOccurred())
-				validateWorkspace(w)
+				validateMappedWorkspace(w, internalWorkspace)
 				Expect(w.Spec.Visibility).To(Equal(restworkspacesv1alpha1.WorkspaceVisibilityPrivate))
 			})
 		})
 	})
 })
+
+func buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerName string) workspacesv1alpha1.InternalWorkspace {
+	return workspacesv1alpha1.InternalWorkspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      displayName,
+			Namespace: workspacesNamespace,
+			Labels: map[string]string{
+				"expected-label": "not-empty",
+				workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
+			},
+			Generation: 1,
+		},
+		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+			DisplayName: displayName,
+		},
+		Status: workspacesv1alpha1.InternalWorkspaceStatus{
+			Owner: workspacesv1alpha1.UserInfoStatus{
+				Username: ownerName,
+			},
+			Space: workspacesv1alpha1.SpaceInfo{
+				IsHome: true,
+				Name:   displayName,
+			},
+			Conditions: []metav1.Condition{
+				{Message: "test", Type: "test", Reason: "test", Status: metav1.ConditionTrue},
+			},
+		},
+	}
+}
+
+func validateMappedWorkspace(w *restworkspacesv1alpha1.Workspace, from workspacesv1alpha1.InternalWorkspace) {
+	Expect(w).ToNot(BeNil())
+	Expect(w.GetName()).To(Equal(from.Spec.DisplayName))
+	Expect(w.GetNamespace()).To(Equal(from.Status.Owner.Username))
+	Expect(w.GetLabels()).To(HaveKey("expected-label"))
+	Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
+	Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
+	Expect(w.Generation).To(Equal(int64(1)))
+	Expect(w.Spec).ToNot(BeNil())
+	Expect(w.Status).ToNot(BeNil())
+	Expect(w.Status.Space).ToNot(BeNil())
+	Expect(w.Status.Space.Name).To(Equal(from.Name))
+	Expect(w.Status.Conditions).To(Equal(from.Status.Conditions))
+}

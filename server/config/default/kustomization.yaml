@@ -6,18 +6,11 @@ resources:
 - ../server
 namePrefix: workspaces-
 
-configMapGenerator:
-  - name: rest-api-server-cm
-    options:
-      disableNameSuffixHash: true
-    literals:
-      - toolchain_namespace=toolchain-host-operator
-
 replacements:
   - source:
       kind: ConfigMap
-      name: rest-api-server-cm
-      fieldPath: data.toolchain_namespace
+      name: rest-api-server-config
+      fieldPath: data.[kubesaw.namespace]
       options:
         create: true
     targets:
