@@ -12,16 +12,17 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/log"
 )
 
-var _ = DescribeTable("NoOpHandler is disabled", func(logLevel slog.Level) {
-	// given
-	handler := &log.NoOpHandler{}
+var _ = DescribeTable("NoOpHandler is disabled",
+	func(logLevel slog.Level) {
+		// given
+		handler := &log.NoOpHandler{}
 
-	// when
-	enabled := handler.Enabled(context.TODO(), logLevel)
+		// when
+		enabled := handler.Enabled(context.TODO(), logLevel)
 
-	// then
-	Expect(enabled).To(BeFalse())
-},
+		// then
+		Expect(enabled).To(BeFalse())
+	},
 	Entry("Minimum LogLevel value", slog.Level(math.MinInt)),
 	Entry("Maximum LogLevel value", slog.Level(math.MaxInt)),
 	Entry("Debug LogLevel value", slog.LevelDebug),
