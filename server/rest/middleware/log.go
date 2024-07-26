@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -19,13 +18,13 @@ const (
 	LogKeyURL    string = "url"
 )
 
-type GenerateTraceIdFunc func() fmt.Stringer
+type GenerateCorrelationIdFunc func() string
 
 // LoggerInjectorMiddleware injects the logger in the request then calls the next handler
 type LoggerInjectorMiddleware struct {
-	logger              *slog.Logger
-	next                http.Handler
-	generateTraceIdFunc GenerateTraceIdFunc
+	logger                    *slog.Logger
+	next                      http.Handler
+	generateCorrelationIdFunc GenerateCorrelationIdFunc
 }
 
 // NewLoggerInjectorMiddleware builds a new LoggerInjectorMiddleware
@@ -37,19 +36,19 @@ func NewLoggerInjectorMiddleware(logger *slog.Logger, next http.Handler) *Logger
 }
 
 // NewLoggerInjectorMiddleware builds a new LoggerInjectorMiddleware
-func NewLoggerInjectorMiddlewareWithTrace(logger *slog.Logger, next http.Handler, generateTraceIdFunc GenerateTraceIdFunc) *LoggerInjectorMiddleware {
+func NewLoggerInjectorMiddlewareWithTracing(logger *slog.Logger, next http.Handler, generateCorrelationIdFunc GenerateCorrelationIdFunc) *LoggerInjectorMiddleware {
 	return &LoggerInjectorMiddleware{
-		logger:              logger,
-		next:                next,
-		generateTraceIdFunc: generateTraceIdFunc,
+		logger:                    logger,
+		next:                      next,
+		generateCorrelationIdFunc: generateCorrelationIdFunc,
 	}
 }
 
 // ServeHTTP injects the logger in the request then calls the next handler
 func (m *LoggerInjectorMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l := func() *slog.Logger {
-		if m.generateTraceIdFunc != nil {
-			return m.logger.With(LogKeyTrace, m.generateTraceIdFunc())
+		if m.generateCorrelationIdFunc != nil {
+			return m.logger.With(LogKeyTrace, m.generateCorrelationIdFunc())
 		}
 		return m.logger
 	}()
