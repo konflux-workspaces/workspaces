@@ -19,7 +19,7 @@ import (
 var (
 	_ http.Handler = &UpdateWorkspaceHandler{}
 
-	_ UpdateWorkspaceMapperFunc = MapUpdateWorkspaceHttp
+	_ UpdateWorkspaceMapperFunc = MapPutWorkspaceHttp
 )
 
 // handler dependencies
@@ -40,7 +40,7 @@ func NewDefaultUpdateWorkspaceHandler(
 	handler UpdateWorkspaceCommandHandlerFunc,
 ) *UpdateWorkspaceHandler {
 	return NewUpdateWorkspaceHandler(
-		MapUpdateWorkspaceHttp,
+		MapPutWorkspaceHttp,
 		handler,
 		marshal.DefaultMarshalerProvider,
 		marshal.DefaultUnmarshalerProvider,
@@ -119,7 +119,7 @@ func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func MapUpdateWorkspaceHttp(r *http.Request, provider marshal.UnmarshalerProvider) (*workspace.UpdateWorkspaceCommand, error) {
+func MapPutWorkspaceHttp(r *http.Request, provider marshal.UnmarshalerProvider) (*workspace.UpdateWorkspaceCommand, error) {
 	// build unmarshaler for the given request
 	u, err := provider(r)
 	if err != nil {
