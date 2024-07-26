@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/mock/gomock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -13,6 +14,7 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient/mocks"
 )
 
 var _ = Describe("List", func() {
@@ -405,6 +407,39 @@ var _ = Describe("List", func() {
 			Expect(ww.Items[0].Status.Owner.Username).To(Equal("owner-user"))
 			Expect(ww.Items[0].Name).ToNot(Equal("owner-ws"))
 			Expect(ww.Items[0].Namespace).ToNot(Equal("owner-user"))
+		})
+	})
+
+	When("ListAsUser returns an error", func() {
+		var reader *mocks.MockFakeCRReader
+		var ctrl *gomock.Controller
+
+		BeforeEach(func() {
+			ctrl = gomock.NewController(GinkgoT())
+			reader = mocks.NewMockFakeCRReader(ctrl)
+		})
+
+		AfterEach(func() {
+			ctrl.Finish()
+		})
+
+		It("forwards the error", func() {
+			// given
+			expectedError := fmt.Errorf("my-error")
+			var ww workspacesv1alpha1.InternalWorkspaceList
+			c := iwclient.New(reader, wsns, ksns)
+
+			// set expectations
+			reader.EXPECT().
+				List(gomock.Any(), gomock.Any(), gomock.Any()).
+				Times(1).
+				Return(expectedError)
+
+			// when
+			err := c.ListAsUser(context.TODO(), "whatever", &ww)
+
+			// then
+			Expect(err).To(MatchError(expectedError))
 		})
 	})
 })
