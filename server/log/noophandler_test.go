@@ -30,29 +30,31 @@ var _ = DescribeTable("NoOpHandler is disabled", func(logLevel slog.Level) {
 	Entry("Error LogLevel value", slog.LevelError),
 )
 
-var _ = DescribeTable("NoOpHandler Handle func returns nil", func(record slog.Record) {
-	// given
-	handler := &log.NoOpHandler{}
+var _ = DescribeTable("NoOpHandler Handle func returns nil",
+	func(record slog.Record) {
+		// given
+		handler := &log.NoOpHandler{}
 
-	// when
-	err := handler.Handle(context.TODO(), record)
+		// when
+		err := handler.Handle(context.TODO(), record)
 
-	// then
-	Expect(err).NotTo(HaveOccurred())
-},
+		// then
+		Expect(err).NotTo(HaveOccurred())
+	},
 	Entry("empty record", slog.Record{}),
 )
 
-var _ = DescribeTable("NoOpHandler WithAttrs returns the same handler", func(attrs []slog.Attr) {
-	// given
-	handler := &log.NoOpHandler{}
+var _ = DescribeTable("NoOpHandler WithAttrs returns the same handler",
+	func(attrs []slog.Attr) {
+		// given
+		handler := &log.NoOpHandler{}
 
-	// when
-	newHandler := handler.WithAttrs(attrs)
+		// when
+		newHandler := handler.WithAttrs(attrs)
 
-	// then
-	Expect(newHandler).To(Equal(handler))
-},
+		// then
+		Expect(newHandler).To(Equal(handler))
+	},
 	Entry("nil attrs", nil),
 	Entry("empty list of attrs", []slog.Attr{}),
 	Entry("some attrs", []slog.Attr{
@@ -65,16 +67,17 @@ var _ = DescribeTable("NoOpHandler WithAttrs returns the same handler", func(att
 	}),
 )
 
-var _ = DescribeTable("NoOpHandler WithGroup returns the same handler", func(group string) {
-	// given
-	handler := &log.NoOpHandler{}
+var _ = DescribeTable("NoOpHandler WithGroup returns the same handler",
+	func(group string) {
+		// given
+		handler := &log.NoOpHandler{}
 
-	// when
-	newHandler := handler.WithGroup(group)
+		// when
+		newHandler := handler.WithGroup(group)
 
-	// then
-	Expect(newHandler).To(Equal(handler))
-},
+		// then
+		Expect(newHandler).To(Equal(handler))
+	},
 	Entry("empty name for group", ""),
 	Entry("mygroup", "mygroup"),
 )
