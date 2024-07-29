@@ -40,7 +40,7 @@ import (
 type WorkspaceReconciler struct {
 	client.Client
 	Scheme              *runtime.Scheme
-	KubespaceNamespace  string
+	KubesawNamespace    string
 	WorkspacesNamespace string
 }
 
@@ -85,7 +85,7 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 func (r *WorkspaceReconciler) ensureWorkspaceOwnerExists(ctx context.Context, w *workspacesv1alpha1.InternalWorkspace) error {
 	uu := toolchainv1alpha1.UserSignupList{}
-	if err := r.List(ctx, &uu, client.InNamespace(r.KubespaceNamespace)); err != nil {
+	if err := r.List(ctx, &uu, client.InNamespace(r.KubesawNamespace)); err != nil {
 		return err
 	}
 
@@ -129,7 +129,7 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 	s := toolchainv1alpha1.SpaceBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-community", w.Name),
-			Namespace: r.KubespaceNamespace,
+			Namespace: r.KubesawNamespace,
 			Labels: map[string]string{
 				toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: toolchainv1alpha1.KubesawAuthenticatedUsername,
 				toolchainv1alpha1.SpaceBindingSpaceLabelKey:            w.Name,
