@@ -94,7 +94,7 @@ func addWorkspaces(
 		withAuthHeaderInfo(
 			withUserSignupAuth(cache,
 				workspace.NewUpdateWorkspaceHandler(
-					workspace.MapUpdateWorkspaceHttp,
+					workspace.MapPutWorkspaceHttp,
 					updateHandle,
 					marshal.DefaultMarshalerProvider,
 					marshal.DefaultUnmarshalerProvider,

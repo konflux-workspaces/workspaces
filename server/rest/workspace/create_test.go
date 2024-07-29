@@ -148,7 +148,7 @@ func buildPostRequest(workspace *restworkspacesv1alpha1.Workspace) *http.Request
 
 	url := fmt.Sprintf("/apis/workspaces.io/v1alpha1/namespaces/%s/workspaces", workspace.GetNamespace())
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(byteSlice))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(byteSlice))
 	Expect(err).NotTo(HaveOccurred())
 	request.Header.Add("Content-Type", marshal.DefaultUnmarshal.ContentType())
 	request.Header.Add("Accept", marshal.DefaultMarshal.ContentType())
