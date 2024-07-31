@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	WorkspacesPrefix           string = `/apis/workspaces.konflux.io/v1alpha1/workspaces`
-	NamespacedWorkspacesPrefix string = `/apis/workspaces.konflux.io/v1alpha1/namespaces/{namespace}/workspaces`
+	WorkspacesPrefix           string = `/apis/workspaces.konflux-ci.dev/v1alpha1/workspaces`
+	NamespacedWorkspacesPrefix string = `/apis/workspaces.konflux-ci.dev/v1alpha1/namespaces/{namespace}/workspaces`
 )
 
 func New(

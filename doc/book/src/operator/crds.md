@@ -3,7 +3,7 @@
 InternalWorkspaces contains information required to build [Workspaces](../rest-api/crds.md) and to manage related [KubeSaw](https://github.com/codeready-toolchain)'s resources.
 
 ```yaml
-apiVersion: workspaces.konflux.io
+apiVersion: workspaces.konflux-ci.dev
 kind: InternalWorkspace
 metadata:
     namespace: workspaces-system
