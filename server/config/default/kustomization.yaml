@@ -7,67 +7,88 @@ resources:
 namePrefix: workspaces-
 
 replacements:
-  - source:
-      kind: ConfigMap
-      name: rest-api-server-config
-      fieldPath: data.[kubesaw.namespace]
-      options:
-        create: true
-    targets:
-      # create Role and RoleBinding to read SpaceBinding into toolchain-host-operator
-      - options:
-          create: true
-        select:
-          kind: RoleBinding
-          group: rbac.authorization.k8s.io
-          name: rest-api-server:spacebinding-reader
-        fieldPaths:
-          - 'metadata.namespace'
-      - options:
-          create: true
-        select:
-          kind: Role
-          group: rbac.authorization.k8s.io
-          name: spacebinding-reader
-        fieldPaths:
-          - 'metadata.namespace'
-      # create Role and RoleBinding to read UserSignups into toolchain-host-operator
-      - options:
-          create: true
-        select:
-          kind: RoleBinding
-          group: rbac.authorization.k8s.io
-          name: rest-api-server:usersignup-reader
-        fieldPaths:
-          - 'metadata.namespace'
-      - options:
-          create: true
-        select:
-          kind: Role
-          group: rbac.authorization.k8s.io
-          name: usersignup-reader
-        fieldPaths:
-          - 'metadata.namespace'
-  - source:
-      kind: ServiceAccount
-      name: rest-api-server
-      fieldPath: metadata.namespace
-    targets:
-      # RoleBinding to read SpaceBinding should target the ServiceAccount in workspaces-system
-      - options:
-          create: true
-        select:
-          kind: RoleBinding
-          group: rbac.authorization.k8s.io
-          name: rest-api-server:spacebinding-reader
-        fieldPaths:
-          - 'subjects.0.namespace'
-      # RoleBinding to read UserSignups should target the ServiceAccount in workspaces-system
-      - options:
-          create: true
-        select:
-          kind: RoleBinding
-          group: rbac.authorization.k8s.io
-          name: rest-api-server:usersignup-reader
-        fieldPaths:
-          - 'subjects.0.namespace'
+- source:
+    kind: ConfigMap
+    name: rest-api-server-config
+    fieldPath: data.[kubesaw.namespace]
+    options:
+      create: true
+  targets:
+  # create Role and RoleBinding to read SpaceBinding into toolchain-host-operator
+  - options:
+      create: true
+    select:
+      kind: RoleBinding
+      group: rbac.authorization.k8s.io
+      name: rest-api-server:spacebinding-reader
+    fieldPaths:
+    - 'metadata.namespace'
+  - options:
+      create: true
+    select:
+      kind: Role
+      group: rbac.authorization.k8s.io
+      name: spacebinding-reader
+    fieldPaths:
+    - 'metadata.namespace'
+  # create Role and RoleBinding to read UserSignups into toolchain-host-operator
+  - options:
+      create: true
+    select:
+      kind: RoleBinding
+      group: rbac.authorization.k8s.io
+      name: rest-api-server:usersignup-reader
+    fieldPaths:
+    - 'metadata.namespace'
+  - options:
+      create: true
+    select:
+      kind: Role
+      group: rbac.authorization.k8s.io
+      name: usersignup-reader
+    fieldPaths:
+    - 'metadata.namespace'
+- source:
+    kind: ServiceAccount
+    name: rest-api-server
+    fieldPath: metadata.namespace
+  targets:
+  # RoleBinding to read SpaceBinding should target the ServiceAccount in workspaces-system
+  - options:
+      create: true
+    select:
+      kind: RoleBinding
+      group: rbac.authorization.k8s.io
+      name: rest-api-server:spacebinding-reader
+    fieldPaths:
+    - 'subjects.0.namespace'
+  # RoleBinding to read UserSignups should target the ServiceAccount in workspaces-system
+  - options:
+      create: true
+    select:
+      kind: RoleBinding
+      group: rbac.authorization.k8s.io
+      name: rest-api-server:usersignup-reader
+    fieldPaths:
+    - 'subjects.0.namespace'
+- source:
+    fieldPath: metadata.name
+    kind: ServiceAccount
+    name: rest-api-server
+  targets:
+  - fieldPaths:
+    - subjects.0.name
+    options:
+      create: true
+    select:
+      group: rbac.authorization.k8s.io
+      kind: RoleBinding
+      name: rest-api-server:spacebinding-reader
+  - fieldPaths:
+    - subjects.0.name
+    options:
+      create: true
+    select:
+      group: rbac.authorization.k8s.io
+      kind: RoleBinding
+      name: rest-api-server:usersignup-reader
