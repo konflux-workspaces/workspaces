@@ -81,4 +81,4 @@ clean:
 	-$(KUBECLI) delete masteruserrecords --all --all-namespaces
 	-$(KUBECLI) delete spacebindings --all --all-namespaces
 	-$(KUBECLI) delete spaces --all --all-namespaces
-	-$(KUBECLI) delete internalworkspaces.workspaces.konflux.io --all --all-namespaces
+	-$(KUBECLI) delete internalworkspaces.workspaces.konflux-ci.dev --all --all-namespaces

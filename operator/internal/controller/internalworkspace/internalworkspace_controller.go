@@ -54,9 +54,9 @@ var (
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=spaces,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=toolchain.dev.openshift.com,resources=spacebindings,verbs=get;list;watch;create;update;patch;delete
 
-//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=workspaces.konflux.io,resources=internalworkspaces/finalizers,verbs=update
+//+kubebuilder:rbac:groups=workspaces.konflux-ci.dev,resources=internalworkspaces,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=workspaces.konflux-ci.dev,resources=internalworkspaces/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=workspaces.konflux-ci.dev,resources=internalworkspaces/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

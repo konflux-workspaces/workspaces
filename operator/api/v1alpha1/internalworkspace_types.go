@@ -34,7 +34,7 @@ const (
 	InternalWorkspaceVisibilityPrivate InternalWorkspaceVisibility = "private"
 
 	// LabelInternalDomain domain for internal labels
-	LabelInternalDomain string = "internal.workspaces.konflux.io/"
+	LabelInternalDomain string = "internal.workspaces.konflux-ci.dev/"
 
 	// ConditionTypeReady indicates whether an InternalWorkspace is Ready
 	ConditionTypeReady string = "Ready"
