@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/konflux-workspaces/workspaces/operator/internal/controller/internalworkspace"
 
@@ -80,10 +79,10 @@ var _ = Describe("InternalWorkspaceController", func() {
 			key := client.ObjectKeyFromObject(&workspace)
 
 			// when
-			res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+			res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 			// then
-			Expect(res).To(Equal(ctrl.Result{}))
+			Expect(res).To(BeZero())
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -109,10 +108,10 @@ var _ = Describe("InternalWorkspaceController", func() {
 			key := client.ObjectKeyFromObject(&workspace)
 
 			// when
-			res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+			res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 			// then
-			Expect(res).To(Equal(ctrl.Result{}))
+			Expect(res).To(BeZero())
 			Expect(err).NotTo(HaveOccurred())
 
 			w := workspacesv1alpha1.InternalWorkspace{}
@@ -152,10 +151,10 @@ var _ = Describe("InternalWorkspaceController", func() {
 			r = buildReconciler()
 
 			// when
-			res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+			res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 			// then
-			Expect(res).To(Equal(ctrl.Result{}))
+			Expect(res).To(BeZero())
 			Expect(err).NotTo(HaveOccurred())
 
 			w := workspacesv1alpha1.InternalWorkspace{}
@@ -191,11 +190,11 @@ var _ = Describe("InternalWorkspaceController", func() {
 				key := client.ObjectKeyFromObject(&workspace)
 
 				// when
-				res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+				res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 				// then
 				Expect(err).ToNot(HaveOccurred())
-				Expect(res).To(Equal(ctrl.Result{}))
+				Expect(res).To(BeZero())
 
 				err = r.Get(ctx, client.ObjectKeyFromObject(&communitySpaceBinding), &toolchainv1alpha1.SpaceBinding{})
 				Expect(err).To(MatchError(errors.IsNotFound, "IsNotFound error expected"))
@@ -207,11 +206,11 @@ var _ = Describe("InternalWorkspaceController", func() {
 				key := client.ObjectKeyFromObject(&workspace)
 
 				// when
-				res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+				res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 				// then
 				Expect(err).ToNot(HaveOccurred())
-				Expect(res).To(Equal(ctrl.Result{}))
+				Expect(res).To(BeZero())
 
 				err = r.Get(ctx, client.ObjectKeyFromObject(&communitySpaceBinding), &toolchainv1alpha1.SpaceBinding{})
 				Expect(err).To(MatchError(errors.IsNotFound, "IsNotFound error expected"))
@@ -233,11 +232,11 @@ var _ = Describe("InternalWorkspaceController", func() {
 				key := client.ObjectKeyFromObject(&workspace)
 
 				// when
-				res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+				res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 				// then
 				Expect(err).ToNot(HaveOccurred())
-				Expect(res).To(Equal(ctrl.Result{}))
+				Expect(res).To(BeZero())
 
 				sb := toolchainv1alpha1.SpaceBinding{}
 				Expect(r.Get(ctx, client.ObjectKeyFromObject(&communitySpaceBinding), &sb)).To(Succeed())
@@ -253,11 +252,11 @@ var _ = Describe("InternalWorkspaceController", func() {
 				key := client.ObjectKeyFromObject(&workspace)
 
 				// when
-				res, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: key})
+				res, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
 
 				// then
 				Expect(err).ToNot(HaveOccurred())
-				Expect(res).To(Equal(ctrl.Result{}))
+				Expect(res).To(BeZero())
 
 				sb := toolchainv1alpha1.SpaceBinding{}
 				Expect(r.Get(ctx, client.ObjectKeyFromObject(&communitySpaceBinding), &sb)).To(Succeed())
