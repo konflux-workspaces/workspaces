@@ -7,7 +7,6 @@ metadata:
   name: rest-api-server
   namespace: system
 spec:
-  host: ''
   port:
     targetPort: 8000
   tls:
