@@ -100,9 +100,9 @@ func (r *UserSignupReconciler) ensureWorkspaceIsPresentForHomeSpace(ctx context.
 	})
 	if err != nil {
 		log.FromContext(ctx).Error(err, "error creating or updating workspace", "workspace", w)
+		return err
 	}
 
-	// update status
 	return nil
 }
 
