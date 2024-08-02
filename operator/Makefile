@@ -65,6 +65,10 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: tidy
+tidy: ## Run go tidy against code.
+	go mod tidy
+
 .PHONY: lint
 lint:
 	golangci-lint run ./...

@@ -76,6 +76,10 @@ lint: ## Run go linter.
 vet: ## Run go vet against code.
 	$(GO) vet ./...
 
+.PHONY: tidy
+tidy: ## Run go tidy against code.
+	$(GO) mod tidy
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	$(GO) fmt ./...

@@ -56,6 +56,12 @@ vet: ## run go vet on all projects. Failures are ignored.
 	-$(MAKE) -C $(OPERATOR_FOLDER) vet
 	-$(MAKE) -C $(SERVER_FOLDER) vet
 
+.PHONY: tidy
+tidy: ## run go tidy on all projects. Failures are ignored.
+	-$(MAKE) -C $(E2E_FOLDER) tidy
+	-$(MAKE) -C $(OPERATOR_FOLDER) tidy
+	-$(MAKE) -C $(SERVER_FOLDER) tidy
+
 .PHONY: unit-test
 unit-test: ## run go test on all projects.
 	@printf "%s " $(call text-style, setaf 2 bold, "run Operator's unit tests:")
