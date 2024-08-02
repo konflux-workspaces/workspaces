@@ -18,6 +18,10 @@ USE_INSECURE_TLS ?= false
 vet:
 	$(GO) vet ./...
 
+.PHONY: tidy
+tidy: ## Run go tidy against code.
+	$(GO) mod tidy
+
 .PHONY: build-images
 build-images:
 	CONTAINER_TOOL=$(IMAGE_BUILDER) IMG=$(OPERATOR_IMG) $(MAKE) -C ../operator/ docker-build
