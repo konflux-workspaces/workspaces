@@ -6,10 +6,7 @@ updates:
     interval: weekly
   open-pull-requests-limit: 10
 - package-ecosystem: gomod
-  directories:
-  - "/e2e"
-  - "/operator"
-  - "/server"
+  directory: "/"
   groups:
     kubernetes:
       patterns:

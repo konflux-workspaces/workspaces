@@ -36,7 +36,7 @@ push-images:
 deploy-operator:
 	(\
 		f=$$(mktemp --directory /tmp/workspaces-config.XXXXX) && \
-		cp -r "../hack" "../operator" "../server" "$$f" && \
+		cp -r "../" "$$f" && \
 		cd "$$f/operator" && \
 		( \
 			cd config/manager && \
