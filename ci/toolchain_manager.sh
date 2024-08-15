@@ -52,6 +52,7 @@ function deploy {
         FORCED_TAG="${TAG}" \
         QUAY_NAMESPACE="${QUAY_NAMESPACE}" \
         SECOND_MEMBER_MODE=false \
+        CI_DISABLE_PAIRING=true \
         CI=true \
         REG_REPO_PATH=../registration-service \
         HOST_REPO_PATH=../host-operator \
