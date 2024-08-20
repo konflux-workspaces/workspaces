@@ -14,6 +14,12 @@ updates:
     kubernetes:
       patterns:
       - "k8s.io/*"
+    ginkgo:
+      patterns:
+      - "github.com/onsi/ginkgo/v2"
+    gomega:
+      patterns:
+      - "github.com/onsi/gomega"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
