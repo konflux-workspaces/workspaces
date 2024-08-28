@@ -90,7 +90,7 @@ check_command jq
 
 RESPONSE=$(curl --oauth2-bearer "${TOKEN}" -sSfL "${CLUSTER_URL}/api/k8s/apis/workspaces.konflux-ci.dev/v1alpha1/workspaces")
 ARGS=".items[] | select(.metadata.namespace == \"${USERNAME}\")"
-OUTPUT="$(echo "${RESPONSE}" | jq "${ARGS}")"
+OUTPUT=$(jq "${ARGS}" <<< "${RESPONSE}")
 if [[ "${OUTPUT}" = "" ]]; then
     LOG_FILE="${TMPDIR:-/tmp}/workspaces.$(date +%s)"
 
