@@ -96,7 +96,7 @@ if [[ "${OUTPUT}" = "" ]]; then
 
     echo "Failed to find default namespace for user \"${USERNAME}\"!"
     echo "${RESPONSE}" > "${LOG_FILE}"
-    echo "Response output saved in ${RESPONSE}"
+    echo "Response output saved in ${LOG_FILE}"
 
     exit 1
 fi
