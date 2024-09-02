@@ -17,9 +17,11 @@ updates:
     ginkgo:
       patterns:
       - "github.com/onsi/ginkgo/v2"
+      - "github.com/konflux-workspaces/workspaces/operator"
     gomega:
       patterns:
       - "github.com/onsi/gomega"
+      - "github.com/konflux-workspaces/workspaces/operator"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
