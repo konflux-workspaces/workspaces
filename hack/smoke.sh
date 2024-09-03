@@ -87,17 +87,18 @@ fi
 
 check_command curl
 check_command jq
-check_command mktemp
 
 RESPONSE=$(curl --oauth2-bearer "${TOKEN}" -sSfL "${CLUSTER_URL}/api/k8s/apis/workspaces.konflux-ci.dev/v1alpha1/workspaces")
 ARGS=".items[] | select(.metadata.namespace == \"${USERNAME}\")"
-OUTPUT="$(jq "${ARGS}" "${RESPONSE}")"
+OUTPUT=$(jq "${ARGS}" <<< "${RESPONSE}")
 if [[ "${OUTPUT}" = "" ]]; then
     LOG_FILE="${TMPDIR:-/tmp}/workspaces.$(date +%s)"
 
     echo "Failed to find default namespace for user \"${USERNAME}\"!"
     echo "${RESPONSE}" > "${LOG_FILE}"
-    echo "Response output saved in ${RESPONSE}"
+    echo "Response output saved in ${LOG_FILE}"
 
     exit 1
 fi
+
+echo "Smoke tests succeeded!"
