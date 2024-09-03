@@ -6,7 +6,7 @@ require (
 	github.com/codeready-toolchain/api v0.0.0-20240708122235-0af5a9a178bb
 	github.com/go-logr/logr v1.4.2
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
-	github.com/onsi/ginkgo/v2 v2.20.1
+	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	go.uber.org/mock v0.4.0
 	k8s.io/api v0.31.0
