@@ -1,0 +1,158 @@
+{
+    "apiVersion": "toolchain.dev.openshift.com/v1alpha1",
+    "kind": "ToolchainStatus",
+    "metadata": {
+        "annotations": {
+            "toolchain.dev.openshift.com/last-applied-configuration": "{\"metadata\":{\"name\":\"toolchain-status\",\"namespace\":\"toolchain-host-operator\",\"creationTimestamp\":null},\"spec\":{},\"status\":{\"hostRoutes\":{}}}"
+        },
+        "creationTimestamp": "2024-09-04T19:38:27Z",
+        "generation": 1,
+        "name": "toolchain-status",
+        "namespace": "toolchain-host-operator",
+        "resourceVersion": "76243",
+        "uid": "004f95de-74dc-4d11-888d-407731eb6169"
+    },
+    "spec": {},
+    "status": {
+        "conditions": [
+            {
+                "lastTransitionTime": "2024-09-04T19:40:09Z",
+                "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                "reason": "AllComponentsReady",
+                "status": "True",
+                "type": "Ready"
+            },
+            {
+                "lastTransitionTime": "2024-09-04T19:40:09Z",
+                "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                "reason": "AllComponentsReady",
+                "status": "False",
+                "type": "ToolchainStatusUnreadyNotificationCreated"
+            }
+        ],
+        "hostOperator": {
+            "buildTimestamp": "2024-08-28T19:54:31Z",
+            "conditions": [
+                {
+                    "lastTransitionTime": "2024-09-04T21:09:26Z",
+                    "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                    "reason": "DeploymentReady",
+                    "status": "True",
+                    "type": "Ready"
+                }
+            ],
+            "deploymentName": "host-operator-controller-manager",
+            "revision": "df9fca562ce074078798947cd93498bcf90be2ad",
+            "revisionCheck": {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2024-09-04T21:09:26Z",
+                        "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                        "message": "is not running in prod environment",
+                        "reason": "DeploymentRevisionCheckDisabled",
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ]
+            },
+            "version": "0.0.1"
+        },
+        "hostRoutes": {
+            "conditions": [
+                {
+                    "lastTransitionTime": "2024-09-04T21:09:26Z",
+                    "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                    "reason": "HostRoutesAvailable",
+                    "status": "True",
+                    "type": "Ready"
+                }
+            ],
+            "proxyURL": "https://api-toolchain-host-operator.apps.rosa.fddgp-y57zo-3kr.5933.p3.openshiftapps.com"
+        },
+        "members": [
+            {
+                "apiEndpoint": "https://api.fddgp-y57zo-3kr.5933.p3.openshiftapps.com:443",
+                "clusterName": "member-fddgp-y57zo-3kr.5933.p3.openshiftapps.com",
+                "memberStatus": {
+                    "conditions": [
+                        {
+                            "lastTransitionTime": "2024-09-04T21:09:25Z",
+                            "lastUpdatedTime": "2024-09-04T21:09:25Z",
+                            "reason": "AllComponentsReady",
+                            "status": "True",
+                            "type": "Ready"
+                        }
+                    ],
+                    "resourceUsage": {
+                        "memoryUsagePerNodeRole": {
+                            "worker": 31
+                        }
+                    },
+                    "routes": {
+                        "conditions": [
+                            {
+                                "lastTransitionTime": "2024-09-04T21:09:25Z",
+                                "lastUpdatedTime": "2024-09-04T21:09:25Z",
+                                "reason": "RoutesAvailable",
+                                "status": "True",
+                                "type": "Ready"
+                            }
+                        ],
+                        "consoleURL": "https://console-openshift-console.apps.rosa.fddgp-y57zo-3kr.5933.p3.openshiftapps.com/"
+                    }
+                }
+            }
+        ],
+        "metrics": {
+            "masterUserRecordsPerDomain": {
+                "external": 0
+            },
+            "userSignupsPerActivationAndDomain": {
+                "1,external": 6
+            }
+        },
+        "registrationService": {
+            "deployment": {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2024-09-04T21:09:26Z",
+                        "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                        "reason": "DeploymentReady",
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ],
+                "name": "registration-service"
+            },
+            "health": {
+                "alive": "true",
+                "buildTime": "2024-08-28T19:54:20Z",
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2024-09-04T21:09:26Z",
+                        "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                        "reason": "RegServiceReady",
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ],
+                "environment": "e2e-tests",
+                "revision": "7934119676d27a9cb76a3587419303cc24c612e7",
+                "startTime": "2024-09-04T19:40:03Z"
+            },
+            "registrationServiceResources": {},
+            "revisionCheck": {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2024-09-04T21:09:26Z",
+                        "lastUpdatedTime": "2024-09-04T21:09:26Z",
+                        "message": "is not running in prod environment",
+                        "reason": "DeploymentRevisionCheckDisabled",
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ]
+            }
+        }
+    }
+}

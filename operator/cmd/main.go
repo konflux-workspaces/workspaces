@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
@@ -36,6 +37,7 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesiov1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/operator/internal/controller"
+	"github.com/konflux-workspaces/workspaces/operator/internal/metrics"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -127,6 +129,9 @@ func main() {
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
+
+	toolchainStatusGauge := metrics.NewToolchainStatusGauge(mgr.GetClient(), kns)
+	toolchainStatusGauge.Register(context.Background())
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
