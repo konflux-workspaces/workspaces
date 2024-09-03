@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/codeready-toolchain/api v0.0.0-20240708122235-0af5a9a178bb
-	github.com/onsi/ginkgo/v2 v2.20.1
+	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	k8s.io/apimachinery v0.31.0
 	k8s.io/client-go v0.31.0
