@@ -6,5 +6,6 @@ resources:
 - ../crd
 - ../rbac
 - ../manager
+- metrics-service.yaml
 patches:
 - path: manager_auth_proxy_patch.yaml
