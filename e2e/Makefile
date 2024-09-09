@@ -35,7 +35,7 @@ push-images:
 .PHONY: deploy-operator
 deploy-operator:
 	(\
-		f=$$(mktemp --directory /tmp/workspaces-config.XXXXX) && \
+		f=$$(mktemp -d /tmp/workspaces-config.XXXXX) && \
 		cp -r "../hack" "../operator" "../server" "$$f" && \
 		cd "$$f/operator" && \
 		( \
