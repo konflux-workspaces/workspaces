@@ -80,7 +80,7 @@ function usage {
 
 function use_tmp_dir {
     # create a temporary direction
-    f=$(mktemp --directory /tmp/toolchain.XXXX)
+    f=$(mktemp -d /tmp/toolchain.XXXX)
     cd "${f}"
 }
 

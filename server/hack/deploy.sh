@@ -24,7 +24,7 @@ if [[ -z "${TOOLCHAIN_HOST}" ]]; then
 fi
 
 # prepare temporary folder
-f=$(mktemp --directory /tmp/workspaces-rest.XXXXX)
+f=$(mktemp -d /tmp/workspaces-rest.XXXXX)
 cp -r "${ROOT_DIR}/server/config" "${f}/config"
 cd "${f}/config/default"
 
