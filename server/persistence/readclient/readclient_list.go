@@ -12,6 +12,7 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 )
 
 var _ workspace.WorkspaceLister = &ReadClient{}
@@ -49,6 +50,11 @@ func (c *ReadClient) ListUserWorkspaces(
 
 	// filter by namespace
 	filterByNamespace(ww, listOpts.Namespace)
+
+	// apply is-owner label
+	for i := range ww.Items {
+		mutate.ApplyIsOwnerLabel(&ww.Items[i], user)
+	}
 
 	ww.DeepCopyInto(objs)
 	return nil

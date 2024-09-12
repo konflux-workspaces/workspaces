@@ -8,6 +8,7 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
@@ -41,6 +42,9 @@ func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, work
 	if err != nil {
 		return err
 	}
+
+	// apply the is-owner label
+	mutate.ApplyIsOwnerLabel(w, user)
 
 	// fill return value
 	w.DeepCopyInto(workspace)

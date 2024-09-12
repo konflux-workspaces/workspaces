@@ -25,6 +25,7 @@ var _ = Describe("List", func() {
 	var frc *mocks.MockFakeIWReadClient
 	var mp *mocks.MockFakeIWMapper
 	var rc *readclient.ReadClient
+	user := "user"
 
 	BeforeEach(func() {
 		ctx = context.Background()
@@ -40,13 +41,11 @@ var _ = Describe("List", func() {
 
 	DescribeTable("Filter by label", func(unfilteredInternalWorkspaces []workspacesv1alpha1.InternalWorkspace, expectedObjectMetas []metav1.ObjectMeta) {
 		// given
-		user := "user"
-		// internalLabel := workspacesv1alpha1.LabelInternalDomain + "whatever"
 
 		// internal client expected to be called once.
 		// It returns no error so we can test the filtering by label.
 		frc.EXPECT().
-			ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
+			ListAsUser(ctx, user, gomock.Any()).
 			DoAndReturn(func(_ context.Context, _ string, iww *workspacesv1alpha1.InternalWorkspaceList) error {
 				iww.Items = unfilteredInternalWorkspaces
 				return nil
@@ -111,7 +110,8 @@ var _ = Describe("List", func() {
 				Name:      "hit",
 				Namespace: "hit",
 				Labels: map[string]string{
-					"hit": "hit",
+					"hit":                               "hit",
+					restworkspacesv1alpha1.LabelIsOwner: "false",
 				},
 			},
 		}),
@@ -148,14 +148,36 @@ var _ = Describe("List", func() {
 				Name:      "hit-1",
 				Namespace: "hit-1",
 				Labels: map[string]string{
-					"hit": "hit",
+					"hit":                               "hit",
+					restworkspacesv1alpha1.LabelIsOwner: "false",
 				},
 			},
 			{
 				Name:      "hit-2",
 				Namespace: "hit-2",
 				Labels: map[string]string{
-					"hit": "hit",
+					"hit":                               "hit",
+					restworkspacesv1alpha1.LabelIsOwner: "false",
+				},
+			},
+		}),
+		Entry("one owned workspace", []workspacesv1alpha1.InternalWorkspace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "hit",
+					Namespace: user,
+					Labels: map[string]string{
+						"hit": "hit",
+					},
+				},
+			},
+		}, []metav1.ObjectMeta{
+			{
+				Name:      "hit",
+				Namespace: user,
+				Labels: map[string]string{
+					"hit":                               "hit",
+					restworkspacesv1alpha1.LabelIsOwner: "true",
 				},
 			},
 		}),
@@ -164,12 +186,12 @@ var _ = Describe("List", func() {
 	DescribeTable("InternalClient returns an error", func(rerr error, expectedErrorFunc func(error) bool) {
 		// given
 		frc.EXPECT().
-			ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
+			ListAsUser(ctx, user, gomock.Any()).
 			Return(rerr).
 			Times(1)
 
 		// when
-		err := rc.ListUserWorkspaces(ctx, "", nil)
+		err := rc.ListUserWorkspaces(ctx, user, nil)
 
 		// then
 		Expect(err).To(HaveOccurred())
@@ -178,15 +200,62 @@ var _ = Describe("List", func() {
 		Entry("unauthorized -> internal error", iwclient.ErrUnauthorized, kerrors.IsInternalError),
 	)
 
+	It("should pass along owned workspaces", func() {
+		wslist := restworkspacesv1alpha1.WorkspaceList{}
+		frc.EXPECT().
+			ListAsUser(ctx, user, gomock.Any()).
+			Do(func(_ context.Context, user string, ws *workspacesv1alpha1.InternalWorkspaceList) {
+				ws.Items = []workspacesv1alpha1.InternalWorkspace{
+					{
+						Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+							DisplayName: "default",
+						},
+						Status: workspacesv1alpha1.InternalWorkspaceStatus{
+							Owner: workspacesv1alpha1.UserInfoStatus{
+								Username: user,
+							},
+						},
+					},
+				}
+			}).
+			Return(nil).
+			Times(1)
+
+		mp.EXPECT().
+			InternalWorkspaceListToWorkspaceList(gomock.Any()).
+			DoAndReturn(func(_ *workspacesv1alpha1.InternalWorkspaceList) (*restworkspacesv1alpha1.WorkspaceList, error) {
+				return &restworkspacesv1alpha1.WorkspaceList{
+					Items: []restworkspacesv1alpha1.Workspace{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "default",
+								Namespace: user,
+							},
+						},
+					},
+				}, nil
+			}).
+			Times(1)
+
+		// when
+		err := rc.ListUserWorkspaces(ctx, user, &wslist)
+
+		// then
+		Expect(err).NotTo(HaveOccurred())
+		Expect(wslist.Items).To(HaveLen(1))
+		Expect(wslist.Items[0].GetName()).To(Equal("default"))
+		Expect(wslist.Items[0].GetNamespace()).To(Equal(user))
+		Expect(wslist.Items[0].GetLabels()).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"))
+	})
+
 	It("handles mapper error and returns InternalError", func() {
 		// given
 		merr := fmt.Errorf("mapper error")
-		user := "user"
 
 		// internal client expected to be called once.
 		// It returns no error so we can test the filtering by label.
 		frc.EXPECT().
-			ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
+			ListAsUser(ctx, user, gomock.Any()).
 			Return(nil).
 			Times(1)
 
@@ -208,13 +277,12 @@ var _ = Describe("List", func() {
 	Describe("ListOptions are mapped", func() {
 		It("returns an error if labels with reserved domain are used", func() {
 			// given
-			user := "user"
 			internalLabel := workspacesv1alpha1.LabelInternalDomain + "whatever"
 
 			// internal client expected to be called once.
 			// It returns no error so we can test the filtering by label.
 			frc.EXPECT().
-				ListAsUser(gomock.Any(), gomock.Any(), gomock.Any()).
+				ListAsUser(ctx, user, gomock.Any()).
 				Return(nil).
 				Times(1)
 

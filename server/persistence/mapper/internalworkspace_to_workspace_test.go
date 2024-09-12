@@ -91,9 +91,11 @@ func validateMappedWorkspace(w *restworkspacesv1alpha1.Workspace, from workspace
 	Expect(w).ToNot(BeNil())
 	Expect(w.GetName()).To(Equal(from.Spec.DisplayName))
 	Expect(w.GetNamespace()).To(Equal(from.Status.Owner.Username))
-	Expect(w.GetLabels()).To(HaveKey("expected-label"))
-	Expect(w.GetLabels()["expected-label"]).To(Equal("not-empty"))
-	Expect(w.GetLabels()).NotTo(HaveKey(workspacesv1alpha1.LabelInternalDomain + "not-expected-label"))
+	Expect(w.GetLabels()).To(And(
+		HaveKeyWithValue("expected-label", "not-empty"),
+		Not(HaveKey(restworkspacesv1alpha1.LabelIsOwner)),
+		Not(HaveKey(workspacesv1alpha1.LabelInternalDomain+"not-expected-label")),
+	))
 	Expect(w.Generation).To(Equal(int64(1)))
 	Expect(w.Spec).ToNot(BeNil())
 	Expect(w.Status).ToNot(BeNil())
