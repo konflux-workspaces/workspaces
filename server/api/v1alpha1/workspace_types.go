@@ -29,8 +29,11 @@ const (
 	// WorkspaceVisibilityPrivate Private value for Workspaces visibility
 	WorkspaceVisibilityPrivate WorkspaceVisibility = "private"
 
-	// LabelInternalDomain if the requesting user is the owner of the workspace
+	// LabelIsOwner if the requesting user is the owner of the workspace
 	LabelIsOwner string = workspacesv1alpha1.LabelInternalDomain + "is-owner"
+	// LabelHasDirectAccess if the requesting user has access to the workspace
+	// via a direct grant or via public-viewer
+	LabelHasDirectAccess string = workspacesv1alpha1.LabelInternalDomain + "has-direct-access"
 )
 
 // WorkspaceSpec defines the desired state of Workspace

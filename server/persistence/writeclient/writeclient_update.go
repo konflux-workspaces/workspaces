@@ -8,7 +8,7 @@ import (
 
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
-	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 
@@ -34,7 +34,7 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 
 	// get the InternalWorkspace as user
 	ciw := workspacesv1alpha1.InternalWorkspace{}
-	key := iwclient.SpaceKey{Owner: workspace.Namespace, Name: workspace.Name}
+	key := clientinterface.SpaceKey{Owner: workspace.Namespace, Name: workspace.Name}
 	if err := c.workspacesReader.GetAsUser(ctx, user, key, &ciw); err != nil {
 		return kerrors.NewNotFound(
 			restworkspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(),
@@ -56,10 +56,13 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 
 	ws, err := mapper.Default.InternalWorkspaceToWorkspace(&ciw)
 	if err != nil {
-		return err
+		return kerrors.NewInternalError(err)
 	}
 
 	mutate.ApplyIsOwnerLabel(ws, user)
+	// If a user is updating a workspace, they have direct access
+	// to the workspace.
+	ws.Labels[restworkspacesv1alpha1.LabelHasDirectAccess] = "true"
 
 	ws.DeepCopyInto(workspace)
 	return nil

@@ -17,22 +17,34 @@ limitations under the License.
 package mutate
 
 import (
+	"context"
 	"strconv"
 
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 )
 
-// Applies the is-owner internal label to a workspace
-func ApplyIsOwnerLabel(workspace *restworkspacesv1alpha1.Workspace, owner string) {
-	// do nothing on an empty workspace
+// Applies the has-direct-access label if the user "accessor" has access via
+// public viewer or via a direct binding to the workspace
+func ApplyHasDirectAccessLabel(
+	ctx context.Context,
+	client clientinterface.DirectAccessChecker,
+	workspace *restworkspacesv1alpha1.Workspace,
+	accessor string,
+) error {
 	if workspace == nil {
-		return
+		return nil
 	}
-
 	if workspace.Labels == nil {
 		workspace.Labels = map[string]string{}
 	}
 
-	isOwner := workspace.Namespace == owner
-	workspace.Labels[restworkspacesv1alpha1.LabelIsOwner] = strconv.FormatBool(isOwner)
+	ok, err := client.UserHasDirectAccess(ctx, accessor, workspace.Namespace)
+	if err != nil {
+		return err
+	}
+
+	workspace.Labels[restworkspacesv1alpha1.LabelHasDirectAccess] = strconv.FormatBool(ok)
+
+	return nil
 }

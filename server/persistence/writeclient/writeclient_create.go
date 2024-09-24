@@ -45,6 +45,8 @@ func (c *WriteClient) CreateUserWorkspace(ctx context.Context, user string, work
 
 	// apply the is-owner label
 	mutate.ApplyIsOwnerLabel(w, user)
+	// if a user is creating a workspace, then they must have direct access to it
+	w.Labels[restworkspacesv1alpha1.LabelHasDirectAccess] = "true"
 
 	// fill return value
 	w.DeepCopyInto(workspace)

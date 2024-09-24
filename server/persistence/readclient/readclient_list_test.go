@@ -52,8 +52,16 @@ var _ = Describe("List", func() {
 			}).
 			Times(1)
 
-			// mapper expects to be called once.
-			// It returns the list of mapped workspaces (just objectmeta)
+		// since the user owns the workspace, they should have direct access
+		frc.EXPECT().
+			UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, accessor, workspace string) (bool, error) {
+				return accessor == workspace, nil
+			}).
+			AnyTimes()
+
+			// mapper expects to be called once, and it returns the list of mapped
+			// workspaces (just objectmeta)
 		mp.EXPECT().
 			InternalWorkspaceListToWorkspaceList(gomock.Any()).
 			Times(1).
@@ -112,6 +120,7 @@ var _ = Describe("List", func() {
 				Labels: map[string]string{
 					"hit":                               "hit",
 					restworkspacesv1alpha1.LabelIsOwner: "false",
+					restworkspacesv1alpha1.LabelHasDirectAccess: "false",
 				},
 			},
 		}),
@@ -150,6 +159,7 @@ var _ = Describe("List", func() {
 				Labels: map[string]string{
 					"hit":                               "hit",
 					restworkspacesv1alpha1.LabelIsOwner: "false",
+					restworkspacesv1alpha1.LabelHasDirectAccess: "false",
 				},
 			},
 			{
@@ -158,6 +168,7 @@ var _ = Describe("List", func() {
 				Labels: map[string]string{
 					"hit":                               "hit",
 					restworkspacesv1alpha1.LabelIsOwner: "false",
+					restworkspacesv1alpha1.LabelHasDirectAccess: "false",
 				},
 			},
 		}),
@@ -178,6 +189,7 @@ var _ = Describe("List", func() {
 				Labels: map[string]string{
 					"hit":                               "hit",
 					restworkspacesv1alpha1.LabelIsOwner: "true",
+					restworkspacesv1alpha1.LabelHasDirectAccess: "true",
 				},
 			},
 		}),
@@ -221,6 +233,13 @@ var _ = Describe("List", func() {
 			Return(nil).
 			Times(1)
 
+		frc.EXPECT().
+			UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, accessor, workspace string) (bool, error) {
+				return accessor == workspace, nil
+			}).
+			AnyTimes()
+
 		mp.EXPECT().
 			InternalWorkspaceListToWorkspaceList(gomock.Any()).
 			DoAndReturn(func(_ *workspacesv1alpha1.InternalWorkspaceList) (*restworkspacesv1alpha1.WorkspaceList, error) {
@@ -245,7 +264,9 @@ var _ = Describe("List", func() {
 		Expect(wslist.Items).To(HaveLen(1))
 		Expect(wslist.Items[0].GetName()).To(Equal("default"))
 		Expect(wslist.Items[0].GetNamespace()).To(Equal(user))
-		Expect(wslist.Items[0].GetLabels()).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"))
+		Expect(wslist.Items[0].GetLabels()).To(And(
+			HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"),
+			HaveKeyWithValue(restworkspacesv1alpha1.LabelHasDirectAccess, "true")))
 	})
 
 	It("handles mapper error and returns InternalError", func() {
@@ -259,8 +280,7 @@ var _ = Describe("List", func() {
 			Return(nil).
 			Times(1)
 
-			// mapper expects to be called once.
-			// It returns an error so we can test error handling.
+			// mapper expects to be called once, and it returns an error so we can test error handling.
 		mp.EXPECT().
 			InternalWorkspaceListToWorkspaceList(gomock.Any()).
 			Return(nil, merr).
@@ -268,6 +288,57 @@ var _ = Describe("List", func() {
 
 		// when
 		err := rc.ListUserWorkspaces(ctx, user, nil)
+
+		// then
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(kerrors.IsInternalError, "IsInternalError"))
+	})
+
+	It("should return InternalError if has-direct-access label can't be applied", func() {
+		wslist := restworkspacesv1alpha1.WorkspaceList{}
+		frc.EXPECT().
+			ListAsUser(ctx, user, gomock.Any()).
+			Do(func(_ context.Context, user string, ws *workspacesv1alpha1.InternalWorkspaceList) {
+				ws.Items = []workspacesv1alpha1.InternalWorkspace{
+					{
+						Spec: workspacesv1alpha1.InternalWorkspaceSpec{
+							DisplayName: "default",
+						},
+						Status: workspacesv1alpha1.InternalWorkspaceStatus{
+							Owner: workspacesv1alpha1.UserInfoStatus{
+								Username: user,
+							},
+						},
+					},
+				}
+			}).
+			Return(nil).
+			Times(1)
+
+		frc.EXPECT().
+			UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(false, fmt.Errorf("error checking access")).
+			AnyTimes()
+
+			// we need to plumb through a workspace, otherwise UserHasDirectAccess will never be called.
+		mp.EXPECT().
+			InternalWorkspaceListToWorkspaceList(gomock.Any()).
+			DoAndReturn(func(_ *workspacesv1alpha1.InternalWorkspaceList) (*restworkspacesv1alpha1.WorkspaceList, error) {
+				return &restworkspacesv1alpha1.WorkspaceList{
+					Items: []restworkspacesv1alpha1.Workspace{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "default",
+								Namespace: user,
+							},
+						},
+					},
+				}, nil
+			}).
+			Times(1)
+
+		// when
+		err := rc.ListUserWorkspaces(ctx, user, &wslist)
 
 		// then
 		Expect(err).To(HaveOccurred())

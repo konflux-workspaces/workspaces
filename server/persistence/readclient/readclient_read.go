@@ -8,7 +8,7 @@ import (
 
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
-	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
@@ -28,7 +28,7 @@ func (c *ReadClient) ReadUserWorkspace(
 ) error {
 	l := log.FromContext(ctx).With("user", user, "owner", owner, "space", space)
 	var w workspacesv1alpha1.InternalWorkspace
-	key := iwclient.SpaceKey{Owner: owner, Name: space}
+	key := clientinterface.SpaceKey{Owner: owner, Name: space}
 	if err := c.internalClient.GetAsUser(ctx, user, key, &w); err != nil {
 		l.Error("error retrieving Workspace", "error", err)
 		return kerrors.NewNotFound(restworkspacesv1alpha1.GroupVersion.WithResource("workspaces").GroupResource(), space)
@@ -42,6 +42,13 @@ func (c *ReadClient) ReadUserWorkspace(
 
 	// apply is-owner label
 	mutate.ApplyIsOwnerLabel(r, user)
+
+	// apply has-direct-access label
+	err = mutate.ApplyHasDirectAccessLabel(ctx, c.internalClient, r, user)
+	if err != nil {
+		l.Error("error checking user access to workspace", "error", err)
+		return kerrors.NewInternalError(err)
+	}
 
 	// return workspace
 	r.DeepCopyInto(obj)

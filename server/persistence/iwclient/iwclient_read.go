@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/konflux-workspaces/workspaces/server/log"
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 	"github.com/konflux-workspaces/workspaces/server/persistence/internal/cache"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
@@ -23,7 +24,7 @@ var (
 func (c *Client) GetAsUser(
 	ctx context.Context,
 	user string,
-	key SpaceKey,
+	key clientinterface.SpaceKey,
 	workspace *workspacesv1alpha1.InternalWorkspace,
 	opts ...client.GetOption,
 ) error {
@@ -44,7 +45,7 @@ func (c *Client) GetAsUser(
 
 	// check if user has direct visibility on the space
 	l.Debug("InternalWorkspace is private, checking for a SpaceBinding for the user")
-	ok, err := c.existsSpaceBindingForUserAndSpace(ctx, user, w.GetName())
+	ok, err := c.UserHasDirectAccess(ctx, user, w.GetName())
 	if err != nil {
 		l.Error("error retrieving SpaceBindings for InternalWorkspace", "error", err)
 		return err

@@ -6,13 +6,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 )
 
-// SpaceKey comprises a Space name, with a mandatory owner.
-type SpaceKey struct {
-	Owner string
-	Name  string
-}
+var (
+	_ clientinterface.InternalWorkspacesReadClient = &Client{}
+	_ clientinterface.InternalWorkspacesMapper     = mapper.Default
+)
 
 type Client struct {
 	backend client.Reader
@@ -30,7 +31,7 @@ func New(backend client.Reader, workspacesNamespace, kubesawNamespace string) *C
 	}
 }
 
-func (c *Client) existsSpaceBindingForUserAndSpace(ctx context.Context, user, space string) (bool, error) {
+func (c *Client) UserHasDirectAccess(ctx context.Context, user, space string) (bool, error) {
 	ml := client.MatchingLabels{
 		toolchainv1alpha1.SpaceBindingMasterUserRecordLabelKey: user,
 		toolchainv1alpha1.SpaceBindingSpaceLabelKey:            space,
