@@ -12,13 +12,13 @@ KUBECLI=${KUBECLI:-kubectl}
 
 HOST_OPERATOR_REPO=${HOST_OPERATOR_REPO:-https://github.com/codeready-toolchain/host-operator.git}
 MEMBER_OPERATOR_REPO=${MEMBER_OPERATOR_REPO:-https://github.com/codeready-toolchain/member-operator.git}
-TOOLCHAIN_E2E_REPO=${TOOLCHAIN_E2E_REPO:-https://github.com/filariow/toolchain-e2e.git}
-REGISTRATION_SERVICE_REPO=${REGISTRATION_SERVICE_REPO:-https://github.com/filariow/registration-service}
+TOOLCHAIN_E2E_REPO=${TOOLCHAIN_E2E_REPO:-https://github.com/codeready-toolchain/toolchain-e2e.git}
+REGISTRATION_SERVICE_REPO=${REGISTRATION_SERVICE_REPO:-https://github.com/codeready-toolchain/registration-service}
 
 HOST_OPERATOR_BRANCH=${HOST_OPERATOR_BRANCH:-${BRANCH:-master}}
 MEMBER_OPERATOR_BRANCH=${MEMBER_OPERATOR_BRANCH:-${BRANCH:-master}}
-TOOLCHAIN_E2E_BRANCH=${TOOLCHAIN_E2E_BRANCH:-${BRANCH:-pv-532}}
-REGISTRATION_SERVICE_BRANCH=${REGISTRATION_SERVICE_BRANCH:-${BRANCH:-pv-532}}
+TOOLCHAIN_E2E_BRANCH=${TOOLCHAIN_E2E_BRANCH:-${BRANCH:-master}}
+REGISTRATION_SERVICE_BRANCH=${REGISTRATION_SERVICE_BRANCH:-${BRANCH:-master}}
 
 function clone {
     git clone --depth 2 --branch "${2}" "${1}"
