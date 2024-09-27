@@ -43,6 +43,9 @@ const (
 	// ConditionReasonOwnerNotFound means that the UserSignup for the InternalWorkspace
 	// was not found
 	ConditionReasonOwnerNotFound string = "OwnerNotFound"
+	// ConditionReasonSpaceNotFound means that the Space for the InternalWorkspace
+	// was not found
+	ConditionReasonSpaceNotFound string = "SpaceNotFound"
 )
 
 // UserInfo contains information about a user identity
@@ -78,6 +81,9 @@ type SpaceInfo struct {
 	IsHome bool `json:"isHome"`
 	//+required
 	Name string `json:"name"`
+	// TargetCluster contains the URL to the cluster where the workspace's namespaces live
+	//+optional
+	TargetCluster string `json:"targetCluster,omitempty"`
 }
 
 // UserInfoStatus User info stored in the status

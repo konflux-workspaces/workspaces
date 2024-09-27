@@ -34,7 +34,8 @@ func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.Inte
 		},
 		Status: restworkspacesv1alpha1.WorkspaceStatus{
 			Space: &restworkspacesv1alpha1.SpaceInfo{
-				Name: workspace.Status.Space.Name,
+				Name:          workspace.Status.Space.Name,
+				TargetCluster: workspace.Status.Space.TargetCluster,
 			},
 			Owner: &restworkspacesv1alpha1.UserInfoStatus{
 				Email: workspace.Spec.Owner.JwtInfo.Email,
