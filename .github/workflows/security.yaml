@@ -26,9 +26,6 @@ jobs:
   gosec:
     name: Gosec
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        directory: [server, operator, e2e]
 
     steps:
       - name: Checkout Git Repository
@@ -36,13 +33,11 @@ jobs:
 
       - name: Run gosec
         uses: securego/gosec@v2.20.0
-        working-directory: ${{ matrix.directory }}
         with:
           args: '-exclude=G601 -no-fail -fmt sarif -out gosec.sarif ./...'
 
       - name: Upload scan results
         uses: github/codeql-action/upload-sarif@v3
-        working-directory: ${{ matrix.directory }}
         with:
           sarif_file: gosec.sarif
 
