@@ -34,47 +34,90 @@ var _ = Describe("Read", func() {
 		rc = readclient.New(frc, mp)
 	})
 
-	// happy path
-	It("returns a copy of the mapped value", func() {
-		// given
+	Describe("valid request", func() {
+		// happy path
+		It("returns a copy of the mapped value", func() {
+			// given
 
-		// internal client expected to be called once.
-		// It returns no error so we can test the mapper invocation.
-		frc.EXPECT().
-			GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(nil).
-			Times(1)
+			// internal client expected to be called once.
+			// It returns no error so we can test the mapper invocation.
+			frc.EXPECT().
+				GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(nil).
+				Times(1)
 
-		// mapper expects to be called once.
-		// It returns a valid workspace so we can test handler's result.
-		mappedWorkspace := restworkspacesv1alpha1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "workspace",
-				Namespace: "owner",
-			},
-			Spec: restworkspacesv1alpha1.WorkspaceSpec{
-				Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
-			},
-			Status: restworkspacesv1alpha1.WorkspaceStatus{
-				Space: &restworkspacesv1alpha1.SpaceInfo{
-					Name: "space",
+			// mapper expects to be called once.
+			// It returns a valid workspace so we can test handler's result.
+			mappedWorkspace := restworkspacesv1alpha1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "workspace",
+					Namespace: "owner",
 				},
-			},
-		}
-		mp.EXPECT().
-			InternalWorkspaceToWorkspace(gomock.Any()).
-			Return(&mappedWorkspace, nil).
-			Times(1)
+				Spec: restworkspacesv1alpha1.WorkspaceSpec{
+					Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
+				},
+				Status: restworkspacesv1alpha1.WorkspaceStatus{
+					Space: &restworkspacesv1alpha1.SpaceInfo{
+						Name: "space",
+					},
+				},
+			}
+			mp.EXPECT().
+				InternalWorkspaceToWorkspace(gomock.Any()).
+				Return(&mappedWorkspace, nil).
+				Times(1)
 
-		// when
-		returnedWorkspace := restworkspacesv1alpha1.Workspace{}
-		err := rc.ReadUserWorkspace(ctx, "", "", "", &returnedWorkspace)
+			// when
+			returnedWorkspace := restworkspacesv1alpha1.Workspace{}
+			err := rc.ReadUserWorkspace(ctx, "", "", "", &returnedWorkspace)
 
-		// then
-		Expect(err).NotTo(HaveOccurred())
-		Expect(returnedWorkspace).To(Equal(mappedWorkspace))
-		// test data is deepcopied
-		Expect(returnedWorkspace).NotTo(BeIdenticalTo(mappedWorkspace))
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(returnedWorkspace).To(Equal(mappedWorkspace))
+			// test data is deepcopied
+			Expect(returnedWorkspace).NotTo(BeIdenticalTo(mappedWorkspace))
+		})
+
+		DescribeTable("should set the is-owner label on owned workspaces", func(owner, is_owned string) {
+			// internal client expected to be called once.
+			// It returns no error so we can test the mapper invocation.
+			frc.EXPECT().
+				GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(nil).
+				Times(1)
+
+			// mapper expects to be called once.
+			// It returns a valid workspace so we can test handler's result.
+			mappedWorkspace := restworkspacesv1alpha1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "workspace",
+					Namespace: "owner",
+				},
+				Spec: restworkspacesv1alpha1.WorkspaceSpec{
+					Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
+				},
+				Status: restworkspacesv1alpha1.WorkspaceStatus{
+					Space: &restworkspacesv1alpha1.SpaceInfo{
+						Name: "space",
+					},
+				},
+			}
+			mp.EXPECT().
+				InternalWorkspaceToWorkspace(gomock.Any()).
+				Return(&mappedWorkspace, nil).
+				Times(1)
+
+			// when
+			returnedWorkspace := restworkspacesv1alpha1.Workspace{}
+			err := rc.ReadUserWorkspace(ctx, owner, "", "", &returnedWorkspace)
+
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(returnedWorkspace.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, is_owned))
+		},
+			Entry("non-owner", "another", "false"),
+			Entry("owner", "owner", "true"),
+		)
 	})
 
 	// error handling

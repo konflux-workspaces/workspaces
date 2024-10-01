@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,6 +28,9 @@ const (
 	WorkspaceVisibilityCommunity WorkspaceVisibility = "community"
 	// WorkspaceVisibilityPrivate Private value for Workspaces visibility
 	WorkspaceVisibilityPrivate WorkspaceVisibility = "private"
+
+	// LabelInternalDomain if the requesting user is the owner of the workspace
+	LabelIsOwner string = workspacesv1alpha1.LabelInternalDomain + "is-owner"
 )
 
 // WorkspaceSpec defines the desired state of Workspace

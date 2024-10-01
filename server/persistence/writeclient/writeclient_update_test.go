@@ -177,6 +177,8 @@ var _ = Describe("WriteclientUpdate", func() {
 
 				// then
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(w.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"))
 			})
 		})
 	})

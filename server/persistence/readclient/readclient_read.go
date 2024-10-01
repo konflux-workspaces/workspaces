@@ -9,6 +9,7 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
@@ -38,6 +39,9 @@ func (c *ReadClient) ReadUserWorkspace(
 		l.Error("error mapping internal workspace to workspace as user", "error", err)
 		return kerrors.NewInternalError(err)
 	}
+
+	// apply is-owner label
+	mutate.ApplyIsOwnerLabel(r, user)
 
 	// return workspace
 	r.DeepCopyInto(obj)

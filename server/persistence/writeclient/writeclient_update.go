@@ -10,6 +10,7 @@ import (
 	"github.com/konflux-workspaces/workspaces/server/log"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
+	"github.com/konflux-workspaces/workspaces/server/persistence/mutate"
 
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
@@ -48,5 +49,18 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 	// update the InternalWorkspace
 	ciw.Spec.Visibility = iw.Spec.Visibility
 	log.FromContext(ctx).Debug("updating user workspace", "workspace", iw, "user", user)
-	return cli.Update(ctx, &ciw, opts...)
+	err = cli.Update(ctx, &ciw, opts...)
+	if err != nil {
+		return err
+	}
+
+	ws, err := mapper.Default.InternalWorkspaceToWorkspace(&ciw)
+	if err != nil {
+		return err
+	}
+
+	mutate.ApplyIsOwnerLabel(ws, user)
+
+	ws.DeepCopyInto(workspace)
+	return nil
 }
