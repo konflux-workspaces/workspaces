@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	v1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
-	iwclient "github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
+	clientinterface "github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 	gomock "go.uber.org/mock/gomock"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -43,7 +43,7 @@ func (m *MockFakeIWReadClient) EXPECT() *MockFakeIWReadClientMockRecorder {
 }
 
 // GetAsUser mocks base method.
-func (m *MockFakeIWReadClient) GetAsUser(arg0 context.Context, arg1 string, arg2 iwclient.SpaceKey, arg3 *v1alpha1.InternalWorkspace, arg4 ...client.GetOption) error {
+func (m *MockFakeIWReadClient) GetAsUser(arg0 context.Context, arg1 string, arg2 clientinterface.SpaceKey, arg3 *v1alpha1.InternalWorkspace, arg4 ...client.GetOption) error {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
@@ -73,4 +73,19 @@ func (m *MockFakeIWReadClient) ListAsUser(arg0 context.Context, arg1 string, arg
 func (mr *MockFakeIWReadClientMockRecorder) ListAsUser(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAsUser", reflect.TypeOf((*MockFakeIWReadClient)(nil).ListAsUser), arg0, arg1, arg2)
+}
+
+// UserHasDirectAccess mocks base method.
+func (m *MockFakeIWReadClient) UserHasDirectAccess(arg0 context.Context, arg1, arg2 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserHasDirectAccess", arg0, arg1, arg2)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserHasDirectAccess indicates an expected call of UserHasDirectAccess.
+func (mr *MockFakeIWReadClientMockRecorder) UserHasDirectAccess(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserHasDirectAccess", reflect.TypeOf((*MockFakeIWReadClient)(nil).UserHasDirectAccess), arg0, arg1, arg2)
 }

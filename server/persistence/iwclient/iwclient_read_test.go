@@ -12,6 +12,7 @@ import (
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 
+	"github.com/konflux-workspaces/workspaces/server/persistence/clientinterface"
 	"github.com/konflux-workspaces/workspaces/server/persistence/iwclient"
 )
 
@@ -47,7 +48,7 @@ var _ = Describe("Read", func() {
 		It("should not return the workspace in read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner", Name: "no-space-binding"}
+			key := clientinterface.SpaceKey{Owner: "owner", Name: "no-space-binding"}
 			err := c.GetAsUser(ctx, "owner", key, &w)
 
 			// then
@@ -85,7 +86,7 @@ var _ = Describe("Read", func() {
 		It("should not return the workspace in read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner", Name: "no-label"}
+			key := clientinterface.SpaceKey{Owner: "owner", Name: "no-label"}
 			err := c.GetAsUser(ctx, "owner", key, &w)
 
 			// then
@@ -150,7 +151,7 @@ var _ = Describe("Read", func() {
 		It("should be returned in read", func() {
 			// when
 			var rw workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
+			key := clientinterface.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
 			err := c.GetAsUser(ctx, "owner-user", key, &rw)
 
 			// then
@@ -161,7 +162,7 @@ var _ = Describe("Read", func() {
 		It("should NOT be returned in read of not-owner-user workspace", func() {
 			// when
 			rw := workspacesv1alpha1.InternalWorkspace{}
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
+			key := clientinterface.SpaceKey{Owner: "owner-user", Name: "owner-ws"}
 			err := c.GetAsUser(ctx, "not-owner-user", key, &rw)
 
 			// then
@@ -242,7 +243,7 @@ var _ = Describe("Read", func() {
 			for _, w := range ww {
 				// when
 				var rw workspacesv1alpha1.InternalWorkspace
-				key := iwclient.SpaceKey{Owner: w.Status.Owner.Username, Name: w.Spec.DisplayName}
+				key := clientinterface.SpaceKey{Owner: w.Status.Owner.Username, Name: w.Spec.DisplayName}
 				err := c.GetAsUser(ctx, w.Status.Owner.Username, key, &rw)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -255,7 +256,7 @@ var _ = Describe("Read", func() {
 			for _, w := range ww {
 				// when
 				rw := workspacesv1alpha1.InternalWorkspace{}
-				key := iwclient.SpaceKey{Owner: w.Status.Owner.Username, Name: w.Spec.DisplayName}
+				key := clientinterface.SpaceKey{Owner: w.Status.Owner.Username, Name: w.Spec.DisplayName}
 				err := c.GetAsUser(ctx, "not-owner-user", key, &rw)
 
 				// then
@@ -340,7 +341,7 @@ var _ = Describe("Read", func() {
 		It("is returned in read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
+			key := clientinterface.SpaceKey{Owner: "owner-user", Name: wName}
 			err := c.GetAsUser(ctx, "owner-user", key, &w)
 
 			// then
@@ -408,7 +409,7 @@ var _ = Describe("Read", func() {
 		It("is returned in other-user's read", func() {
 			// when
 			var w workspacesv1alpha1.InternalWorkspace
-			key := iwclient.SpaceKey{Owner: "owner-user", Name: wName}
+			key := clientinterface.SpaceKey{Owner: "owner-user", Name: wName}
 			err := c.GetAsUser(ctx, "other-user", key, &w)
 			Expect(err).NotTo(HaveOccurred())
 

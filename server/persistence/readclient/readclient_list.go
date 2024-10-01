@@ -51,9 +51,16 @@ func (c *ReadClient) ListUserWorkspaces(
 	// filter by namespace
 	filterByNamespace(ww, listOpts.Namespace)
 
-	// apply is-owner label
 	for i := range ww.Items {
+		// apply is-owner label
+		// TODO(sadlerap): merge these into a single applier method?
 		mutate.ApplyIsOwnerLabel(&ww.Items[i], user)
+
+		// apply has-direct-access label
+		err := mutate.ApplyHasDirectAccessLabel(ctx, c.internalClient, &ww.Items[i], user)
+		if err != nil {
+			return kerrors.NewInternalError(fmt.Errorf("error retrieving the list of workspaces for user %v", user))
+		}
 	}
 
 	ww.DeepCopyInto(objs)

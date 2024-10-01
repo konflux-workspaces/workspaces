@@ -46,6 +46,12 @@ var _ = Describe("Read", func() {
 				Return(nil).
 				Times(1)
 
+				// for the sake of mocking, we say that the user doesn't have direct access.
+			frc.EXPECT().
+				UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(false, nil).
+				Times(1)
+
 			// mapper expects to be called once.
 			// It returns a valid workspace so we can test handler's result.
 			mappedWorkspace := restworkspacesv1alpha1.Workspace{
@@ -78,12 +84,18 @@ var _ = Describe("Read", func() {
 			Expect(returnedWorkspace).NotTo(BeIdenticalTo(mappedWorkspace))
 		})
 
-		DescribeTable("should set the is-owner label on owned workspaces", func(owner, is_owned string) {
+		DescribeTable("should set labels on workspaces", func(owner, labelKey, labelValue string, direct_access bool) {
 			// internal client expected to be called once.
 			// It returns no error so we can test the mapper invocation.
 			frc.EXPECT().
 				GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(nil).
+				Times(1)
+
+				// since the user owns the workspace, they should have direct access
+			frc.EXPECT().
+				UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(direct_access, nil).
 				Times(1)
 
 			// mapper expects to be called once.
@@ -113,10 +125,13 @@ var _ = Describe("Read", func() {
 
 			// then
 			Expect(err).NotTo(HaveOccurred())
-			Expect(returnedWorkspace.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, is_owned))
+			Expect(returnedWorkspace.Labels).To(HaveKeyWithValue(labelKey, labelValue))
 		},
-			Entry("non-owner", "another", "false"),
-			Entry("owner", "owner", "true"),
+			Entry("non-owner", "another", restworkspacesv1alpha1.LabelIsOwner, "false", false),
+			Entry("owner", "owner", restworkspacesv1alpha1.LabelIsOwner, "true", true),
+			Entry("non-owner", "another", restworkspacesv1alpha1.LabelHasDirectAccess, "false", false),
+			Entry("non-owner with access", "another", restworkspacesv1alpha1.LabelHasDirectAccess, "false", false),
+			Entry("owner", "owner", restworkspacesv1alpha1.LabelHasDirectAccess, "true", true),
 		)
 	})
 
@@ -159,6 +174,50 @@ var _ = Describe("Read", func() {
 
 		// when
 		err := rc.ReadUserWorkspace(ctx, "", "", "", nil)
+
+		// then
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(kerrors.IsInternalError, "IsInternalError"))
+	})
+
+	It("handles labeller error and returns InternalError", func() {
+		// internal client expected to be called once.
+		// It returns no error so we can test the mapper invocation.
+		frc.EXPECT().
+			GetAsUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil).
+			Times(1)
+
+		// since the user owns the workspace, they should have direct access
+		frc.EXPECT().
+			UserHasDirectAccess(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(false, fmt.Errorf("error checking access")).
+			Times(1)
+
+		// mapper expects to be called once.
+		// It returns a valid workspace so we can test handler's result.
+		mappedWorkspace := restworkspacesv1alpha1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "workspace",
+				Namespace: "owner",
+			},
+			Spec: restworkspacesv1alpha1.WorkspaceSpec{
+				Visibility: restworkspacesv1alpha1.WorkspaceVisibilityCommunity,
+			},
+			Status: restworkspacesv1alpha1.WorkspaceStatus{
+				Space: &restworkspacesv1alpha1.SpaceInfo{
+					Name: "space",
+				},
+			},
+		}
+		mp.EXPECT().
+			InternalWorkspaceToWorkspace(gomock.Any()).
+			Return(&mappedWorkspace, nil).
+			Times(1)
+
+		// when
+		returnedWorkspace := restworkspacesv1alpha1.Workspace{}
+		err := rc.ReadUserWorkspace(ctx, "owner", "", "", &returnedWorkspace)
 
 		// then
 		Expect(err).To(HaveOccurred())

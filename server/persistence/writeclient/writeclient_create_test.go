@@ -100,7 +100,7 @@ var _ = Describe("WriteclientCreate", func() {
 	})
 
 	When("creating an owned workspace", func() {
-		It("should have the is-owner label", func() {
+		It("should have appropriate labels set", func() {
 			// given
 			workspace.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibilityPrivate
 
@@ -109,7 +109,9 @@ var _ = Describe("WriteclientCreate", func() {
 
 			// then
 			Expect(err).NotTo(HaveOccurred())
-			Expect(workspace.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"))
+			Expect(workspace.Labels).To(And(
+				HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"),
+				HaveKeyWithValue(restworkspacesv1alpha1.LabelHasDirectAccess, "true")))
 			validateCreatedInternalWorkspace(&workspace, workspacesv1alpha1.InternalWorkspaceVisibilityPrivate)
 		})
 	})

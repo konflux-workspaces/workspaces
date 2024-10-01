@@ -170,7 +170,6 @@ var _ = Describe("WriteclientUpdate", func() {
 			It("should update if the user is the owner", func() {
 				// given
 				w := workspace.DeepCopy()
-				w.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibilityCommunity
 
 				// when
 				err := cli.UpdateUserWorkspace(ctx, user, w)
@@ -179,6 +178,7 @@ var _ = Describe("WriteclientUpdate", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(w.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelIsOwner, "true"))
+				Expect(w.Labels).To(HaveKeyWithValue(restworkspacesv1alpha1.LabelHasDirectAccess, "true"))
 			})
 		})
 	})
