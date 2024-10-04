@@ -3,7 +3,6 @@ package workspace
 import (
 	"context"
 	"fmt"
-	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -40,7 +39,6 @@ func thenDefaultWorkspaceCheckClusterURLInStatusIs(ctx context.Context, clusterU
 			Name:      workspacesv1alpha1.DisplayNameDefaultWorkspace,
 			Namespace: u.Status.CompliantUsername,
 		}
-		log.Printf("workspace key: %v", k)
 		if err := cli.Get(ctx, k, &w); err != nil {
 			return false, err
 		}
