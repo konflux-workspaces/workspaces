@@ -3,10 +3,48 @@ package workspace
 import (
 	"context"
 
+	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/step/user"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+const defaultWorkspaceTargetClusterURL = "https://default-cluster-url.io/"
+
+func givenWorkspaceHasClusterURLSet(ctx context.Context) (context.Context, error) {
+	return givenWorkspaceHasClusterURLSetTo(ctx, defaultWorkspaceTargetClusterURL)
+}
+
+func givenWorkspaceHasNoClusterURLSet(ctx context.Context) (context.Context, error) {
+	return givenWorkspaceHasClusterURLSetTo(ctx, "")
+}
+
+func givenWorkspaceHasClusterURLSetTo(ctx context.Context, clusterURL string) (context.Context, error) {
+	cli := tcontext.RetrieveHostClient(ctx)
+	kns := tcontext.RetrieveKubespaceNamespace(ctx)
+	ws := tcontext.RetrieveInternalWorkspace(ctx)
+
+	// retrieve space
+	s := toolchainv1alpha1.Space{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ws.Name,
+			Namespace: kns,
+		},
+	}
+	if err := cli.Get(ctx, client.ObjectKeyFromObject(&s), &s); err != nil {
+		return ctx, err
+	}
+
+	// update target cluster with default URL
+	s.Status.TargetCluster = clusterURL
+	if err := cli.Status().Update(ctx, &s); err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
+}
 
 func givenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
 	return defaultWorkspaceIsCreatedForThem(ctx)

@@ -15,6 +15,31 @@ import (
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
 )
 
+func thenDefaultWorkspaceHasNoClusterURLInStatus(ctx context.Context) (context.Context, error) {
+	return thenDefaultWorkspaceCheckClusterURLInStatusIs(ctx, "")
+}
+
+func thenDefaultWorkspaceHasClusterURLInStatus(ctx context.Context) (context.Context, error) {
+	return thenDefaultWorkspaceCheckClusterURLInStatusIs(ctx, defaultWorkspaceTargetClusterURL)
+}
+
+func thenDefaultWorkspaceCheckClusterURLInStatusIs(ctx context.Context, clusterURL string) (context.Context, error) {
+	u := tcontext.RetrieveInternalWorkspace(ctx)
+	if u.Status.Space.TargetCluster == clusterURL {
+		return ctx, nil
+	}
+
+	cli := tcontext.RetrieveHostClient(ctx)
+	return ctx, poll.WaitForConditionImmediatelyJoiningErrors(ctx, func(ctx context.Context) (bool, error) {
+		iw := workspacesv1alpha1.InternalWorkspace{}
+		if err := cli.Get(ctx, client.ObjectKeyFromObject(&u), &iw); err != nil {
+			return false, err
+		}
+
+		return iw.Status.Space.TargetCluster == clusterURL, nil
+	})
+}
+
 func thenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
 	return defaultWorkspaceIsCreatedForThem(ctx)
 }
