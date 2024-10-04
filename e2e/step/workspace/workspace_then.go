@@ -3,16 +3,20 @@ package workspace
 import (
 	"context"
 	"fmt"
+	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/cli"
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 	"github.com/konflux-workspaces/workspaces/e2e/pkg/poll"
+	wrest "github.com/konflux-workspaces/workspaces/e2e/pkg/rest"
 
 	toolchainv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	workspacesv1alpha1 "github.com/konflux-workspaces/workspaces/operator/api/v1alpha1"
+	restworkspacesv1alpha1 "github.com/konflux-workspaces/workspaces/server/api/v1alpha1"
 )
 
 func thenDefaultWorkspaceHasNoClusterURLInStatus(ctx context.Context) (context.Context, error) {
@@ -24,19 +28,24 @@ func thenDefaultWorkspaceHasClusterURLInStatus(ctx context.Context) (context.Con
 }
 
 func thenDefaultWorkspaceCheckClusterURLInStatusIs(ctx context.Context, clusterURL string) (context.Context, error) {
-	u := tcontext.RetrieveInternalWorkspace(ctx)
-	if u.Status.Space.TargetCluster == clusterURL {
-		return ctx, nil
-	}
-
-	cli := tcontext.RetrieveHostClient(ctx)
 	return ctx, poll.WaitForConditionImmediatelyJoiningErrors(ctx, func(ctx context.Context) (bool, error) {
-		iw := workspacesv1alpha1.InternalWorkspace{}
-		if err := cli.Get(ctx, client.ObjectKeyFromObject(&u), &iw); err != nil {
+		u := tcontext.RetrieveUser(ctx)
+		cli, err := wrest.BuildWorkspacesClient(ctx)
+		if err != nil {
 			return false, err
 		}
 
-		return iw.Status.Space.TargetCluster == clusterURL, nil
+		w := restworkspacesv1alpha1.Workspace{}
+		k := types.NamespacedName{
+			Name:      workspacesv1alpha1.DisplayNameDefaultWorkspace,
+			Namespace: u.Status.CompliantUsername,
+		}
+		log.Printf("workspace key: %v", k)
+		if err := cli.Get(ctx, k, &w); err != nil {
+			return false, err
+		}
+
+		return w.Status.Space.TargetCluster == clusterURL, nil
 	})
 }
 
