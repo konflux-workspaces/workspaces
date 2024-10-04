@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,12 +48,11 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 
 	u := tcontext.RetrieveUser(ctx)
 	w := restworkspacesv1alpha1.Workspace{}
-	wk := types.NamespacedName{Namespace: u.Name, Name: workspacesv1alpha1.DisplayNameDefaultWorkspace}
+	wk := types.NamespacedName{Namespace: u.Status.CompliantUsername, Name: workspacesv1alpha1.DisplayNameDefaultWorkspace}
 	if err := c.Get(ctx, wk, &w, &client.GetOptions{}); err != nil {
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
 		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, u.Status.CompliantUsername, err)
 	}
-	log.Printf("retrieved workspace: %v", w)
 	return tcontext.InjectUserWorkspace(ctx, w), nil
 }
 

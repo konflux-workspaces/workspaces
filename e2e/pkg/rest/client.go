@@ -64,10 +64,9 @@ func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	utilruntime.Must(toolchainv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
 
-	u := tcontext.RetrieveUser(ctx)
 	k := tcontext.RetrieveUnauthKubeconfig(ctx)
 
-	t, err := auth.BuildJwtForUser(ctx, u.Status.CompliantUsername)
+	t, err := auth.BuildJwtForContextUser(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +80,7 @@ func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
 
 	c, err := client.New(k, client.Options{Scheme: scheme, Mapper: m})
 	if err != nil {
+		u := tcontext.RetrieveUser(ctx)
 		return nil, fmt.Errorf("error building client for host %s and user %s: %w", k.Host, u.Status.CompliantUsername, err)
 	}
 
