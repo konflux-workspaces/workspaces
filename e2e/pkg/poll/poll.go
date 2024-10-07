@@ -52,8 +52,8 @@ func WaitForConditionImmediately(ctx context.Context, condition func(ctx context
 // second.  These can be overridden with the `E2E_POLL_TIMEOUT` and
 // `E2E_POLL_STEP_DURATION` environment variables.
 //
-// The errors returned by the invocations of the `condition` function are handled and
-// and used in to return a Joined error if timeout is hit.
+// The errors returned by the invocations of the `condition` function are collected and
+// -if timeout is hit- returned as a Joined error.
 func WaitForConditionImmediatelyJoiningErrors(ctx context.Context, condition func(ctx context.Context) (bool, error)) error {
 	errs := []error{}
 	err := WaitForConditionImmediately(ctx, func(ctx context.Context) (bool, error) {
