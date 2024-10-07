@@ -5,6 +5,7 @@ import "github.com/cucumber/godog"
 func RegisterSteps(ctx *godog.ScenarioContext) {
 	// given
 	ctx.Given(`^An user is onboarded$`, givenAnUserIsOnboarded)
+	ctx.Given(`^User "([^"]*)" is onboarded$`, givenUserIsOnboarded)
 
 	// when
 	ctx.When(`^An user onboards$`, whenAnUserOnboards)

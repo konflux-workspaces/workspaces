@@ -15,11 +15,11 @@ func thenTheUserRetrievesTheirDefaultWorkspace(ctx context.Context) (context.Con
 	u := tcontext.RetrieveUser(ctx)
 
 	errs := []error{}
-	if w.Namespace != u.Name {
-		errs = append(errs, fmt.Errorf("expected workspace namespace to be %s, found %s", u.Name, w.Namespace))
+	if w.Namespace != u.Status.CompliantUsername {
+		errs = append(errs, fmt.Errorf("expected workspace namespace to be %s, found %s", u.Status.CompliantUsername, w.Namespace))
 	}
 	if en := workspacesv1alpha1.DisplayNameDefaultWorkspace; w.Name != en {
-		errs = append(errs, fmt.Errorf("expected workspace name to be %s, found %s", en, w.Namespace))
+		errs = append(errs, fmt.Errorf("expected workspace name to be %s, found %s", en, w.Name))
 	}
 	return ctx, errors.Join(errs...)
 }

@@ -14,9 +14,10 @@ import (
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
 )
 
-func BuildJwtForUser(ctx context.Context, user string) (string, error) {
+func BuildJwtForContextUser(ctx context.Context) (string, error) {
 	c := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveWorkspacesNamespace(ctx)
+	u := tcontext.RetrieveUser(ctx)
 
 	s := corev1.Secret{}
 	k := types.NamespacedName{Namespace: ns, Name: "workspaces-traefik-jwt-keys"}
@@ -37,6 +38,6 @@ func BuildJwtForUser(ctx context.Context, user string) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodRS512,
 		jwt.MapClaims{
 			"iss": "e2e-test",
-			"sub": user,
+			"sub": u.Spec.IdentityClaims.Sub,
 		}).SignedString(key)
 }

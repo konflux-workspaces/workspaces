@@ -7,7 +7,11 @@ import (
 )
 
 func givenAnUserIsOnboarded(ctx context.Context) (context.Context, error) {
-	u, err := OnBoardUserInKubespaceNamespace(ctx, DefaultUserName)
+	return givenUserIsOnboarded(ctx, DefaultUserName)
+}
+
+func givenUserIsOnboarded(ctx context.Context, name string) (context.Context, error) {
+	u, err := OnBoardUserInKubespaceNamespace(ctx, name)
 	if err != nil {
 		return ctx, err
 	}

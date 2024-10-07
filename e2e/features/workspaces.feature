@@ -8,3 +8,4 @@ Feature: Workspace lifecycle
   Scenario: role is set on workspace for owner user 
     When A workspace is created for an user
     Then The owner is granted admin access to the workspace
+

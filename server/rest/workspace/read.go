@@ -77,7 +77,7 @@ func (h *ReadWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	// execute
-	l.Debug("executing create query", "query", q)
+	l.Debug("executing read query", "query", q)
 	qr, err := h.QueryHandler(r.Context(), *q)
 	if err != nil {
 		l.Error("error executing read query", "error", err)
