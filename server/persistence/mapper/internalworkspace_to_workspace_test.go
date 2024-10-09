@@ -77,8 +77,9 @@ func buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerN
 				Username: ownerName,
 			},
 			Space: workspacesv1alpha1.SpaceInfo{
-				IsHome: true,
-				Name:   displayName,
+				IsHome:        true,
+				Name:          displayName,
+				TargetCluster: "target-cluster",
 			},
 			Conditions: []metav1.Condition{
 				{Message: "test", Type: "test", Reason: "test", Status: metav1.ConditionTrue},
@@ -100,6 +101,7 @@ func validateMappedWorkspace(w *restworkspacesv1alpha1.Workspace, from workspace
 	Expect(w.Spec).ToNot(BeNil())
 	Expect(w.Status).ToNot(BeNil())
 	Expect(w.Status.Space).ToNot(BeNil())
-	Expect(w.Status.Space.Name).To(Equal(from.Name))
+	Expect(w.Status.Space.Name).To(Equal(from.Status.Space.Name))
+	Expect(w.Status.Space.TargetCluster).To(Equal(from.Status.Space.TargetCluster))
 	Expect(w.Status.Conditions).To(Equal(from.Status.Conditions))
 }
