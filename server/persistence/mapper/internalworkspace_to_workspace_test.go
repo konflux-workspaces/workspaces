@@ -67,7 +67,8 @@ func buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerN
 				"expected-label": "not-empty",
 				workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
 			},
-			Generation: 1,
+			Generation:        1,
+			CreationTimestamp: metav1.Now(),
 		},
 		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 			DisplayName: displayName,
@@ -98,6 +99,7 @@ func validateMappedWorkspace(w *restworkspacesv1alpha1.Workspace, from workspace
 		Not(HaveKey(workspacesv1alpha1.LabelInternalDomain+"not-expected-label")),
 	))
 	Expect(w.Generation).To(Equal(int64(1)))
+	Expect(w.CreationTimestamp).To(Equal(from.CreationTimestamp))
 	Expect(w.Spec).ToNot(BeNil())
 	Expect(w.Status).ToNot(BeNil())
 	Expect(w.Status.Space).ToNot(BeNil())
