@@ -18,7 +18,7 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-      - image: traefik:v3.1.2
+      - image: traefik:v3.1.6
         name: proxy
         imagePullPolicy: IfNotPresent
         volumeMounts:
@@ -27,7 +27,7 @@ spec:
         - name: "traefik-dynamic-config"
           mountPath: "/etc/traefik/dynamic"
         - name: "traefik-plugin-storage"
-          mountPath: "/plugins-storage" 
+          mountPath: "/plugins-storage"
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
