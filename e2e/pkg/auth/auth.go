@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	corev1 "k8s.io/api/core/v1"
@@ -37,6 +38,7 @@ func BuildJwtForContextUser(ctx context.Context) (string, error) {
 
 	return jwt.NewWithClaims(jwt.SigningMethodRS512,
 		jwt.MapClaims{
+			"exp": time.Now().Add(24 * time.Hour),
 			"iss": "e2e-test",
 			"sub": u.Spec.IdentityClaims.Sub,
 		}).SignedString(key)
