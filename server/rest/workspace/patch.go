@@ -47,12 +47,12 @@ func NewDefaultPatchWorkspaceHandler(
 // NewPatchWorkspaceHandler creates a PatchWorkspaceHandler
 func NewPatchWorkspaceHandler(
 	mapperFunc PatchWorkspaceMapperFunc,
-	queryHandler PatchWorkspaceCommandHandlerFunc,
+	commandHandler PatchWorkspaceCommandHandlerFunc,
 	marshalerProvider marshal.MarshalerProvider,
 ) *PatchWorkspaceHandler {
 	return &PatchWorkspaceHandler{
 		MapperFunc:        mapperFunc,
-		CommandHandler:    queryHandler,
+		CommandHandler:    commandHandler,
 		MarshalerProvider: marshalerProvider,
 	}
 }
