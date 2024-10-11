@@ -1,6 +1,5 @@
 Feature: Patch workspaces via REST API
 
-  @wip
   Scenario: users can update their workspaces' visibility
     Given An user is onboarded
     And   Default workspace is created for them
