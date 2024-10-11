@@ -38,7 +38,7 @@ func BuildJwtForContextUser(ctx context.Context) (string, error) {
 
 	return jwt.NewWithClaims(jwt.SigningMethodRS512,
 		jwt.MapClaims{
-			"exp": time.Now().Add(24 * time.Hour),
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
 			"iss": "e2e-test",
 			"sub": u.Spec.IdentityClaims.Sub,
 		}).SignedString(key)
