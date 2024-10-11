@@ -24,17 +24,19 @@ func (m *Mapper) InternalWorkspaceToWorkspace(workspace *workspacesv1alpha1.Inte
 			APIVersion: restworkspacesv1alpha1.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:       workspace.Spec.DisplayName,
-			Namespace:  workspace.Status.Owner.Username,
-			Labels:     wll,
-			Generation: workspace.Generation,
+			Name:              workspace.Spec.DisplayName,
+			Namespace:         workspace.Status.Owner.Username,
+			CreationTimestamp: workspace.CreationTimestamp,
+			Labels:            wll,
+			Generation:        workspace.Generation,
 		},
 		Spec: restworkspacesv1alpha1.WorkspaceSpec{
 			Visibility: restworkspacesv1alpha1.WorkspaceVisibility(workspace.Spec.Visibility),
 		},
 		Status: restworkspacesv1alpha1.WorkspaceStatus{
 			Space: &restworkspacesv1alpha1.SpaceInfo{
-				Name: workspace.Status.Space.Name,
+				Name:          workspace.Status.Space.Name,
+				TargetCluster: workspace.Status.Space.TargetCluster,
 			},
 			Owner: &restworkspacesv1alpha1.UserInfoStatus{
 				Email: workspace.Spec.Owner.JwtInfo.Email,

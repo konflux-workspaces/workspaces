@@ -18,9 +18,11 @@ package internalworkspace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -70,7 +72,7 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.ensureWorkspaceOwnerExists(ctx, &w); err != nil {
+	if err := r.ensureBackendResourcesExists(ctx, &w); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -81,6 +83,63 @@ func (r *WorkspaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	l.V(6).Info("InternalWorkspace's visibility is satisfied", "visibility", w.Spec.Visibility)
 	return ctrl.Result{}, nil
+}
+
+func (r *WorkspaceReconciler) ensureBackendResourcesExists(ctx context.Context, w *workspacesv1alpha1.InternalWorkspace) error {
+	// reset ready condition
+	meta.SetStatusCondition(&w.Status.Conditions,
+		metav1.Condition{
+			Type:   workspacesv1alpha1.ConditionTypeReady,
+			Reason: workspacesv1alpha1.ConditionReasonEverythingFine,
+			Status: metav1.ConditionTrue,
+		})
+
+	// run checks
+	oerr := r.ensureWorkspaceOwnerExists(ctx, w)
+	uerr := r.ensureSpaceExists(ctx, w)
+
+	// if all checks failed, return the errors
+	if oerr != nil && uerr != nil {
+		return errors.Join(oerr, uerr)
+	}
+
+	// if at least one check was successful, update the status
+	err := r.Status().Update(ctx, w)
+
+	// return joined errors
+	return errors.Join(err, oerr, uerr)
+}
+
+func (r *WorkspaceReconciler) ensureSpaceExists(ctx context.Context, w *workspacesv1alpha1.InternalWorkspace) error {
+	s := &toolchainv1alpha1.Space{}
+	k := types.NamespacedName{Name: w.Name, Namespace: r.KubesawNamespace}
+
+	err := r.Get(ctx, k, s)
+	switch {
+	// if the space exists, update the target cluster value
+	case err == nil:
+		w.Status.Space.TargetCluster = s.Status.TargetCluster
+		return nil
+
+	// if the space does not exist, remove the target cluster value
+	case kerrors.IsNotFound(err):
+		w.Status.Space.TargetCluster = ""
+		// set Ready condition to false if it's true
+		if meta.IsStatusConditionTrue(w.Status.Conditions, workspacesv1alpha1.ConditionTypeReady) {
+			meta.SetStatusCondition(&w.Status.Conditions,
+				metav1.Condition{
+					Type:    workspacesv1alpha1.ConditionTypeReady,
+					Reason:  workspacesv1alpha1.ConditionReasonSpaceNotFound,
+					Status:  metav1.ConditionFalse,
+					Message: fmt.Sprintf("Space %s not found", w.Name),
+				})
+		}
+		return nil
+
+	// if any other error occurred, forward it
+	default:
+		return err
+	}
 }
 
 func (r *WorkspaceReconciler) ensureWorkspaceOwnerExists(ctx context.Context, w *workspacesv1alpha1.InternalWorkspace) error {
@@ -113,16 +172,9 @@ func (r *WorkspaceReconciler) ensureWorkspaceOwnerExists(ctx context.Context, w 
 	default:
 		log.FromContext(ctx).Info("user signup found", "sub", w.Spec.Owner.JwtInfo.Sub)
 		w.Status.Owner.Username = uu.Items[i].Status.CompliantUsername
-		meta.SetStatusCondition(&w.Status.Conditions,
-			metav1.Condition{
-				Type:    workspacesv1alpha1.ConditionTypeReady,
-				Reason:  workspacesv1alpha1.ConditionReasonEverythingFine,
-				Status:  metav1.ConditionTrue,
-				Message: "",
-			})
 	}
 
-	return r.Status().Update(ctx, w)
+	return nil
 }
 
 func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.Context, w workspacesv1alpha1.InternalWorkspace) error {
@@ -165,9 +217,26 @@ func (r *WorkspaceReconciler) ensureWorkspaceVisibilityIsSatisfied(ctx context.C
 func (r *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&workspacesv1alpha1.InternalWorkspace{}).
+		Watches(&toolchainv1alpha1.Space{}, handler.EnqueueRequestsFromMapFunc(r.mapSpaceToWorkspace)).
 		Watches(&toolchainv1alpha1.SpaceBinding{}, handler.EnqueueRequestsFromMapFunc(r.mapSpaceBindingToWorkspace)).
 		Watches(&toolchainv1alpha1.UserSignup{}, handler.EnqueueRequestsFromMapFunc(r.mapUserSignupToWorkspace)).
 		Complete(r)
+}
+
+func (r *WorkspaceReconciler) mapSpaceToWorkspace(ctx context.Context, o client.Object) []reconcile.Request {
+	s, ok := o.(*toolchainv1alpha1.Space)
+	if !ok {
+		return nil
+	}
+
+	return []reconcile.Request{
+		{
+			NamespacedName: types.NamespacedName{
+				Name:      s.Name,
+				Namespace: r.WorkspacesNamespace,
+			},
+		},
+	}
 }
 
 func (r *WorkspaceReconciler) mapSpaceBindingToWorkspace(ctx context.Context, o client.Object) []reconcile.Request {

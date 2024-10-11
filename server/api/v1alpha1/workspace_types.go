@@ -47,6 +47,10 @@ type WorkspaceSpec struct {
 type SpaceInfo struct {
 	//+required
 	Name string `json:"name"`
+
+	// TargetCluster contains the URL to the cluster where the workspace's namespaces live
+	//+optional
+	TargetCluster string `json:"targetCluster,omitempty"`
 }
 
 // UserInfoStatus User info stored in the status

@@ -2,6 +2,7 @@ package poll
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -41,4 +42,28 @@ func getDurationFromEnv(envVar string, defaultDuration time.Duration) time.Durat
 // `E2E_POLL_STEP_DURATION` environment variables.
 func WaitForConditionImmediately(ctx context.Context, condition func(ctx context.Context) (bool, error)) error {
 	return wait.PollUntilContextTimeout(ctx, pollStepDuration, pollTimeout, true, condition)
+}
+
+// WaitForConditionImmediatelyJoiningErrors runs the function `condition` periodically to poll the
+// status of a condition.  It waits for either condition's first return value
+// to be `true`, or for a timeout to be hit.
+//
+// By default, this timeout is 1 minute, and `condition` is checked every
+// second.  These can be overridden with the `E2E_POLL_TIMEOUT` and
+// `E2E_POLL_STEP_DURATION` environment variables.
+//
+// The errors returned by the invocations of the `condition` function are collected and
+// -if timeout is hit- returned as a Joined error.
+func WaitForConditionImmediatelyJoiningErrors(ctx context.Context, condition func(ctx context.Context) (bool, error)) error {
+	errs := []error{}
+	err := WaitForConditionImmediately(ctx, func(ctx context.Context) (bool, error) {
+		v, err := condition(ctx)
+		if err != nil {
+			errs = append(errs, err)
+			return false, nil
+		}
+
+		return v, nil
+	})
+	return errors.Join(append([]error{err}, errs...)...)
 }

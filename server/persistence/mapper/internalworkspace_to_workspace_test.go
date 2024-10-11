@@ -67,7 +67,8 @@ func buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerN
 				"expected-label": "not-empty",
 				workspacesv1alpha1.LabelInternalDomain + "not-expected-label": "not-empty",
 			},
-			Generation: 1,
+			Generation:        1,
+			CreationTimestamp: metav1.Now(),
 		},
 		Spec: workspacesv1alpha1.InternalWorkspaceSpec{
 			DisplayName: displayName,
@@ -77,8 +78,9 @@ func buildExampleValidInternalWorkspace(displayName, workspacesNamespace, ownerN
 				Username: ownerName,
 			},
 			Space: workspacesv1alpha1.SpaceInfo{
-				IsHome: true,
-				Name:   displayName,
+				IsHome:        true,
+				Name:          displayName,
+				TargetCluster: "target-cluster",
 			},
 			Conditions: []metav1.Condition{
 				{Message: "test", Type: "test", Reason: "test", Status: metav1.ConditionTrue},
@@ -97,9 +99,11 @@ func validateMappedWorkspace(w *restworkspacesv1alpha1.Workspace, from workspace
 		Not(HaveKey(workspacesv1alpha1.LabelInternalDomain+"not-expected-label")),
 	))
 	Expect(w.Generation).To(Equal(int64(1)))
+	Expect(w.CreationTimestamp).To(Equal(from.CreationTimestamp))
 	Expect(w.Spec).ToNot(BeNil())
 	Expect(w.Status).ToNot(BeNil())
 	Expect(w.Status.Space).ToNot(BeNil())
-	Expect(w.Status.Space.Name).To(Equal(from.Name))
+	Expect(w.Status.Space.Name).To(Equal(from.Status.Space.Name))
+	Expect(w.Status.Space.TargetCluster).To(Equal(from.Status.Space.TargetCluster))
 	Expect(w.Status.Conditions).To(Equal(from.Status.Conditions))
 }
