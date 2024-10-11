@@ -56,6 +56,35 @@ func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context
 	return tcontext.InjectUserWorkspace(ctx, w), nil
 }
 
+func whenTheUserPatchesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
+	cli, err := wrest.BuildWorkspacesClient(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	// retrieve user's Workspace from context
+	w, err := func() (*restworkspacesv1alpha1.Workspace, error) {
+		w, ok := tcontext.LookupUserWorkspace(ctx)
+		if !ok {
+			// fallback to InternalWorkspace
+			iw := tcontext.RetrieveInternalWorkspace(ctx)
+			return mapper.Default.InternalWorkspaceToWorkspace(&iw)
+		}
+		return &w, nil
+	}()
+	if err != nil {
+		return ctx, err
+	}
+
+	pw := w.DeepCopy()
+	pw.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
+
+	if err := cli.Patch(ctx, pw, client.MergeFrom(w)); err != nil {
+		return ctx, err
+	}
+	return tcontext.InjectUserWorkspace(ctx, *w), nil
+}
+
 func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
 	cli, err := wrest.BuildWorkspacesClient(ctx)
 	if err != nil {

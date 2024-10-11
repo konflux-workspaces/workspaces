@@ -14,6 +14,7 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.When(`^The user requests their default workspace$`, whenUserRequestsTheirDefaultWorkspace)
 
 	ctx.When(`^The user changes workspace visibility to "([^"]*)"$`, whenTheUserChangesWorkspaceVisibilityTo)
+	ctx.When(`^The user patches workspace visibility to "([^"]*)"$`, whenTheUserPatchesWorkspaceVisibilityTo)
 
 	// then
 	ctx.Then(`^The user retrieves a list of workspaces containing just the default one$`, thenTheUserRetrievesAListOfWorkspacesContainingJustTheDefaultOne)
