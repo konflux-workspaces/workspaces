@@ -78,11 +78,10 @@ func whenTheUserPatchesWorkspaceVisibilityTo(ctx context.Context, visibility str
 
 	pw := w.DeepCopy()
 	pw.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
-
 	if err := cli.Patch(ctx, pw, client.MergeFrom(w)); err != nil {
 		return ctx, err
 	}
-	return tcontext.InjectUserWorkspace(ctx, *w), nil
+	return tcontext.InjectUserWorkspace(ctx, *pw), nil
 }
 
 func whenTheUserChangesWorkspaceVisibilityTo(ctx context.Context, visibility string) (context.Context, error) {
