@@ -29,3 +29,6 @@ http:
           keys: []
           jwtHeaders:
             X-Subject: sub
+          jwtSources:
+          - type: bearer
+            key: Authorization
