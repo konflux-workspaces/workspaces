@@ -75,6 +75,7 @@ func run(l *slog.Logger) error {
 		workspace.NewListWorkspaceHandler(c).Handle,
 		workspace.NewCreateWorkspaceHandler(writer).Handle,
 		workspace.NewUpdateWorkspaceHandler(writer).Handle,
+		workspace.NewPatchWorkspaceHandler(c, writer).Handle,
 	)
 
 	// HTTP Server graceful shutdown
