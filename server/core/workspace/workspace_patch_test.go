@@ -88,4 +88,33 @@ var _ = Describe("", func() {
 		expectedWorkspace.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityCommunity
 		Expect(response.Workspace).To(BeEquivalentTo(expectedWorkspace))
 	})
+
+	DescribeTable("Unsupported patch types are rejected",
+		func(patchType types.PatchType) {
+			// given
+			username := "foo"
+			ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
+			request.PatchType = patchType
+			reader.EXPECT().
+				ReadUserWorkspace(ctx, username, w.Namespace, w.Name, gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, user, owner, workspace string, rw *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
+					w.DeepCopyInto(rw)
+					return nil
+				})
+			updater.EXPECT().
+				UpdateUserWorkspace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Times(0)
+
+			// when
+			response, err := handler.Handle(ctx, request)
+
+			// then
+			Expect(response).To(BeNil())
+			Expect(err).To(MatchError(fmt.Errorf("unsupported patch type: %s", patchType)))
+		},
+		Entry("empty patchType", types.PatchType("")),
+		Entry("invalid patchType", types.PatchType("bar")),
+		Entry("strategic merge", types.StrategicMergePatchType),
+		Entry("apply patch", types.ApplyPatchType),
+	)
 })
