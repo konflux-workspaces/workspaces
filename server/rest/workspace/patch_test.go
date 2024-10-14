@@ -62,6 +62,11 @@ var _ = Describe("Patch tests", func() {
 			fake.EXPECT().WriteHeader(http.StatusBadRequest).Times(1)
 			return fake
 		}),
+		Entry("invalid Content-Type", workspace.MapPatchWorkspaceHttp, nopPatchHandler, marshal.DefaultMarshalerProvider, func() http.ResponseWriter {
+			request.Header.Set("Content-Type", "invalid")
+			fake.EXPECT().WriteHeader(http.StatusBadRequest).Times(1)
+			return fake
+		}),
 		Entry("failure in patch handler", workspace.MapPatchWorkspaceHttp, badPatchHandler, marshal.DefaultMarshalerProvider, func() http.ResponseWriter {
 			fake.EXPECT().WriteHeader(http.StatusInternalServerError)
 			return fake

@@ -61,32 +61,62 @@ var _ = Describe("", func() {
 		Expect(response).To(BeNil())
 	})
 
-	It("should allow authenticated requests", func() {
-		// given
-		request.PatchType = types.MergePatchType
-		request.Patch = []byte(`{"spec":{"visibility":"community"}}`)
-		username := "foo"
-		ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
-		opts := &client.UpdateOptions{}
-		reader.EXPECT().
-			ReadUserWorkspace(ctx, username, w.Namespace, w.Name, gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ctx context.Context, user, owner, workspace string, rw *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
-				w.DeepCopyInto(rw)
-				return nil
-			})
-		updater.EXPECT().
-			UpdateUserWorkspace(ctx, username, gomock.Any(), opts).
-			Return(nil)
+	Context("authenticated requests", func() {
+		It("should allow merge patch", func() {
+			// given
+			request.PatchType = types.MergePatchType
+			request.Patch = []byte(`{"spec":{"visibility":"community"}}`)
+			username := "foo"
+			ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
+			opts := &client.UpdateOptions{}
+			reader.EXPECT().
+				ReadUserWorkspace(ctx, username, w.Namespace, w.Name, gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, user, owner, workspace string, rw *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
+					w.DeepCopyInto(rw)
+					return nil
+				})
+			updater.EXPECT().
+				UpdateUserWorkspace(ctx, username, gomock.Any(), opts).
+				Return(nil)
 
-		// when
-		response, err := handler.Handle(ctx, request)
+			// when
+			response, err := handler.Handle(ctx, request)
 
-		// then
-		Expect(err).NotTo(HaveOccurred())
-		Expect(response).NotTo(BeNil())
-		expectedWorkspace := w.DeepCopy()
-		expectedWorkspace.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityCommunity
-		Expect(response.Workspace).To(BeEquivalentTo(expectedWorkspace))
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response).NotTo(BeNil())
+			expectedWorkspace := w.DeepCopy()
+			expectedWorkspace.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityCommunity
+			Expect(response.Workspace).To(BeEquivalentTo(expectedWorkspace))
+		})
+
+		It("should allow strategic merge patch", func() {
+			// given
+			request.PatchType = types.StrategicMergePatchType
+			request.Patch = []byte(`{"spec":{"visibility":"community"}}`)
+			username := "foo"
+			ctx := context.WithValue(ctx, ccontext.UserSignupComplaintNameKey, username)
+			opts := &client.UpdateOptions{}
+			reader.EXPECT().
+				ReadUserWorkspace(ctx, username, w.Namespace, w.Name, gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, user, owner, workspace string, rw *workspacesv1alpha1.Workspace, opts ...client.GetOption) error {
+					w.DeepCopyInto(rw)
+					return nil
+				})
+			updater.EXPECT().
+				UpdateUserWorkspace(ctx, username, gomock.Any(), opts).
+				Return(nil)
+
+			// when
+			response, err := handler.Handle(ctx, request)
+
+			// then
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response).NotTo(BeNil())
+			expectedWorkspace := w.DeepCopy()
+			expectedWorkspace.Spec.Visibility = workspacesv1alpha1.WorkspaceVisibilityCommunity
+			Expect(response.Workspace).To(BeEquivalentTo(expectedWorkspace))
+		})
 	})
 
 	DescribeTable("Unsupported patch types are rejected",
@@ -114,7 +144,6 @@ var _ = Describe("", func() {
 		},
 		Entry("empty patchType", types.PatchType("")),
 		Entry("invalid patchType", types.PatchType("bar")),
-		Entry("strategic merge", types.StrategicMergePatchType),
 		Entry("apply patch", types.ApplyPatchType),
 	)
 })

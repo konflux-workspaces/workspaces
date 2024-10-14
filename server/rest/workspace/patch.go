@@ -121,9 +121,9 @@ func MapPatchWorkspaceHttp(r *http.Request) (*workspace.PatchWorkspaceCommand, e
 		return nil, fmt.Errorf("error reading request body: %w", err)
 	}
 
-	ct, ok := r.Header["Content-Type"]
-	if !ok || len(ct) != 1 {
-		return nil, fmt.Errorf("Content-Type header is required")
+	pt, err := parsePatchType(r)
+	if err != nil {
+		return nil, err
 	}
 
 	// retrieve namespace from path
@@ -134,7 +134,27 @@ func MapPatchWorkspaceHttp(r *http.Request) (*workspace.PatchWorkspaceCommand, e
 	return &workspace.PatchWorkspaceCommand{
 		Workspace: n,
 		Owner:     ns,
-		PatchType: types.PatchType(ct[0]),
+		PatchType: pt,
 		Patch:     d,
 	}, nil
+}
+
+func parsePatchType(r *http.Request) (types.PatchType, error) {
+	ct, ok := r.Header["Content-Type"]
+	if !ok || len(ct) != 1 {
+		return "", fmt.Errorf("Content-Type header is required")
+	}
+
+	switch ct[0] {
+	case string(types.MergePatchType):
+		return types.MergePatchType, nil
+	case string(types.StrategicMergePatchType):
+		return types.StrategicMergePatchType, nil
+	case string(types.JSONPatchType):
+		return types.JSONPatchType, nil
+	case string(types.ApplyPatchType):
+		return types.ApplyPatchType, nil
+	default:
+		return "", fmt.Errorf("unsupported Content-Type: %s", ct)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
@@ -80,10 +81,17 @@ func (h *PatchWorkspaceHandler) Handle(ctx context.Context, command PatchWorkspa
 }
 
 func (h *PatchWorkspaceHandler) applyPatch(w *workspacesv1alpha1.Workspace, command PatchWorkspaceCommand) (*workspacesv1alpha1.Workspace, error) {
-	if command.PatchType != types.MergePatchType {
+	switch command.PatchType {
+	case types.MergePatchType:
+		return h.applyMergePatch(w, command.Patch)
+	case types.StrategicMergePatchType:
+		return h.applyStrategicMergePatch(w, command.Patch)
+	default:
 		return nil, fmt.Errorf("unsupported patch type: %s", command.PatchType)
 	}
+}
 
+func (h *PatchWorkspaceHandler) applyMergePatch(w *workspacesv1alpha1.Workspace, patch []byte) (*workspacesv1alpha1.Workspace, error) {
 	// marshal workspace as json
 	wj, err := json.Marshal(w)
 	if err != nil {
@@ -91,7 +99,29 @@ func (h *PatchWorkspaceHandler) applyPatch(w *workspacesv1alpha1.Workspace, comm
 	}
 
 	// apply jsonpatch
-	pwj, err := jsonpatch.MergePatch(wj, []byte(command.Patch))
+	pwj, err := jsonpatch.MergePatch(wj, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	// unmarshal json to struct
+	pw := workspacesv1alpha1.Workspace{}
+	if err := json.Unmarshal(pwj, &pw); err != nil {
+		return nil, err
+	}
+
+	return &pw, nil
+}
+
+func (h *PatchWorkspaceHandler) applyStrategicMergePatch(w *workspacesv1alpha1.Workspace, patch []byte) (*workspacesv1alpha1.Workspace, error) {
+	// marshal workspace as json
+	wj, err := json.Marshal(w)
+	if err != nil {
+		return nil, err
+	}
+
+	// apply jsonpatch
+	pwj, err := strategicpatch.StrategicMergePatch(wj, patch, *w)
 	if err != nil {
 		return nil, err
 	}
