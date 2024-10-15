@@ -1,19 +1,21 @@
 flowchart LR
 
   U["fa:fa-user User"]
-
-  AG["API Gateway"]
-  RS["Registration Service"]
-  P["Proxy"]
+  AG["Konflux 
+  API Gateway"]
   WA["Workspaces API"]
-
   MC["Member Clusters"]
+
+  subgraph KS["KubeSaw"]
+    direction TB
+    RS["Registration Service"]
+    P["Proxy"]
+  end
 
   subgraph WO["Workspaces Operator"]
     direction TB
     W["Workspace"]
   end
-
 
   subgraph HostCluster
     direction TB
@@ -26,10 +28,11 @@ flowchart LR
     end
   end
 
+
   U --> AG
-  AG -- "/api/signup" --> RS
-  AG -- "/apis/workspaces.io/workspaces/:name/*" --> P
-  AG -- "/apis/workspaces.io/workspaces[/:name]" --> WA
+  AG -- "/api/k8s/registration/api/v1/signup" --> RS
+  AG -- "/api/k8s/workspaces.konflux-ci.dev/workspaces" --> WA
+  AG -- "/apis/k8s/[workspaces/:name]/apis/*" --> P
 
   RS --> US
   WO --> S
