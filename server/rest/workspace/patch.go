@@ -93,7 +93,9 @@ func (h *PatchWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		case kerrors.IsForbidden(err):
 			serr := err.(*kerrors.StatusError)
 			w.WriteHeader(int(serr.Status().Code))
-			w.Write([]byte(serr.Error()))
+			if _, err := w.Write([]byte(serr.Error())); err != nil {
+				l.Info("error writing response: %v", err)
+			}
 		default:
 			l.Error("error executing patch command")
 			w.WriteHeader(http.StatusInternalServerError)
