@@ -22,6 +22,8 @@ status:
         isHome: true | false
         # the name of the related KubeSaw's Space
         name: my-workspace-7ghf2
+        # the URL of the cluster hosting the related KubeSaw's space
+        targetCluster: string
     owner:
         # the name of the owner's KubeSaw's UserSignup
         username: string

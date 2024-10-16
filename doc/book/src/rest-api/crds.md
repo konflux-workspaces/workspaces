@@ -19,6 +19,7 @@ status:
         email: string
     space:
         name: string
+        targetCluster: string
     conditions:
         type: string
         status: True | False | Unknown
