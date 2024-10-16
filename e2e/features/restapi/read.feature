@@ -12,7 +12,6 @@ Feature: Read workspaces via REST API
     When  The user requests their default workspace
     Then  The user retrieves their default workspace
 
-  @wip
   Scenario: user with long name get default workspace
     Given User "user-with-a-very-long-name" is onboarded
     And   Default workspace is created for "user-with-a-very-long-name"
