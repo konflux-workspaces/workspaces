@@ -25,6 +25,7 @@ const (
 	keyUserWorkspace             ContextKey = "user-workspace"
 	keyUser                      ContextKey = "default-user"
 	keyUserWorkspaces            ContextKey = "workspaces"
+	keyPrefixCustomUser          ContextKey = "custom-user"
 
 	msgNotFound string = "key not found in context"
 )
@@ -94,6 +95,19 @@ func InjectUser(ctx context.Context, u toolchainv1alpha1.UserSignup) context.Con
 
 func RetrieveUser(ctx context.Context) toolchainv1alpha1.UserSignup {
 	return get[toolchainv1alpha1.UserSignup](ctx, keyUser)
+}
+
+// Custom User
+func customUserKey(name string) ContextKey {
+	return ContextKey(fmt.Sprintf("%s-%s", keyPrefixCustomUser, name))
+}
+
+func InjectCustomUser(ctx context.Context, name string, u toolchainv1alpha1.UserSignup) context.Context {
+	return context.WithValue(ctx, customUserKey(name), u)
+}
+
+func RetrieveCustomUser(ctx context.Context, name string) toolchainv1alpha1.UserSignup {
+	return get[toolchainv1alpha1.UserSignup](ctx, customUserKey(name))
 }
 
 // Workspaces

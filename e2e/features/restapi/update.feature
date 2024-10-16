@@ -6,9 +6,11 @@ Feature: Update workspaces via REST API
     When  The user changes workspace visibility to "community"
     Then  The workspace visibility is updated to "community" 
 
-  @skip
   Scenario: users can not update visibility of non-owned workspaces
-  
+    Given A community workspace exists for an user
+    And   User "alice" is onboarded
+    Then "alice" can not change workspace visibility to "community"
+
   Scenario: visibility changes from private to community
     Given A private workspace exists for an user
     When  The owner changes visibility to community

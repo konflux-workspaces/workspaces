@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
+
 	"github.com/konflux-workspaces/workspaces/server/core"
 	"github.com/konflux-workspaces/workspaces/server/core/workspace"
 	"github.com/konflux-workspaces/workspaces/server/log"
@@ -93,6 +95,10 @@ func (h *UpdateWorkspaceHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		case errors.Is(err, core.ErrNotFound):
 			l.Debug("error executing update command: resource not found")
 			w.WriteHeader(http.StatusNotFound)
+		case kerrors.IsForbidden(err):
+			serr := err.(*kerrors.StatusError)
+			w.WriteHeader(int(serr.Status().Code))
+			w.Write([]byte(serr.Error()))
 		default:
 			l.Error("error executing update command")
 			w.WriteHeader(http.StatusInternalServerError)

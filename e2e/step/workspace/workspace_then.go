@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -131,6 +132,59 @@ func thenTheOwnerIsGrantedAdminAccessToTheWorkspace(ctx context.Context) error {
 		}
 		return false, nil
 	})
+}
+
+func thenUserCanNotChangeVisibilityTo(ctx context.Context, user, visibility string) error {
+	iw := tcontext.RetrieveInternalWorkspace(ctx)
+	u := tcontext.RetrieveCustomUser(ctx, user)
+	cli, err := wrest.BuildWorkspacesClientForUser(ctx, u)
+	if err != nil {
+		return err
+	}
+
+	w := restworkspacesv1alpha1.Workspace{}
+	wk := types.NamespacedName{Name: iw.Spec.DisplayName, Namespace: iw.Status.Owner.Username}
+	if err := cli.Get(ctx, wk, &w); err != nil {
+		return err
+	}
+	w.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
+	err = cli.Update(ctx, &w)
+	switch {
+	case err == nil:
+		return fmt.Errorf("expected forbidden error updating the workspace, got no error")
+	case errors.IsForbidden(err):
+		return nil
+	default:
+		return fmt.Errorf("expected forbidden error updating the workspace, got %v", err)
+	}
+}
+
+func thenUserCanNotPatchVisibilityTo(ctx context.Context, user, visibility string) error {
+	iw := tcontext.RetrieveInternalWorkspace(ctx)
+	u := tcontext.RetrieveCustomUser(ctx, user)
+	cli, err := wrest.BuildWorkspacesClientForUser(ctx, u)
+	if err != nil {
+		return err
+	}
+
+	w := restworkspacesv1alpha1.Workspace{}
+	wk := types.NamespacedName{Name: iw.Spec.DisplayName, Namespace: iw.Status.Owner.Username}
+	if err := cli.Get(ctx, wk, &w); err != nil {
+		return err
+	}
+
+	pw := w.DeepCopy()
+	pw.Spec.Visibility = restworkspacesv1alpha1.WorkspaceVisibility(visibility)
+	p := client.StrategicMergeFrom(pw)
+	err = cli.Patch(ctx, &w, p)
+	switch {
+	case err == nil:
+		return fmt.Errorf("expected forbidden error updating the workspace, got no error")
+	case errors.IsForbidden(err):
+		return nil
+	default:
+		return fmt.Errorf("expected forbidden error updating the workspace, got %v", err)
+	}
 }
 
 func thenTheWorkspaceVisibilityIsSetTo(ctx context.Context, visibility string) error {
