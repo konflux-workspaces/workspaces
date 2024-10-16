@@ -46,6 +46,5 @@ func BuildJwtForUser(ctx context.Context, user toolchainapiv1alpha1.UserSignup) 
 
 func BuildJwtForContextUser(ctx context.Context) (string, error) {
 	u := tcontext.RetrieveUser(ctx)
-
 	return BuildJwtForUser(ctx, u)
 }

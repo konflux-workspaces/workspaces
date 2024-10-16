@@ -18,7 +18,16 @@ import (
 
 func defaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context, error) {
 	u := tcontext.RetrieveUser(ctx)
-	w, err := getWorkspaceFromWorkspacesNamespace(ctx, u.Status.CompliantUsername)
+	return defaultWorkspaceIsCreatedForUser(ctx, u.Status.CompliantUsername)
+}
+
+func defaultWorkspaceIsCreatedForCustomUser(ctx context.Context, name string) (context.Context, error) {
+	u := tcontext.RetrieveCustomUser(ctx, name)
+	return defaultWorkspaceIsCreatedForUser(ctx, u.Status.CompliantUsername)
+}
+
+func defaultWorkspaceIsCreatedForUser(ctx context.Context, compliantUsername string) (context.Context, error) {
+	w, err := getWorkspaceFromWorkspacesNamespace(ctx, compliantUsername)
 	if err != nil {
 		return ctx, err
 	}

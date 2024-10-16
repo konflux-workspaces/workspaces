@@ -50,6 +50,11 @@ func givenDefaultWorkspaceIsCreatedForThem(ctx context.Context) (context.Context
 	return defaultWorkspaceIsCreatedForThem(ctx)
 }
 
+func givenDefaultWorkspaceIsCreatedForCustomUser(ctx context.Context, name string) (context.Context, error) {
+	u := tcontext.RetrieveCustomUser(ctx, name)
+	return defaultWorkspaceIsCreatedForUser(ctx, u.Status.CompliantUsername)
+}
+
 func givenAPrivateWorkspaceExists(ctx context.Context) (context.Context, error) {
 	cli := tcontext.RetrieveHostClient(ctx)
 	ns := tcontext.RetrieveKubespaceNamespace(ctx)

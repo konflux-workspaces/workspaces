@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	toolchainapiv1alpha1 "github.com/codeready-toolchain/api/api/v1alpha1"
 	"github.com/konflux-workspaces/workspaces/server/persistence/mapper"
 
 	tcontext "github.com/konflux-workspaces/workspaces/e2e/pkg/context"
@@ -24,8 +25,18 @@ func whenAnUserOnboards(ctx context.Context) (context.Context, error) {
 	return tcontext.InjectUser(ctx, *u), nil
 }
 
+func whenCustomUserRequestsTheListOfWorkspaces(ctx context.Context, user string) (context.Context, error) {
+	u := tcontext.RetrieveCustomUser(ctx, user)
+	return userSignupRequestsTheListOfWorkspaces(ctx, u)
+}
+
 func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, error) {
-	c, err := wrest.BuildWorkspacesClient(ctx)
+	u := tcontext.RetrieveUser(ctx)
+	return userSignupRequestsTheListOfWorkspaces(ctx, u)
+}
+
+func userSignupRequestsTheListOfWorkspaces(ctx context.Context, user toolchainapiv1alpha1.UserSignup) (context.Context, error) {
+	c, err := wrest.BuildWorkspacesClientForUser(ctx, user)
 	if err != nil {
 		return ctx, err
 	}
@@ -40,18 +51,27 @@ func whenUserRequestsTheListOfWorkspaces(ctx context.Context) (context.Context, 
 	return tcontext.InjectUserWorkspaces(ctx, ww), nil
 }
 
+func whenCustomUserRequestsTheirDefaultWorkspace(ctx context.Context, name string) (context.Context, error) {
+	u := tcontext.RetrieveCustomUser(ctx, name)
+	return userSignupRequestsTheirDefaultWorkspace(ctx, u)
+}
+
 func whenUserRequestsTheirDefaultWorkspace(ctx context.Context) (context.Context, error) {
-	c, err := wrest.BuildWorkspacesClient(ctx)
+	u := tcontext.RetrieveUser(ctx)
+	return userSignupRequestsTheirDefaultWorkspace(ctx, u)
+}
+
+func userSignupRequestsTheirDefaultWorkspace(ctx context.Context, user toolchainapiv1alpha1.UserSignup) (context.Context, error) {
+	c, err := wrest.BuildWorkspacesClientForUser(ctx, user)
 	if err != nil {
 		return ctx, err
 	}
 
-	u := tcontext.RetrieveUser(ctx)
 	w := restworkspacesv1alpha1.Workspace{}
-	wk := types.NamespacedName{Namespace: u.Status.CompliantUsername, Name: workspacesv1alpha1.DisplayNameDefaultWorkspace}
+	wk := types.NamespacedName{Namespace: user.Status.CompliantUsername, Name: workspacesv1alpha1.DisplayNameDefaultWorkspace}
 	if err := c.Get(ctx, wk, &w, &client.GetOptions{}); err != nil {
 		k := tcontext.RetrieveUnauthKubeconfig(ctx)
-		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, u.Status.CompliantUsername, err)
+		return ctx, fmt.Errorf("error retrieving workspace %v from host %s as user %s: %w", wk, k.Host, user.Status.CompliantUsername, err)
 	}
 	return tcontext.InjectUserWorkspace(ctx, w), nil
 }
