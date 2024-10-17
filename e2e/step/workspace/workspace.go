@@ -8,6 +8,7 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Given(`^A private workspace exists for an user$`, givenAPrivateWorkspaceExists)
 
 	ctx.Given(`^Default workspace is created for them$`, givenDefaultWorkspaceIsCreatedForThem)
+	ctx.Given(`^Default workspace is created for "([^"]*)"$`, givenDefaultWorkspaceIsCreatedForCustomUser)
 	ctx.Given(`^Workspace\'s Space has cluster URL set$`, givenWorkspaceHasClusterURLSet)
 	ctx.Given(`^Workspace\'s Space has no cluster URL set$`, givenWorkspaceHasNoClusterURLSet)
 
@@ -24,6 +25,8 @@ func RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Then(`^Default workspace is created for them$`, thenDefaultWorkspaceIsCreatedForThem)
 	ctx.Then(`^The owner is granted admin access to the workspace$`, thenTheOwnerIsGrantedAdminAccessToTheWorkspace)
 	ctx.Then(`^The workspace visibility is set to "([^"]*)"$`, thenTheWorkspaceVisibilityIsSetTo)
+	ctx.Then(`^"([^"]*)" can not change workspace visibility to "([^"]*)"$`, thenUserCanNotChangeVisibilityTo)
+	ctx.Then(`^"([^"]*)" can not patch workspace visibility to "([^"]*)"$`, thenUserCanNotPatchVisibilityTo)
 
 	ctx.Then(`^The workspace visibility is updated to "([^"]*)"$`, thenTheWorkspaceVisibilityIsUpdatedTo)
 	ctx.Then(`^Workspace has cluster URL in status$`, thenDefaultWorkspaceHasClusterURLInStatus)

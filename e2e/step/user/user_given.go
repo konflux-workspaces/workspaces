@@ -7,7 +7,11 @@ import (
 )
 
 func givenAnUserIsOnboarded(ctx context.Context) (context.Context, error) {
-	return givenUserIsOnboarded(ctx, DefaultUserName)
+	u, err := OnBoardUserInKubespaceNamespace(ctx, DefaultUserName)
+	if err != nil {
+		return ctx, err
+	}
+	return tcontext.InjectUser(ctx, *u), nil
 }
 
 func givenUserIsOnboarded(ctx context.Context, name string) (context.Context, error) {
@@ -15,5 +19,5 @@ func givenUserIsOnboarded(ctx context.Context, name string) (context.Context, er
 	if err != nil {
 		return ctx, err
 	}
-	return tcontext.InjectUser(ctx, *u), nil
+	return tcontext.InjectCustomUser(ctx, name, *u), nil
 }
