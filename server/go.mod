@@ -9,7 +9,7 @@ require (
 	github.com/konflux-workspaces/workspaces/operator v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
-	go.uber.org/mock v0.4.0
+	go.uber.org/mock v0.5.0
 	k8s.io/api v0.31.1
 	k8s.io/apimachinery v0.31.1
 	k8s.io/client-go v0.31.1
