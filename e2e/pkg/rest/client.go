@@ -58,6 +58,22 @@ func BuildDefaultHostClient() (client.Client, error) {
 // BuildWorkspacesClient builds a client that targets the Workspaces REST API server.
 // It also builds a valid JWT token for authenticating the requests.
 func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
+	t, err := auth.BuildJwtForContextUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return BuildWorkspacesClientWithToken(ctx, t)
+}
+
+func BuildWorkspacesClientForUser(ctx context.Context, user toolchainv1alpha1.UserSignup) (client.Client, error) {
+	t, err := auth.BuildJwtForUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return BuildWorkspacesClientWithToken(ctx, t)
+}
+
+func BuildWorkspacesClientWithToken(ctx context.Context, t string) (client.Client, error) {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(restworkspacesv1alpha1.AddToScheme(scheme))
@@ -65,11 +81,6 @@ func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	utilruntime.Must(workspacesiov1alpha1.AddToScheme(scheme))
 
 	k := tcontext.RetrieveUnauthKubeconfig(ctx)
-
-	t, err := auth.BuildJwtForContextUser(ctx)
-	if err != nil {
-		return nil, err
-	}
 	k.BearerToken = t
 	k.Host = os.Getenv("PROXY_URL")
 
@@ -85,6 +96,7 @@ func BuildWorkspacesClient(ctx context.Context) (client.Client, error) {
 	}
 
 	return c, nil
+
 }
 
 // BuildDefaultRESTMapper builds a RESTMapper from the default client configuration.

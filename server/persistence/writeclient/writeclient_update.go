@@ -45,6 +45,11 @@ func (c *WriteClient) UpdateUserWorkspace(ctx context.Context, user string, work
 	if iw.Generation != ciw.Generation {
 		return kerrors.NewResourceExpired("workspace version changed")
 	}
+	if ciw.Status.Owner.Username != user {
+		return kerrors.NewForbidden(
+			workspacesv1alpha1.GroupVersion.WithResource("workspace").GroupResource(),
+			"to update a workspace you need to be the owner", nil)
+	}
 
 	// update the InternalWorkspace
 	ciw.Spec.Visibility = iw.Spec.Visibility
