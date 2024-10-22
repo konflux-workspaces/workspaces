@@ -7,7 +7,7 @@ Workspaces are never persisted on storage, but always calculated from [InternalW
 Any allowed change performed on Workspaces is reflected by the REST API Server on [InternalWorkspaces](../operator/crds.md).
 
 ```yaml
-apiVersion: workspaces.konflux-ci.dev
+apiVersion: workspaces.konflux-ci.dev/v1alpha1
 kind: Workspaces
 metadata:
     namespace: owner-name
@@ -19,6 +19,7 @@ status:
         email: string
     space:
         name: string
+        targetCluster: string
     conditions:
         type: string
         status: True | False | Unknown

@@ -3,7 +3,7 @@
 InternalWorkspaces contains information required to build [Workspaces](../rest-api/crds.md) and to manage related [KubeSaw](https://github.com/codeready-toolchain)'s resources.
 
 ```yaml
-apiVersion: workspaces.konflux-ci.dev
+apiVersion: workspaces.konflux-ci.dev/v1alpha1
 kind: InternalWorkspace
 metadata:
     namespace: workspaces-system
@@ -22,13 +22,15 @@ status:
         isHome: true | false
         # the name of the related KubeSaw's Space
         name: my-workspace-7ghf2
+        # the URL of the cluster hosting the related KubeSaw's space
+        targetCluster: string
+    owner:
+        # the name of the owner's KubeSaw's UserSignup
+        username: string
     conditions:
         type: string
         status: True | False | Unknown
         reason: string
         message: string
         lastTransitionTime: time
-    owner:
-        # the name of the owner's KubeSaw's UserSignup
-        username: string
 ```

@@ -31,3 +31,11 @@ Returns the details for the workspace `{workspace}` owned by the user `{owner}`.
 > Only the owner is allowed to perform this operation.
 
 Allows the user to update the `spec` of the workspace `{workspace}` owned by the user `{owner}`.
+
+#### `PATCH`
+
+> Only the owner is allowed to perform this operation.
+
+> Only Merge and StrategicMerge strategies are supported.
+
+Allows the user to update the `spec` of the workspace `{workspace}` owned by the user `{owner}`.
