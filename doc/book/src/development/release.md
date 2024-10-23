@@ -10,21 +10,42 @@ be uploaded as release artifacts, which can be later consumed by [infra-deployme
 
 # Deploying a release to `infra-deployments`
 
-A release will largely be managed by [infra-deployments].  To update the version of
-konflux-workspaces running in infra-deployments, you'll need to do three things:
+A release will largely be managed by [infra-deployments].  To update the version of workspaces
+running in infra-deployments, you'll need to take the following steps (working in
+`components/workspaces`):
 
-1. Update the manifests using the new release's manifests, and changes the images in
-   `components/konflux-workspaces/staging` to point at the new release.
-2. Test out the deployed version to ensure it functions as expected.
-3. Update the image references in `components/konflux-workspaces/production` to roll out these
-   changes to production.
+1. Update the image references in `staging/` to point at the new release.
+2. Commit and file a PR against [infra-deployments] to roll the release out to staging.
+3. Test out the deployed version on the staging clusters to ensure it functions as expected.
+4. Update the image references in `production/` to use the same images as the
+   staging manifests.
+5. Commit and file a PR against [infra-deployments] to roll the release out to production.
+6. Test out the deployed version on the production clusters to ensure it functions as expected.
+
+There are a few tools that can be used to help determine if a deployment of workspaces is successful
+or not.  The smoke tests (`hack/smoke.sh`) can help determine if workspaces is functioning
+correctly, and the `konflux_workspaces_available` metric keeps track of the deployed operator's view
+of itself and its dependencies.
+
+## Deploying a release with changes to the deployment manifests
 
 If a release adds or removes resources when compared to a previous release, care must be taken to
 ensure that production does not break.  In this case, staging and production will need to refer to
 different kustomize manifests, which will prevent production from pulling in resources that have not
-yet been tested and validated on staging.
+yet been tested and validated on staging.  Instead of the procedure above, follow these steps:
 
-TODO: fill this with more detail once this actually happens.
+1. Extract the release's manifests into `staging/base/`.  Remove the server's
+   route (`server/config/server/route.yaml`) from these manifests and from the kustomize manifest.
+2. Update the staging manifests to point at this directory (`../base` instead of `../../base`) and
+   to use the updated release.
+3. Commit and file a PR against [infra-deployments] to roll these changes out to staging.
+4. Test out the deployed version on the staging clusters to ensure it functions as expected.
+5. Once staging has stabilized, replace `base/` with `staging/base/` by deleting the former
+   directory and moving the latter over the former.
+6. Update staging's manifests to point at `../../base` instead of `../base`.
+7. Update production's manifests to reference the new image version.
+8. Commit and file a PR against [infra-deployments] to roll these changes out to production.
+9. Test out the deployed version on the production clusters to ensure it functions as expected.
 
 [199]: https://github.com/konflux-workspaces/workspaces/pull/199
 [workflow]: https://github.com/konflux-workspaces/workspaces/actions/workflows/push.yaml
